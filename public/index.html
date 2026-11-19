@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="pa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Path Booking · Gurdwara Sahib</title>
+<meta name="description" content="Book Akhand Path, Sehaj Path or Sukhmani Sahib at the gurdwara online.">
+<meta name="theme-color" content="#1B2A5C">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@500;700;800&family=Mukta+Mahee:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <div class="mark" aria-hidden="true">ੴ</div>
+  <div class="hd">
+    <h1 id="gname">Gurdwara Sahib</h1>
+    <p>ਪਾਠ ਬੁਕਿੰਗ · Book Akhand Path, Sehaj Path or Sukhmani Sahib</p>
+  </div>
+  <button class="hdlink" id="manageBtn" type="button">My booking</button>
+</div></header>
+<div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: bookings are saved only on this device. Fill in firebase-config.js to go live.</div></div>
+
+<section class="seva" aria-label="Akhand Path in progress: Pathi Singh reading Sri Guru Granth Sahib Ji, a Singh doing chaur sahib seva, Singhs in full bana standing in attendance and the sangat seated">
+  <div class="wrap seva-in">
+    <svg class="seva-art" viewBox="0 0 600 270" role="img" aria-hidden="true">
+<defs>
+ <linearGradient id="g-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sv-wall1)"/><stop offset="1" stop-color="var(--sv-wall2)"/></linearGradient>
+ <linearGradient id="g-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sv-darri)"/><stop offset="1" stop-color="var(--sv-darri-d)"/></linearGradient>
+ <linearGradient id="g-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3D27A"/><stop offset=".55" stop-color="#D9A83A"/><stop offset="1" stop-color="#A97A1E"/></linearGradient>
+ <linearGradient id="g-wood" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6E4520"/><stop offset=".5" stop-color="#A06A35"/><stop offset="1" stop-color="#6E4520"/></linearGradient>
+ <linearGradient id="g-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E4FA8"/><stop offset="1" stop-color="#162C6B"/></linearGradient>
+ <linearGradient id="g-navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22306A"/><stop offset="1" stop-color="#0F1838"/></linearGradient>
+ <linearGradient id="g-kesri" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7A13A"/><stop offset="1" stop-color="#C9690C"/></linearGradient>
+ <linearGradient id="g-white" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D9DEEA"/></linearGradient>
+ <linearGradient id="g-rose" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E77B9C"/><stop offset="1" stop-color="#A9426A"/></linearGradient>
+ <linearGradient id="g-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5DAA7A"/><stop offset="1" stop-color="#2F6E49"/></linearGradient>
+ <linearGradient id="g-rumala" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E23B3B"/><stop offset="1" stop-color="#9E1F2A"/></linearGradient>
+ <radialGradient id="g-skin" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="#D9A06E"/><stop offset="1" stop-color="#B07646"/></radialGradient>
+ <linearGradient id="g-beard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3A44"/><stop offset="1" stop-color="#1E1E26"/></linearGradient>
+ <linearGradient id="g-page" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F3E6C8"/><stop offset=".5" stop-color="#FFF9EC"/><stop offset="1" stop-color="#F3E6C8"/></linearGradient>
+ <radialGradient id="g-light" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#FFD58A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD58A" stop-opacity="0"/></radialGradient>
+ <g id="khanda"><circle r="5" fill="none" stroke="#E8ECF5" stroke-width="1.4"/><path d="M0 -8 L1.2 -5 L1.2 6 L0 8 L-1.2 6 L-1.2 -5 Z" fill="#E8ECF5"/><path d="M-7 2 Q-9 -3 -5 -6 M7 2 Q9 -3 5 -6" stroke="#E8ECF5" stroke-width="1.2" fill="none"/></g>
+</defs>
+<!-- darbar hall -->
+<rect width="600" height="270" fill="url(#g-wall)"/>
+<g fill="none" stroke="var(--sv-arch)" stroke-width="2" opacity=".55">
+ <path d="M20 200 V95 Q20 55 60 55 Q100 55 100 95 V200"/><path d="M500 200 V95 Q500 55 540 55 Q580 55 580 95 V200"/>
+ <path d="M40 200 V100 Q40 72 60 72 Q80 72 80 100 V200" opacity=".6"/><path d="M520 200 V100 Q520 72 540 72 Q560 72 560 100 V200" opacity=".6"/>
+</g>
+<ellipse class="sv-glow" cx="300" cy="140" rx="230" ry="125" fill="url(#g-light)"/>
+<rect y="198" width="600" height="72" fill="url(#g-floor)"/>
+<g stroke="var(--sv-darri-line)" stroke-width="2" opacity=".5"><path d="M0 212 H600"/><path d="M0 236 H600"/><path d="M0 258 H600"/></g>
+<!-- palki sahib -->
+<rect x="186" y="70" width="9" height="122" fill="url(#g-wood)"/><rect x="405" y="70" width="9" height="122" fill="url(#g-wood)"/>
+<g fill="url(#g-gold)"><circle cx="190.5" cy="110" r="5"/><circle cx="409.5" cy="110" r="5"/><circle cx="190.5" cy="150" r="5"/><circle cx="409.5" cy="150" r="5"/></g>
+<path d="M174 74 Q300 -12 426 74 Z" fill="url(#g-gold)" stroke="#8A6114" stroke-width="1.2"/>
+<path d="M200 66 Q300 8 400 66" fill="none" stroke="#FFF1C4" stroke-width="1.5" opacity=".7"/>
+<path d="M176 74 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0 q 6.25 10 12.5 0" fill="none" stroke="var(--kesri)" stroke-width="3"/>
+<g fill="var(--kesri)"><circle cx="182.0" cy="84" r="2"/><circle cx="194.5" cy="84" r="2"/><circle cx="207.0" cy="84" r="2"/><circle cx="219.5" cy="84" r="2"/><circle cx="232.0" cy="84" r="2"/><circle cx="244.5" cy="84" r="2"/><circle cx="257.0" cy="84" r="2"/><circle cx="269.5" cy="84" r="2"/><circle cx="282.0" cy="84" r="2"/><circle cx="294.5" cy="84" r="2"/><circle cx="307.0" cy="84" r="2"/><circle cx="319.5" cy="84" r="2"/><circle cx="332.0" cy="84" r="2"/><circle cx="344.5" cy="84" r="2"/><circle cx="357.0" cy="84" r="2"/><circle cx="369.5" cy="84" r="2"/><circle cx="382.0" cy="84" r="2"/><circle cx="394.5" cy="84" r="2"/><circle cx="407.0" cy="84" r="2"/><circle cx="419.5" cy="84" r="2"/></g>
+<path d="M294 18 Q300 2 306 18 Z" fill="url(#g-gold)"/><circle cx="300" cy="22" r="5" fill="url(#g-gold)"/>
+<!-- garlands -->
+<path d="M196 92 Q246 118 300 96 Q354 118 404 92" fill="none" stroke="#F28C28" stroke-width="5" stroke-dasharray="3 3" stroke-linecap="round" opacity=".95"/>
+<path d="M196 92 Q246 118 300 96 Q354 118 404 92" fill="none" stroke="#FFD166" stroke-width="2" stroke-dasharray="1 6" stroke-linecap="round"/>
+
+<g class="sv-pathi">
+ <path d="M266 176 Q266 132 300 126 Q334 132 334 176 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".7"/>
+ <path d="M322 130 L286 170" stroke="var(--sv-gatra)" stroke-width="3.5"/>
+ <path d="M294 128 L300 140 L306 128 Z" fill="var(--sv-skin-d)"/>
+ <ellipse cx="300" cy="108" rx="11" ry="13" fill="url(#g-skin)"/>
+ <path d="M289 108 Q287 134 300 142 Q313 134 311 108 Q307 118 300 118 Q293 118 289 108 Z" fill="url(#g-beard)"/>
+ <path d="M294 112 Q300 109 306 112" stroke="#1E1E26" stroke-width="2" fill="none" stroke-linecap="round"/>
+ <path d="M294 106 q2 1.6 4 0 M302 106 q2 1.6 4 0" stroke="var(--sv-ink)" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+ <path d="M287 108 Q283 76 300 70 Q317 76 313 108 Q308 101 300 100 Q292 101 287 108 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".7"/>
+ <path d="M288 96 Q300 88 312 96 M287 88 Q300 79 313 88" stroke="#3D4F93" stroke-width="1" fill="none"/>
+ <g transform="translate(300,84) scale(.7)"><use href="#khanda"/></g>
+</g>
+<!-- manji sahib, rumala sahib, saroop -->
+<rect x="226" y="172" width="148" height="12" rx="2" fill="url(#g-wood)"/>
+<path d="M218 170 H382 L392 196 Q300 204 208 196 Z" fill="url(#g-rumala)"/>
+<path d="M210 192 Q300 200 390 192" stroke="url(#g-gold)" stroke-width="3" fill="none"/>
+<path d="M216 176 Q300 182 384 176" stroke="url(#g-gold)" stroke-width="1.6" fill="none" opacity=".8"/>
+<path d="M238 170 Q300 160 362 170 L366 176 Q300 168 234 176 Z" fill="#F4B942" opacity=".9"/>
+<g class="sv-hands"><ellipse cx="262" cy="158" rx="5" ry="3.5" fill="url(#g-skin)"/><ellipse cx="338" cy="158" rx="5" ry="3.5" fill="url(#g-skin)"/></g>
+<path d="M300 152 C276 138 252 140 240 150 L240 160 C254 152 278 152 300 164 Z" fill="url(#g-page)" stroke="#B9A57E" stroke-width=".8"/>
+<path d="M300 152 C324 138 348 140 360 150 L360 160 C346 152 322 152 300 164 Z" fill="url(#g-page)" stroke="#B9A57E" stroke-width=".8"/>
+<g class="sv-lines" stroke="#8C7A55" stroke-width=".8" opacity=".6" fill="none">
+ <path d="M250 152 Q270 146 292 155"/><path d="M250 156 Q270 150 292 159"/><path d="M308 155 Q330 146 350 152"/><path d="M308 159 Q330 150 350 156"/>
+</g>
+<rect x="180" y="192" width="240" height="14" rx="3" fill="url(#g-wood)"/>
+<rect x="190" y="206" width="10" height="10" fill="#5C3A1A"/><rect x="400" y="206" width="10" height="10" fill="#5C3A1A"/>
+
+<g class="sv-sev-left" >
+<path d="M107.0,186.0 L106.0,222.0 L115.0,222.0 L116.0,186.0 Z M120.0,186.0 L121.0,222.0 L130.0,222.0 L129.0,186.0 Z" fill="url(#g-white)" stroke="var(--sv-line)" stroke-width=".6"/>
+<path d="M103.0,226.0 Q104.0,221.0 110.0,221.0 L115.0,221.0 L115.0,226.0 Z M121.0,226.0 L121.0,221.0 L126.0,221.0 Q132.0,221.0 133.0,226.0 Z" fill="var(--sv-skin-d)"/>
+<path d="M101.0,118.0 Q96.0,146.0 92.0,188.0 L116.0,192.0 L118.0,174.0 L120.0,192.0 L144.0,188.0 Q140.0,146.0 135.0,118.0 Q118.0,112.0 101.0,118.0 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".7"/>
+<path d="M108.0,122.0 Q106.0,156.0 103.0,186.0 M128.0,122.0 Q130.0,156.0 133.0,186.0" stroke="var(--sv-fold)" stroke-width="1" fill="none" opacity=".5"/>
+<path d="M112.0,116.0 L118.0,128.0 L124.0,116.0 Z" fill="var(--sv-skin-d)"/>
+<path d="M132.0,118.0 L104.0,156.0" stroke="var(--sv-gatra)" stroke-width="3.2"/>
+<path d="M106.0,154.0 L88.0,178.0" stroke="var(--sv-sheath)" stroke-width="4.0" stroke-linecap="round"/>
+<path d="M106.0,154.0 L110.0,148.0" stroke="var(--sv-gold)" stroke-width="3.0" stroke-linecap="round"/>
+<path d="M98.0,152.0 Q118.0,156.0 138.0,152.0 L138.0,160.0 Q118.0,164.0 98.0,160.0 Z" fill="url(#g-kesri)"/>
+<path d="M124.0,160.0 L122.0,178.0 L128.0,178.0 L129.0,160.0 Z" fill="url(#g-kesri)"/>
+<path d="M102.0,122.0 Q96.0,140.0 112.0,142.0 L116.0,136.0 Q106.0,136.0 107.0,124.0 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M134.0,122.0 Q140.0,140.0 124.0,142.0 L120.0,136.0 Q130.0,136.0 129.0,124.0 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M115.0,137.0 L118.0,126.0 L121.0,137.0 Z" fill="var(--sv-skin)"/>
+<circle cx="122.0" cy="139.0" r="2.0" fill="none" stroke="var(--sv-kara)" stroke-width="1.2"/>
+<ellipse cx="118.0" cy="102.0" rx="8.5" ry="10.0" fill="url(#g-skin)"/>
+<path d="M109.5,102.0 Q108.0,122.0 118.0,129.0 Q128.0,122.0 126.5,102.0 Q124.0,110.0 118.0,109.0 Q112.0,110.0 109.5,102.0 Z" fill="url(#g-beard)"/>
+<path d="M113.0,108.0 Q118.0,106.0 123.0,108.0" stroke="var(--sv-beard)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M113.5,100.0 h2.5 M120.0,100.0 h2.5" stroke="var(--sv-ink)" stroke-width="1.0" stroke-linecap="round"/>
+<path d="M108.0,100.0 Q105.0,76.0 118.0,70.0 Q131.0,76.0 128.0,100.0 Q124.0,95.0 118.0,94.0 Q112.0,95.0 108.0,100.0 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M109.0,90.0 Q118.0,84.0 127.0,90.0 M108.0,96.0 Q118.0,89.0 128.0,96.0 M110.0,83.0 Q118.0,77.0 126.0,83.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+<g transform="translate(118.0,80.0) scale(0.55)"><use href="#khanda"/></g>
+</g>
+<g class="sv-sev-r2" >
+<path d="M494.0,186.0 L493.0,222.0 L502.0,222.0 L503.0,186.0 Z M507.0,186.0 L508.0,222.0 L517.0,222.0 L516.0,186.0 Z" fill="url(#g-white)" stroke="var(--sv-line)" stroke-width=".6"/>
+<path d="M490.0,226.0 Q491.0,221.0 497.0,221.0 L502.0,221.0 L502.0,226.0 Z M508.0,226.0 L508.0,221.0 L513.0,221.0 Q519.0,221.0 520.0,226.0 Z" fill="var(--sv-skin-d)"/>
+<path d="M488.0,118.0 Q483.0,146.0 479.0,188.0 L503.0,192.0 L505.0,174.0 L507.0,192.0 L531.0,188.0 Q527.0,146.0 522.0,118.0 Q505.0,112.0 488.0,118.0 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".7"/>
+<path d="M495.0,122.0 Q493.0,156.0 490.0,186.0 M515.0,122.0 Q517.0,156.0 520.0,186.0" stroke="var(--sv-fold)" stroke-width="1" fill="none" opacity=".5"/>
+<path d="M499.0,116.0 L505.0,128.0 L511.0,116.0 Z" fill="var(--sv-skin-d)"/>
+<path d="M519.0,118.0 L491.0,156.0" stroke="var(--sv-gatra)" stroke-width="3.2"/>
+<path d="M493.0,154.0 L475.0,178.0" stroke="var(--sv-sheath)" stroke-width="4.0" stroke-linecap="round"/>
+<path d="M493.0,154.0 L497.0,148.0" stroke="var(--sv-gold)" stroke-width="3.0" stroke-linecap="round"/>
+<path d="M485.0,152.0 Q505.0,156.0 525.0,152.0 L525.0,160.0 Q505.0,164.0 485.0,160.0 Z" fill="url(#g-blue)"/>
+<path d="M511.0,160.0 L509.0,178.0 L515.0,178.0 L516.0,160.0 Z" fill="url(#g-blue)"/>
+<path d="M489.0,122.0 Q483.0,140.0 499.0,142.0 L503.0,136.0 Q493.0,136.0 494.0,124.0 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M521.0,122.0 Q527.0,140.0 511.0,142.0 L507.0,136.0 Q517.0,136.0 516.0,124.0 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M502.0,137.0 L505.0,126.0 L508.0,137.0 Z" fill="var(--sv-skin)"/>
+<circle cx="509.0" cy="139.0" r="2.0" fill="none" stroke="var(--sv-kara)" stroke-width="1.2"/>
+<ellipse cx="505.0" cy="102.0" rx="8.5" ry="10.0" fill="url(#g-skin)"/>
+<path d="M496.5,102.0 Q495.0,122.0 505.0,129.0 Q515.0,122.0 513.5,102.0 Q511.0,110.0 505.0,109.0 Q499.0,110.0 496.5,102.0 Z" fill="url(#g-beard)"/>
+<path d="M500.0,108.0 Q505.0,106.0 510.0,108.0" stroke="var(--sv-beard)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M500.5,100.0 h2.5 M507.0,100.0 h2.5" stroke="var(--sv-ink)" stroke-width="1.0" stroke-linecap="round"/>
+<path d="M495.0,100.0 Q492.0,76.0 505.0,70.0 Q518.0,76.0 515.0,100.0 Q511.0,95.0 505.0,94.0 Q499.0,95.0 495.0,100.0 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M496.0,90.0 Q505.0,84.0 514.0,90.0 M495.0,96.0 Q505.0,89.0 515.0,96.0 M497.0,83.0 Q505.0,77.0 513.0,83.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+<g transform="translate(505.0,80.0) scale(0.55)"><use href="#khanda"/></g>
+</g>
+<g class="sv-sev-r3" >
+<path d="M556.8,187.2 L555.8,223.9 L564.9,223.9 L566.0,187.2 Z M570.0,187.2 L571.1,223.9 L580.2,223.9 L579.2,187.2 Z" fill="url(#g-white)" stroke="var(--sv-line)" stroke-width=".6"/>
+<path d="M552.7,228.0 Q553.7,222.9 559.8,222.9 L564.9,222.9 L564.9,228.0 Z M571.1,228.0 L571.1,222.9 L576.2,222.9 Q582.3,222.9 583.3,228.0 Z" fill="var(--sv-skin-d)"/>
+<path d="M550.7,117.8 Q545.6,146.4 541.5,189.2 L566.0,193.3 L568.0,175.0 L570.0,193.3 L594.5,189.2 Q590.4,146.4 585.3,117.8 Q568.0,111.7 550.7,117.8 Z" fill="url(#g-white)" stroke="var(--sv-ink)" stroke-width=".7"/>
+<path d="M557.8,121.9 Q555.8,156.6 552.7,187.2 M578.2,121.9 Q580.2,156.6 583.3,187.2" stroke="var(--sv-fold)" stroke-width="1" fill="none" opacity=".5"/>
+<path d="M561.9,115.8 L568.0,128.0 L574.1,115.8 Z" fill="var(--sv-skin-d)"/>
+<path d="M582.3,117.8 L553.7,156.6" stroke="var(--sv-gatra)" stroke-width="3.3"/>
+<path d="M555.8,154.6 L537.4,179.0" stroke="var(--sv-sheath)" stroke-width="4.1" stroke-linecap="round"/>
+<path d="M555.8,154.6 L559.8,148.4" stroke="var(--sv-gold)" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M547.6,152.5 Q568.0,156.6 588.4,152.5 L588.4,160.7 Q568.0,164.8 547.6,160.7 Z" fill="url(#g-kesri)"/>
+<path d="M574.1,160.7 L572.1,179.0 L578.2,179.0 L579.2,160.7 Z" fill="url(#g-kesri)"/>
+<path d="M551.7,121.9 Q545.6,140.3 561.9,142.3 L566.0,136.2 Q555.8,136.2 556.8,124.0 Z" fill="url(#g-white)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M584.3,121.9 Q590.4,140.3 574.1,142.3 L570.0,136.2 Q580.2,136.2 579.2,124.0 Z" fill="url(#g-white)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M564.9,137.2 L568.0,126.0 L571.1,137.2 Z" fill="var(--sv-skin)"/>
+<circle cx="572.1" cy="139.3" r="2.0" fill="none" stroke="var(--sv-kara)" stroke-width="1.2"/>
+<ellipse cx="568.0" cy="101.5" rx="8.7" ry="10.2" fill="url(#g-skin)"/>
+<path d="M559.3,101.5 Q557.8,121.9 568.0,129.1 Q578.2,121.9 576.7,101.5 Q574.1,109.7 568.0,108.7 Q561.9,109.7 559.3,101.5 Z" fill="url(#g-beard)"/>
+<path d="M562.9,107.6 Q568.0,105.6 573.1,107.6" stroke="var(--sv-beard)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M563.4,99.5 h2.5 M570.0,99.5 h2.5" stroke="var(--sv-ink)" stroke-width="1.0" stroke-linecap="round"/>
+<path d="M557.8,99.5 Q554.7,75.0 568.0,68.9 Q581.3,75.0 578.2,99.5 Q574.1,94.4 568.0,93.4 Q561.9,94.4 557.8,99.5 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M558.8,89.3 Q568.0,83.2 577.2,89.3 M557.8,95.4 Q568.0,88.3 578.2,95.4 M559.8,82.1 Q568.0,76.0 576.2,82.1" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+<g transform="translate(568.0,79.1) scale(0.56)"><use href="#khanda"/></g>
+</g>
+<g class="sv-sevadar" >
+<path d="M428.4,186.0 L427.4,223.8 L436.9,223.8 L437.9,186.0 Z M442.1,186.0 L443.1,223.8 L452.6,223.8 L451.6,186.0 Z" fill="url(#g-white)" stroke="var(--sv-line)" stroke-width=".6"/>
+<path d="M424.2,228.0 Q425.3,222.8 431.6,222.8 L436.9,222.8 L436.9,228.0 Z M443.1,228.0 L443.1,222.8 L448.4,222.8 Q454.7,222.8 455.8,228.0 Z" fill="var(--sv-skin-d)"/>
+<path d="M422.1,114.6 Q416.9,144.0 412.7,188.1 L437.9,192.3 L440.0,173.4 L442.1,192.3 L467.3,188.1 Q463.1,144.0 457.9,114.6 Q440.0,108.3 422.1,114.6 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".7"/>
+<path d="M429.5,118.8 Q427.4,154.5 424.2,186.0 M450.5,118.8 Q452.6,154.5 455.8,186.0" stroke="var(--sv-fold)" stroke-width="1" fill="none" opacity=".5"/>
+<path d="M433.7,112.5 L440.0,125.1 L446.3,112.5 Z" fill="var(--sv-skin-d)"/>
+<path d="M454.7,114.6 L425.3,154.5" stroke="var(--sv-gatra)" stroke-width="3.4"/>
+<path d="M427.4,152.4 L408.5,177.6" stroke="var(--sv-sheath)" stroke-width="4.2" stroke-linecap="round"/>
+<path d="M427.4,152.4 L431.6,146.1" stroke="var(--sv-gold)" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M419.0,150.3 Q440.0,154.5 461.0,150.3 L461.0,158.7 Q440.0,162.9 419.0,158.7 Z" fill="url(#g-kesri)"/>
+<path d="M446.3,158.7 L444.2,177.6 L450.5,177.6 L451.6,158.7 Z" fill="url(#g-kesri)"/>
+<path d="M423.2,118.8 Q414.8,139.8 427.4,148.2 L431.6,144.0 Q423.2,135.6 428.4,120.9 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<circle cx="429.5" cy="147.1" r="2.7" fill="var(--sv-skin)"/>
+<path d="M455.8,116.7 Q437.9,102.0 423.2,91.5 L427.4,86.2 Q442.1,95.7 459.9,120.9 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<ellipse cx="440.0" cy="97.8" rx="8.9" ry="10.5" fill="url(#g-skin)"/>
+<path d="M431.1,97.8 Q429.5,118.8 440.0,126.1 Q450.5,118.8 448.9,97.8 Q446.3,106.2 440.0,105.1 Q433.7,106.2 431.1,97.8 Z" fill="url(#g-beard)"/>
+<path d="M434.8,104.1 Q440.0,102.0 445.2,104.1" stroke="var(--sv-beard)" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+<path d="M435.3,95.7 h2.6 M442.1,95.7 h2.6" stroke="var(--sv-ink)" stroke-width="1.1" stroke-linecap="round"/>
+<path d="M429.5,95.7 Q426.4,70.5 440.0,64.2 Q453.6,70.5 450.5,95.7 Q446.3,90.4 440.0,89.4 Q433.7,90.4 429.5,95.7 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M430.6,85.2 Q440.0,78.9 449.4,85.2 M429.5,91.5 Q440.0,84.2 450.5,91.5 M431.6,77.8 Q440.0,71.5 448.4,77.8" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+<g transform="translate(440.0,74.7) scale(0.58)"><use href="#khanda"/></g>
+</g>
+<g class="sv-chaur" transform="translate(425.3,88.3)">
+ <g class="sv-chaur-rot"><animateTransform attributeName="transform" type="rotate" values="-24 0 8;14 0 8;-24 0 8" keyTimes="0;.5;1" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1" dur="2.8s" repeatCount="indefinite"/>
+  <rect x="-2" y="0" width="4" height="26" rx="2" fill="url(#g-gold)"/><circle cx="0" cy="26" r="3" fill="url(#g-gold)"/>
+  <rect x="-3.5" y="-3" width="7" height="5" rx="1.5" fill="url(#g-gold)"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity=".95"><path d="M0 -2 C-2.7 -28 -13.5 -50 -20.7 -38" /><path d="M0 -2 C-2.1 -28 -10.5 -50 -16.1 -38" /><path d="M0 -2 C-1.5 -28 -7.5 -50 -11.5 -38" /><path d="M0 -2 C-0.9 -28 -4.5 -50 -6.9 -38" /><path d="M0 -2 C-0.4 -28 -2.2 -50 -3.4 -38" /><path d="M0 -2 C0.0 -28 0.0 -50 0.0 -38" /><path d="M0 -2 C0.4 -28 2.2 -50 3.4 -38" /><path d="M0 -2 C0.9 -28 4.5 -50 6.9 -38" /><path d="M0 -2 C1.5 -28 7.5 -50 11.5 -38" /><path d="M0 -2 C2.1 -28 10.5 -50 16.1 -38" /><path d="M0 -2 C2.7 -28 13.5 -50 20.7 -38" /></g>
+  <g fill="none" stroke="#C9CFDD" stroke-width=".8" stroke-linecap="round"><path d="M0 -2 C-2.7 -28 -13.5 -50 -20.7 -38" /><path d="M0 -2 C-2.1 -28 -10.5 -50 -16.1 -38" /><path d="M0 -2 C-1.5 -28 -7.5 -50 -11.5 -38" /><path d="M0 -2 C-0.9 -28 -4.5 -50 -6.9 -38" /><path d="M0 -2 C-0.4 -28 -2.2 -50 -3.4 -38" /><path d="M0 -2 C0.0 -28 0.0 -50 0.0 -38" /><path d="M0 -2 C0.4 -28 2.2 -50 3.4 -38" /><path d="M0 -2 C0.9 -28 4.5 -50 6.9 -38" /><path d="M0 -2 C1.5 -28 7.5 -50 11.5 -38" /><path d="M0 -2 C2.1 -28 10.5 -50 16.1 -38" /><path d="M0 -2 C2.7 -28 13.5 -50 20.7 -38" /></g>
+ </g></g>
+<g class="sv-sangat-one">
+<path d="M15.3,272.0 Q15.3,241.6 26.7,234.0 Q40.0,230.2 53.3,234.0 Q64.7,241.6 64.7,272.0 Z" fill="url(#g-white)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<rect x="35.2" y="226.4" width="9.5" height="7.6" fill="var(--sv-skin-d)"/>
+<path d="M29.6,228.3 Q27.6,203.6 40.0,201.7 Q52.4,203.6 50.5,228.3 Q40.0,232.1 29.6,228.3 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M30.5,222.6 Q40.0,216.9 49.5,222.6 M30.5,215.0 Q40.0,209.3 49.5,215.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M85.3,272.0 Q85.3,241.6 96.7,234.0 Q110.0,230.2 123.3,234.0 Q134.7,241.6 134.7,272.0 Z" fill="url(#g-rose)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M94.8,235.9 Q94.8,205.5 110.0,201.7 Q125.2,205.5 125.2,235.9 Q110.0,243.5 94.8,235.9 Z" fill="url(#g-rose)" opacity=".95" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M100.5,218.8 Q99.5,201.7 110.0,199.8 Q120.5,201.7 119.5,218.8 Z" fill="url(#g-navy)"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M160.3,272.0 Q160.3,241.6 171.7,234.0 Q185.0,230.2 198.3,234.0 Q209.7,241.6 209.7,272.0 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<rect x="180.2" y="226.4" width="9.5" height="7.6" fill="var(--sv-skin-d)"/>
+<path d="M174.6,228.3 Q172.7,203.6 185.0,201.7 Q197.3,203.6 195.4,228.3 Q185.0,232.1 174.6,228.3 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M175.5,222.6 Q185.0,216.9 194.5,222.6 M175.5,215.0 Q185.0,209.3 194.5,215.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M233.3,272.0 Q233.3,241.6 244.7,234.0 Q258.0,230.2 271.3,234.0 Q282.7,241.6 282.7,272.0 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M242.8,235.9 Q242.8,205.5 258.0,201.7 Q273.2,205.5 273.2,235.9 Q258.0,243.5 242.8,235.9 Z" fill="url(#g-kesri)" opacity=".95" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M248.5,218.8 Q247.6,201.7 258.0,199.8 Q268.4,201.7 267.5,218.8 Z" fill="url(#g-navy)"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M313.3,272.0 Q313.3,241.6 324.7,234.0 Q338.0,230.2 351.3,234.0 Q362.7,241.6 362.7,272.0 Z" fill="url(#g-white)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<rect x="333.2" y="226.4" width="9.5" height="7.6" fill="var(--sv-skin-d)"/>
+<path d="M327.6,228.3 Q325.6,203.6 338.0,201.7 Q350.4,203.6 348.4,228.3 Q338.0,232.1 327.6,228.3 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M328.5,222.6 Q338.0,216.9 347.5,222.6 M328.5,215.0 Q338.0,209.3 347.5,215.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M387.3,272.0 Q387.3,241.6 398.7,234.0 Q412.0,230.2 425.3,234.0 Q436.7,241.6 436.7,272.0 Z" fill="url(#g-green)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M396.8,235.9 Q396.8,205.5 412.0,201.7 Q427.2,205.5 427.2,235.9 Q412.0,243.5 396.8,235.9 Z" fill="url(#g-green)" opacity=".95" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M402.5,218.8 Q401.6,201.7 412.0,199.8 Q422.4,201.7 421.5,218.8 Z" fill="url(#g-navy)"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M463.3,272.0 Q463.3,241.6 474.7,234.0 Q488.0,230.2 501.3,234.0 Q512.7,241.6 512.7,272.0 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<rect x="483.2" y="226.4" width="9.5" height="7.6" fill="var(--sv-skin-d)"/>
+<path d="M477.6,228.3 Q475.6,203.6 488.0,201.7 Q500.4,203.6 498.4,228.3 Q488.0,232.1 477.6,228.3 Z" fill="url(#g-kesri)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M478.5,222.6 Q488.0,216.9 497.5,222.6 M478.5,215.0 Q488.0,209.3 497.5,215.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+</g>
+<g class="sv-sangat-one">
+<path d="M537.3,272.0 Q537.3,241.6 548.7,234.0 Q562.0,230.2 575.3,234.0 Q586.7,241.6 586.7,272.0 Z" fill="url(#g-blue)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<rect x="557.2" y="226.4" width="9.5" height="7.6" fill="var(--sv-skin-d)"/>
+<path d="M551.5,228.3 Q549.6,203.6 562.0,201.7 Q574.4,203.6 572.5,228.3 Q562.0,232.1 551.5,228.3 Z" fill="url(#g-navy)" stroke="var(--sv-ink)" stroke-width=".6"/>
+<path d="M552.5,222.6 Q562.0,216.9 571.5,222.6 M552.5,215.0 Q562.0,209.3 571.5,215.0" stroke="var(--sv-fold)" stroke-width=".9" fill="none" opacity=".7"/>
+</g>
+</svg>
+    <div class="seva-txt">
+      <div class="seva-pa">ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ · ਸੇਵਾ</div>
+      <div class="hint">Pathi Singh reading Sri Guru Granth Sahib Ji. Amritdhari Singhs in full bana do chaur sahib seva and stand in attendance, with the sangat seated in the darbar.</div>
+      <button class="hdlink seva-btn" type="button" id="sevaToggle" aria-pressed="false">Pause</button>
+    </div>
+  </div>
+</section>
+<main><div class="wrap">
+  <div class="panel">
+    <div class="cal-head">
+      <button class="navbtn" id="prev" aria-label="Previous month">‹</button>
+      <h2 id="monthLabel">Month</h2>
+      <button class="navbtn" id="next" aria-label="Next month">›</button>
+    </div>
+    <div class="grid" id="dows"></div>
+    <div class="grid" id="days"></div>
+    <div class="legend">
+      <span><i></i>Open slot</span>
+      <span><i class="off"></i>Booked</span>
+      <span>Book from tomorrow up to six months ahead.</span>
+    </div>
+    <div id="status" class="note" style="margin-top:12px">Loading bookings…</div>
+  </div>
+  <div class="panel" id="side"></div>
+</div></main>
+
+<footer><div class="wrap" id="contactInfo"></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function(){
+  const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
+  const S={slots:{},settings:{name:'Gurdwara Sahib',phone:'',address:'',closed:[],upi:'',payee:'',fees:{},onlineDiscount:500},view:null,sel:G.first,form:null,done:null,loaded:false,mg:null,lk:{},watching:{}};
+  const f=G.parse(G.first); S.view=new Date(f.getFullYear(),f.getMonth(),1);
+  $('demoBar').hidden=!API.demo;
+  const siteUrl=()=>location.origin+location.pathname.replace(/index\.html$/,'');
+  const gname=()=>S.settings.name||'Gurdwara Sahib';
+  const M$=G.money;
+
+  // Live account (amounts, receipts, status) for a booking the visitor has open.
+  function follow(ref){if(S.watching[ref])return;S.watching[ref]=1;API.watchLookup(ref,l=>{S.lk[ref]=l;if(S.mg&&S.mg.b&&S.mg.b.ref===ref)S.mg.b.l=l;softRender()})}
+  // Live updates wait while the visitor is typing in the side panel, so their typing is not lost.
+  const typing=()=>{const a=document.activeElement;return a&&$('side').contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)};
+  function softRender(){if(typing()){S.pending=true;renderCal();return}renderAll()}
+
+  // While moving a booking, its own dates count as free for the calendar.
+  const oldIds=()=>{if(!S.mg||!S.mg.b||!S.mg.b.data)return[];const v=S.mg.b.data,t=G.typeOf(v.type),o=[];for(let i=0;i<(t?t.days:1);i++)o.push(G.slotId(G.add(v.start,i),v.type,v.seat||1));return o};
+  const viewSlots=()=>{const o=oldIds();if(!o.length)return S.slots;const r={};for(const[k,v]of Object.entries(S.slots))if(!o.includes(k))r[k]=v;return r};
+
+  function renderCal(){
+    const y=S.view.getFullYear(),m=S.view.getMonth(),slots=viewSlots();
+    const only=S.mg&&S.mg.stage==='pick'&&S.mg.b.data?[G.typeOf(S.mg.b.data.type)]:G.TYPES;
+    $('monthLabel').textContent=S.view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+    const a=G.parse(G.first),b=G.parse(G.last);
+    $('prev').disabled=y<a.getFullYear()||(y===a.getFullYear()&&m<=a.getMonth());
+    $('next').disabled=y>b.getFullYear()||(y===b.getFullYear()&&m>=b.getMonth());
+    const lead=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();
+    let h='';for(let i=0;i<lead;i++)h+='<span></span>';
+    for(let d=1;d<=n;d++){
+      const ds=G.iso(new Date(y,m,d)),out=ds<G.first||ds>G.last,closed=S.settings.closed.includes(ds);
+      const pips=only.map(t=>`<span class="pip ${G.isFree(t,ds,slots,S.settings)?'':'off'}"></span>`).join('');
+      h+=`<button class="day ${ds===S.sel?'sel':''} ${ds===G.today?'today':''} ${closed?'closed':''}" data-d="${ds}" ${out?'disabled':''} aria-label="${G.fmtLong(ds)}${closed?', closed':''}"><span class="n">${d}</span>${out||closed?'':`<span class="pips">${pips}</span>`}</button>`;
+    }
+    $('days').innerHTML=h;
+  }
+
+  // ---------- Bheta (ਭੇਟਾ) ----------
+  // Price box shown before booking: total, 20% advance, all-online price.
+  function priceBox(type){
+    const total=G.feeOf(S.settings,type);if(!total)return'';
+    const disc=Math.min(G.discountOf(S.settings),total),adv=G.advanceOf(total);
+    return `<div class="price"><div class="pr"><span>Bheta for this path</span><b>${M$(total)}</b></div>
+      <div class="pr"><span>Advance to pay online now (at least ${G.ADVANCE_PCT}%)</span><b>${M$(adv)}</b></div>
+      ${disc?`<div class="pr save"><span>Pay the full amount online and save ${M$(disc)}</span><b>${M$(total-disc)}</b></div>`:''}
+      <div class="hint">The balance can be paid online or at the gurdwara before the bhog.</div></div>`;
+  }
+  // Account summary for a booking.
+  function accountBox(l){
+    const a=G.account(l);if(!a.total)return `<div class="note">No bheta amount has been set for this path. Please ask at the gurdwara office.</div>`;
+    return `<div class="price">
+      <div class="pr"><span>Bheta</span><b>${M$(a.total)}</b></div>
+      ${a.disc&&!a.cash?`<div class="pr save"><span>Online discount (whole amount paid online)</span><b>− ${M$(a.disc)}</b></div>`:''}
+      <div class="pr"><span>Paid and confirmed${a.online&&a.cash?` (online ${M$(a.online)}, at gurdwara ${M$(a.cash)})`:''}</span><b>${M$(a.paid)}</b></div>
+      <div class="pr total"><span>Balance</span><b>${M$(a.due)}</b></div></div>`;
+  }
+  const legend=()=>`<div class="bhlegend"><div class="hint" style="margin-bottom:4px">What the status means</div>
+    ${['due','checking','partial','paid'].map(k=>`<div>${G.chip(k)}</div>`).join('')}</div>`;
+  function receiptsBox(ref,l){
+    const r=(l&&l.receipts)||[];if(!r.length)return'';
+    return `<div class="stepno" style="margin-top:6px">Receipts · ਰਸੀਦਾਂ</div><div class="rlist">${r.map((x,i)=>`<a class="rcpt" href="receipt.html?ref=${encodeURIComponent(ref)}&n=${i+1}" target="_blank" rel="noopener"><span>${G.esc(x.no)}</span><span>${M$(x.amount)} · ${G.esc(x.method)}</span></a>`).join('')}</div>`;
+  }
+  function payBlock(ref,l){
+    const a=G.account(l);
+    if(['paid','free','noshow','cancelled'].includes(a.state))return'';
+    if(l.checking)return `<div class="note" style="margin-top:8px">Thank you. The committee is checking your payment. This page updates as soon as they confirm it, and your receipt appears below.</div>`;
+    if(!S.settings.upi)return `<div class="note" style="margin-top:8px">Online payment is not set up yet. Please pay ${M$(a.due)} at the gurdwara office${S.settings.phone?` (${G.esc(S.settings.phone)})`:''} and mention reference <b>${G.esc(ref)}</b>.</div>`;
+    const first=!a.online, min=first?a.advance:1, def=first?a.advance:a.due;
+    const opts=[];
+    if(first&&a.advance<a.fullOnline)opts.push([a.advance,`Advance ${M$(a.advance)} (${G.ADVANCE_PCT}%)`]);
+    if(!a.cash)opts.push([a.due,`${first?'Full amount':'Balance'} ${M$(a.due)}${a.disc?` (saves ${M$(a.disc)})`:''}`]);
+    else opts.push([a.due,`Balance ${M$(a.due)}`]);
+    return `<div class="paybox" data-ref="${G.esc(ref)}" style="margin-top:8px">
+      <div class="hint">${first?`Pay at least <b>${M$(a.advance)}</b> now to confirm your booking.`:'Pay the balance online, or at the gurdwara before the bhog.'} Use Google Pay, Paytm, PhonePe, BHIM or your bank's UPI app.</div>
+      <div class="row" style="margin-top:6px">${opts.map(([v,t])=>`<button type="button" class="btn ghost amtpick" data-v="${v}">${t}</button>`).join('')}</div>
+      <label style="margin-top:6px">Amount to pay (₹)<input class="amt" type="number" min="${min}" max="${a.due}" step="1" inputmode="numeric" value="${def}"></label>
+      <div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">Pay by UPI</a></div>
+      <div class="hint" style="margin-top:6px">On a computer, scan this code with your phone's UPI app. UPI ID: <b>${G.esc(S.settings.upi)}</b></div>
+      <div class="qr" style="margin-top:8px;background:#fff;padding:8px;display:inline-block;border-radius:8px"></div>
+      <form class="payForm" data-ref="${G.esc(ref)}" data-min="${min}" data-max="${a.due}" novalidate style="margin-top:8px">
+        <label>After paying, enter the UPI transaction ID (UTR, usually 12 digits)<input name="utr" maxlength="30" inputmode="numeric" autocomplete="off"></label>
+        <div class="payErr"></div>
+        <div class="row"><button class="btn ghost" type="submit">I have paid</button></div>
+      </form></div>`;
+  }
+  // Keep the UPI link and QR in step with the amount box.
+  function wirePay(){
+    document.querySelectorAll('#side .paybox').forEach(pb=>{
+      const ref=pb.dataset.ref,inp=pb.querySelector('.amt'),btn=pb.querySelector('.upibtn'),qr=pb.querySelector('.qr');
+      const upd=()=>{const v=Math.round(Number(inp.value)||0);const link=G.upiLink(S.settings,v,ref);btn.href=link;btn.textContent=`Pay ${M$(v)} by UPI`;
+        qr.innerHTML='';if(typeof QRCode!=='undefined'&&v>0){try{new QRCode(qr,{text:link,width:150,height:150,correctLevel:QRCode.CorrectLevel.M})}catch(e){}}};
+      inp.addEventListener('input',upd);
+      pb.querySelectorAll('.amtpick').forEach(b=>b.addEventListener('click',()=>{inp.value=b.dataset.v;upd()}));
+      upd();
+    });
+  }
+  function bhetaSection(ref,l){
+    if(!l)return `<div class="step"><div class="stepno">ਭੇਟਾ Bheta</div><div class="hint">Loading…</div></div>`;
+    const a=G.account(l);
+    return `<div class="step"><div class="stepno">ਭੇਟਾ Bheta</div><div>${G.chip(a.state)}</div>${accountBox(l)}${payBlock(ref,l)}${receiptsBox(ref,l)}${legend()}</div>`;
+  }
+
+  function shareBox(o){
+    const msg=G.confirmText({...o,gname:gname(),url:siteUrl(),phone:S.settings.phone});
+    return `<div class="row" style="margin-top:10px">
+      <a class="btn" href="${G.waLink(o.custPhone,msg)}" target="_blank" rel="noopener">Send to my WhatsApp</a>
+      <button class="btn ghost" type="button" data-copy="${G.esc(msg)}">Copy details</button></div>
+      <div class="hint" style="margin-top:6px">WhatsApp opens with the message ready. Tap send to keep it in your chat.</div>`;
+  }
+
+  function renderSide(){
+    if(S.mg)renderManage();else if(S.form)renderForm();else if(S.done)renderDone();else renderDay();
+    wirePay();
+  }
+  function renderDay(){
+    const d=S.sel,closed=S.settings.closed.includes(d);
+    let h=`<p class="day-title">${G.fmtLong(d)}</p><p class="sub">${closed?'The gurdwara is not taking bookings on this date.':'Choose a path to book for this date.'}</p>`;
+    h+='<div class="slots">';
+    for(const t of G.TYPES){
+      const left=G.freeSeats(t,d,S.slots,S.settings).length,free=left>0,cap=G.capOf(S.settings,t.key),booked=G.bookingsOn(t,d,S.slots);
+      const full=booked.length>=cap,fee=G.feeOf(S.settings,t.key);
+      let right=free?`<button class="btn" data-book="${t.key}" ${S.loaded?'':'disabled'}>Book</button>`
+        :booked.length&&full?`<span class="tag">${booked.every(b=>b.part===1)?'Akhand Path in progress':'Fully booked'}</span>`
+        :`<span class="tag">${closed?'Closed':'Not available'}</span>`;
+      const places=cap>1&&!closed&&d>=G.first?`<div class="when"><b>${left} of ${cap} places left</b></div>`:'';
+      const names=booked.length?`<div class="hint">Booked: ${booked.map(b=>`${G.esc(b.name)} parivar${b.part===1?' (Akhand Path, day 2)':b.occasion?' · '+G.esc(b.occasion):''}`).join('; ')}</div>`:'';
+      const info=`<div class="when">${G.esc(t.when(d))}${fee?` · Bheta ${M$(fee)}`:''}</div>${places}${names}`;
+      const why=!free&&!full&&!closed&&t.days>1&&d>=G.first&&d<=G.last?`<div class="hint">No place is free on both days of the 48-hour path, or the next day is closed.</div>`:'';
+      h+=`<div class="slot ${free?'free':''}"><div class="txt"><div class="pa">${t.pa}</div><div class="en">${t.en}</div>${info}${why}</div>${right}</div>`;
+    }
+    $('side').innerHTML=h+'</div>';
+  }
+
+  // After booking: Step 1 done, Step 2 is the bheta.
+  function renderDone(){
+    const D=S.done,t=G.typeOf(D.type),l=S.lk[D.ref];
+    $('side').innerHTML=`<div class="step done"><div class="stepno">Step 1 of 2 · Booking saved ✓</div>
+        <div><b>${G.esc(t.en)}</b> on ${G.fmtLong(D.date)} for ${G.esc(D.name)} parivar.</div>
+        <div style="margin-top:6px">Your booking reference</div><div class="ref">${G.esc(D.ref)}</div>
+        <div class="hint">Keep this reference. Use "My booking" at the top to see your bheta status and receipts, or to change the date until <b>${G.fmtTime(D.deadline)}</b>.</div>
+        ${shareBox(D)}</div>
+      ${bhetaSection(D.ref,l).replace('<div class="stepno">ਭੇਟਾ Bheta</div>','<div class="stepno">Step 2 of 2 · ਭੇਟਾ Bheta</div>')}
+      <div class="row" style="margin-top:12px"><button class="btn ghost" type="button" id="doneClose">Back to calendar</button></div>`;
+  }
+
+  function renderForm(){
+    const t=G.typeOf(S.form),d=S.sel;
+    $('side').innerHTML=`<p class="day-title">Book ${t.en}</p>
+    <div class="summary"><b>${t.pa}</b><div>${G.fmtLong(d)}</div><div class="hint">${G.esc(t.when(d))}</div></div>
+    ${priceBox(t.key)}
+    <form id="bookForm" novalidate>
+      <label for="f-name">Family name <span class="hint">Shown on the calendar, e.g. "Sra" shows as "Sra parivar"</span><input id="f-name" required maxlength="60" autocomplete="family-name"></label>
+      <label for="f-phone">WhatsApp / phone number <span class="hint">Only the gurdwara committee sees this. You'll need it to change the date.</span><input id="f-phone" required type="tel" inputmode="tel" maxlength="20" autocomplete="tel"></label>
+      <label for="f-occ">Occasion<select id="f-occ">${G.OCCASIONS.map(o=>`<option>${o}</option>`).join('')}</select></label>
+      <label for="f-note">Note for the granthi <span class="hint">Optional. Names for the ardas, langar plans</span><textarea id="f-note" maxlength="400"></textarea></label>
+      <div id="formErr"></div>
+      <div class="row"><button class="btn" type="submit" id="submitBtn">${G.feeOf(S.settings,t.key)?'Confirm and go to payment':'Confirm booking'}</button><button class="btn ghost" type="button" id="back">Back</button></div>
+    </form>`;
+    $('f-name').focus();
+  }
+
+  function renderManage(){
+    const M=S.mg,err=M.err?`<div class="note err">${G.esc(M.err)}</div>`:'';
+    if(M.stage==='find'){
+      $('side').innerHTML=`<p class="day-title">My booking</p>
+      <p class="sub">See your bheta status and receipts, pay, or change the date. Enter the 6-letter reference you got when booking, and the phone number you gave.</p>
+      <form id="findForm" novalidate>
+        <label for="m-ref">Booking reference<input id="m-ref" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em" value="${G.esc(M.ref||'')}"></label>
+        <label for="m-phone">Phone number<input id="m-phone" type="tel" inputmode="tel" maxlength="20" value="${G.esc(M.phone||'')}"></label>
+        ${err}
+        <div class="row"><button class="btn" type="submit" id="findBtn">Find my booking</button><button class="btn ghost" type="button" data-mg-close>Back to calendar</button></div>
+      </form>`;
+      return;
+    }
+    const l=M.b.l||S.lk[M.b.ref],v=M.b.data,t=G.typeOf((v&&v.type)||l.type);
+    const start=(v&&v.start)||l.start;
+    const head=`<div class="summary"><b>${t?t.pa:''}</b><div>${t?t.en:''} · ${G.esc((v&&v.name)||l.name)} parivar</div><div>${v?'Booked for':'Was booked for'} <b>${G.fmtLong(start)}</b>${t&&t.days>1?` · bhog ${G.fmtLong(G.add(start,2))}`:''}</div><div class="hint">Reference ${G.esc(M.b.ref)}</div></div>`;
+    const close=`<div class="row" style="margin-top:12px"><button class="btn ghost" type="button" data-mg-close>Back to calendar</button></div>`;
+    if(M.stage==='done'){
+      $('side').innerHTML=`<p class="day-title">Date changed</p>
+      <div class="note good"><div>${t?t.en:''} is now on <b>${G.fmtLong(M.newDate)}</b> for ${G.esc(v.name)} parivar.</div>
+      <div style="margin-top:6px">Your reference stays the same</div><div class="ref">${G.esc(M.b.ref)}</div>
+      ${shareBox({type:v.type,date:M.newDate,name:v.name,ref:M.b.ref,custPhone:M.phone,moved:true,deadline:G.changeDeadline(v)})}</div>
+      ${bhetaSection(M.b.ref,l)}${close}`;
+      return;
+    }
+    let change='';
+    if(!v){change=`<div class="note">${l.closed==='noshow'?'This booking was closed as a no-show.':'This booking has been cancelled.'} ${S.settings.phone?`For questions, call the gurdwara on ${G.esc(S.settings.phone)}.`:''}</div>`}
+    else if(!G.canReschedule(v)){
+      change=`<div class="note">Online date changes are possible only within 24 hours of booking${G.bookedMs(v)?` (closed on ${G.fmtTime(G.changeDeadline(v))})`:''}. ${S.settings.phone?`To change the date, call the gurdwara on ${G.esc(S.settings.phone)}.`:'To change the date, contact the gurdwara committee.'}</div>`;
+    }else{
+      const d=S.sel,slots=viewSlots(),left=G.freeSeats(t,d,slots,S.settings).length,same=d===v.start;
+      const status=same?'<span class="tag">Current date</span>':left?`<button class="btn" id="moveBtn">Move to this date</button>`:`<span class="tag">${S.settings.closed.includes(d)?'Closed':'Not available'}</span>`;
+      change=`<div class="stepno">Change the date</div>
+        <p class="sub" style="margin:0 0 8px">Tap a date on the calendar. Orange dots show where this path is free. You can change until <b>${G.fmtTime(G.changeDeadline(v))}</b>.</p>
+        <div class="slot ${left&&!same?'free':''}"><div class="txt"><div class="pa">${G.fmtLong(d)}</div><div class="when">${G.esc(t.when(d))}</div></div>${status}</div>${err}`;
+    }
+    $('side').innerHTML=`<p class="day-title">My booking</p>${head}${bhetaSection(M.b.ref,l)}<div class="step">${change}</div>${close}`;
+  }
+
+  function renderFooter(){
+    const s=S.settings;
+    $('contactInfo').innerHTML=[s.address&&`<div>${G.esc(s.address)}</div>`,s.phone&&`<div>Gurdwara office: <b>${G.esc(s.phone)}</b></div>`,`<div><a href="admin.html" style="color:inherit">Committee login</a></div>`].filter(Boolean).join('');
+  }
+  function renderAll(){$('gname').textContent=gname();document.title='Path Booking · '+gname();renderCal();renderSide();renderFooter()}
+
+  $('side').addEventListener('focusout',()=>setTimeout(()=>{if(S.pending&&!typing()){S.pending=false;renderAll()}},0));
+  // Seva animation: Pause/Play, and still for people who prefer reduced motion.
+  const sevaSvg=document.querySelector('.seva-art');
+  const setSeva=paused=>{document.querySelector('.seva').classList.toggle('paused',paused);try{paused?sevaSvg.pauseAnimations():sevaSvg.unpauseAnimations()}catch(e){}
+    $('sevaToggle').textContent=paused?'Play':'Pause';$('sevaToggle').setAttribute('aria-pressed',paused)};
+  $('sevaToggle').onclick=()=>setSeva(!document.querySelector('.seva').classList.contains('paused'));
+  try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setSeva(true)}catch(e){}
+  $('dows').innerHTML=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('');
+  $('prev').onclick=()=>{S.view=new Date(S.view.getFullYear(),S.view.getMonth()-1,1);renderCal()};
+  $('next').onclick=()=>{S.view=new Date(S.view.getFullYear(),S.view.getMonth()+1,1);renderCal()};
+  $('days').onclick=e=>{const b=e.target.closest('.day');if(!b||b.disabled)return;S.sel=b.dataset.d;S.form=null;S.done=null;if(S.mg)S.mg.err='';renderCal();renderSide()};
+  $('manageBtn').onclick=()=>{S.mg={stage:'find'};S.form=null;S.done=null;renderAll();$('side').scrollIntoView({behavior:'smooth',block:'start'})};
+
+  $('side').addEventListener('click',async e=>{
+    const cp=e.target.closest('[data-copy]');
+    if(cp){const txt=cp.dataset.copy;try{await navigator.clipboard.writeText(txt);cp.textContent='Copied'}catch(x){cp.textContent='Copy failed'}return}
+    if(e.target.closest('[data-mg-close]')){S.mg=null;renderAll();return}
+    if(e.target.id==='doneClose'){S.done=null;renderAll();return}
+    if(e.target.id==='moveBtn'){
+      const M=S.mg,btn=e.target;btn.disabled=true;btn.textContent='Moving…';
+      try{await API.reschedule(M.b,M.phone,S.sel);M.newDate=S.sel;M.stage='done';M.err='';renderAll()}
+      catch(x){M.err=x.message==='late'?`Online changes are closed for this booking. Please call the gurdwara.`
+        :x.message==='nomatch'?'The phone number does not match this booking, or this date is no longer open. Check the number you gave when booking.'
+        :x.message==='taken'?'Someone took this date a moment ago. Choose another date.'
+        :'The change could not be saved. Check your internet connection and try again.';renderSide()}
+      return}
+    const b=e.target.closest('[data-book]');if(b){S.form=b.dataset.book;S.done=null;renderSide();return}
+    if(e.target.id==='back'){S.form=null;renderSide()}
+  });
+
+  $('side').addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(e.target.classList.contains('payForm')){
+      const fm=e.target,ref=fm.dataset.ref,pe=fm.querySelector('.payErr'),pb=fm.closest('.paybox');
+      const utr=fm.utr.value.trim().replace(/\s+/g,''),amount=Math.round(Number(pb.querySelector('.amt').value)||0);
+      const min=Number(fm.dataset.min),max=Number(fm.dataset.max);
+      if(amount<min){pe.innerHTML=`<div class="note err">The first payment must be at least ${M$(min)} (${G.ADVANCE_PCT}% advance). Change the amount above and pay that amount.</div>`;return}
+      if(amount>max){pe.innerHTML=`<div class="note err">The balance is only ${M$(max)}. Change the amount above.</div>`;return}
+      if(!/^[0-9A-Za-z]{6,30}$/.test(utr)){pe.innerHTML='<div class="note err">Enter the transaction ID shown in your UPI app after paying (usually 12 digits).</div>';return}
+      const btn=fm.querySelector('button');btn.disabled=true;btn.textContent='Saving…';
+      try{await API.reportPayment(ref,utr,amount)}
+      catch(x){btn.disabled=false;btn.textContent='I have paid';
+        pe.innerHTML=`<div class="note err">${x.message==='advance'?`The first payment must be at least the ${G.ADVANCE_PCT}% advance.`:'Could not save. Check your connection and try again.'}</div>`}
+      return}
+    if(e.target.id==='findForm'){
+      const ref=$('m-ref').value.trim().toUpperCase(),phone=$('m-phone').value.trim().replace(/\s+/g,' ');
+      S.mg={stage:'find',ref,phone};
+      if(!/^[A-Z0-9]{6}$/.test(ref)){S.mg.err='The reference has 6 letters and numbers, for example K7MQ2D.';return renderSide()}
+      if(G.phoneKey(phone).length<7){S.mg.err='Enter the phone number you gave when booking.';return renderSide()}
+      $('findBtn').disabled=true;$('findBtn').textContent='Searching…';
+      try{const bk=await API.findBooking(ref);
+        if(!bk){S.mg.err='No booking found with this reference. Check the letters, or call the gurdwara.';return renderSide()}
+        S.mg={stage:'pick',b:bk,phone,ref};S.lk[ref]=bk.l;follow(ref);
+        if(bk.data){S.sel=bk.data.start;const sd=G.parse(bk.data.start);S.view=new Date(sd.getFullYear(),sd.getMonth(),1)}
+        renderAll()}
+      catch(x){S.mg.err='Could not search right now. Check your internet connection and try again.';renderSide()}
+      return}
+    const name=$('f-name').value.trim().replace(/\s+/g,' '),phone=$('f-phone').value.trim().replace(/\s+/g,' '),occasion=$('f-occ').value,note=$('f-note').value.trim();
+    const err=m=>{$('formErr').innerHTML=`<div class="note err">${m}</div>`};
+    if(!name)return err('Enter the family name to show on the calendar.');
+    if(!/^[0-9+ \-]{7,20}$/.test(phone))return err('Enter a phone number using digits only, for example 98765 43210.');
+    const t=G.typeOf(S.form),d=S.sel,btn=$('submitBtn');btn.disabled=true;btn.textContent='Booking…';
+    try{const ref=await API.book(t,d,{name,phone,occasion,note});S.form=null;API.notify(ref,'booked');
+      S.done={ref,type:t.key,date:d,name,custPhone:phone,deadline:Date.now()+G.CHANGE_HOURS*3600e3};follow(ref);renderAll();$('side').scrollIntoView({behavior:'smooth',block:'start'})}
+    catch(x){btn.disabled=false;btn.textContent='Confirm booking';
+      err(x.message==='taken'?'Someone booked this slot a moment ago. Go back and choose another date or path.'
+        :x.message==='refused'?'This date is not open for booking any more, or the bheta amount was just changed. Go back and try again.'
+        :'The booking could not be saved. Check your internet connection and try again.')}
+  });
+
+  const timer=setTimeout(()=>{if(!S.loaded){$('status').className='note err';$('status').textContent='Cannot reach the booking system yet. Check your internet connection.'}},10000);
+  API.watchSlots((slots,fromCache)=>{S.slots=slots;if(!fromCache){S.loaded=true;clearTimeout(timer);$('status').className='note';$('status').textContent='Live availability. Booked slots update instantly.'}softRender()},
+    ()=>{clearTimeout(timer);$('status').className='note err';$('status').textContent='Bookings stopped updating. Reload the page.'});
+  API.watchSettings(s=>{S.settings=s;softRender()});
+  renderAll();
+})();
+</script>
+</body>
+</html>

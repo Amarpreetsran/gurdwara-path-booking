@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="pa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Committee · Path Booking</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1B2A5C">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@500;700;800&family=Mukta+Mahee:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <div class="mark" aria-hidden="true">ੴ</div>
+  <div class="hd"><h1 id="gname">Gurdwara Sahib</h1><p>Committee · ਪ੍ਰਬੰਧਕ ਕਮੇਟੀ</p></div>
+  <a class="hdlink" href="index.html">Booking page</a>
+  <button class="hdlink" id="signOut" hidden>Sign out</button>
+</div></header>
+<div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: sign in with any email and the password <b>demo</b>.</div></div>
+
+<main><div class="wrap single" id="root">
+  <div class="panel" id="loginPanel">
+    <h3>Committee sign in</h3>
+    <form id="loginForm">
+      <label for="l-email">Email<input id="l-email" type="email" autocomplete="username" required></label>
+      <label for="l-pass">Password<input id="l-pass" type="password" autocomplete="current-password" required></label>
+      <div id="loginErr"></div>
+      <div class="row"><button class="btn" type="submit" id="loginBtn">Sign in</button></div>
+    </form>
+  </div>
+
+  <div id="adminArea" hidden style="display:grid;gap:24px">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Bookings and bheta</h3>
+        <div class="row"><select id="stFilter" style="width:auto" aria-label="Show"></select><select id="filter" style="width:auto" aria-label="Path"><option value="all">All paths</option></select></div></div>
+      <div class="row" style="margin-top:10px"><button class="btn ghost" type="button" id="xlsxBtn">Download Excel</button><span class="hint" id="xlsxMsg">All bookings, payments and receipts, as an Excel file.</span></div>
+      <div id="counts" class="row" style="margin:10px 0"></div>
+      <p class="hint">When a devotee reports a UPI payment, check the UTR in your bank app, then tap "Confirm and issue receipt". Payments made at the gurdwara: "Record payment at gurdwara". Each confirmed payment gets a numbered receipt the devotee can see on "My booking".</p>
+      <div id="list" class="blist"></div>
+    </div>
+    <div class="panel">
+      <h3>Places at the same time</h3>
+      <p class="hint">How many families can book each path for the same date and time. For example, 2 for Akhand Path if two can run together. Lowering a number never removes existing bookings; it only stops new ones above the limit.</p>
+      <form id="capForm" style="gap:10px">
+        <div id="capRows" style="display:grid;gap:10px"></div>
+        <div id="capMsg"></div>
+        <div class="row"><button class="btn" type="submit">Save places</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <h3>Closed dates</h3>
+      <p class="hint">No bookings can be made on these dates, for example gurpurabs or other programmes at the gurdwara.</p>
+      <div class="row" style="margin-bottom:10px"><input id="closeDate" type="date" style="width:auto"><button class="btn ghost" id="addClosed">Close this date</button></div>
+      <div class="chips" id="closedList"></div>
+    </div>
+    <div class="panel">
+      <h3>Online payment (UPI)</h3>
+      <p class="hint">Devotees pay with Google Pay, Paytm, PhonePe, BHIM or any bank's UPI app, straight to this UPI ID, with no fees. Set a bheta amount for each path (0 = no bheta asked online). Amounts apply to new bookings; existing bookings keep the amount they were booked at.</p>
+      <form id="payForm">
+        <label for="p-upi">UPI ID <span class="hint">Use the gurdwara trust's UPI ID if it has one, e.g. gurdwara@sbi</span><input id="p-upi" maxlength="80" autocomplete="off" placeholder="name@bank"></label>
+        <label for="p-payee">Name shown when paying<input id="p-payee" maxlength="80"></label>
+        <div id="feeRows" style="display:grid;gap:10px"></div>
+        <label for="p-disc" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Discount when the whole amount is paid online <span class="hint">₹ per booking</span></span><input id="p-disc" type="number" min="0" step="1" inputmode="numeric" style="width:120px"></label>
+        <label for="p-prefix">Receipt number prefix <span class="hint">e.g. GBJS gives receipts like GBJS/2026-27/0001</span><input id="p-prefix" maxlength="12" autocomplete="off"></label>
+        <p class="hint" style="margin:0">The first payment must be at least 20% of the bheta, paid online.</p>
+        <div id="payMsg"></div>
+        <div class="row"><button class="btn" type="submit">Save payment settings</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <h3>Gurdwara details</h3>
+      <form id="setForm">
+        <label for="s-name">Gurdwara name<input id="s-name" maxlength="80" required></label>
+        <label for="s-phone">Office phone <span class="hint">Shown to the sangat for changes and cancellations</span><input id="s-phone" maxlength="30" type="tel"></label>
+        <label for="s-addr">Address<input id="s-addr" maxlength="160"></label>
+        <div id="setMsg"></div>
+        <div class="row"><button class="btn" type="submit">Save details</button></div>
+      </form>
+    </div>
+  </div>
+</div></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function(){
+  const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
+  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},open:{},cashOpen:{},filter:'all',st:'upcoming',watching:false};
+  $('demoBar').hidden=!API.demo;
+  $('filter').innerHTML+=G.TYPES.map(t=>`<option value="${t.key}">${t.en}</option>`).join('');
+  const FILTERS=[['upcoming','Upcoming bookings'],['due','Advance due'],['checking','Payment being checked'],['partial','Part paid'],['paid','Fully paid'],['pastdue','Bhog done, balance pending'],['noshow','No-show'],['cancelled','Cancelled with payment']];
+  $('stFilter').innerHTML=FILTERS.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  $('closeDate').min=G.today;
+  const M$=G.money;
+
+  // One row per booking: slot (first day) + contact + account.
+  function bookings(){
+    const out=[];
+    for(const [id,v] of Object.entries(S.slots)){if(v.part!==0)continue;
+      const c=S.contacts[id],ref=c&&c.ref,l=ref&&S.lookups[ref];
+      out.push({id,v,c,ref,l,start:v.start,type:v.type,name:v.name})}
+    for(const [ref,l] of Object.entries(S.lookups)){if(l.closed==='cancelled')out.push({id:null,v:null,c:null,ref,l,start:l.start,type:l.type,name:l.name})}
+    for(const b of out){const a=G.account(b.l||{total:0});b.a=a;
+      b.st=a.state;if(!b.l)b.st='free';
+      if(['due','partial','checking'].includes(a.state)&&G.bhogDate(b.type,b.start)<G.today)b.st='pastdue';
+      b.pending=b.ref?Object.entries(S.reports).filter(([,r])=>r.ref===b.ref&&!r.status):[]}
+    return out;
+  }
+  function renderList(){
+    const all=bookings();
+    const counts={};all.forEach(b=>{counts[b.st]=(counts[b.st]||0)+1});
+    $('counts').innerHTML=['due','checking','partial','paid','pastdue','noshow'].map(k=>`<button type="button" class="cbtn" data-st="${k}">${G.chip(k)}<b>${counts[k]||0}</b></button>`).join('');
+    const rows=all.filter(b=>(S.filter==='all'||b.type===S.filter)&&(
+        S.st==='upcoming'?b.start>=G.today&&b.st!=='cancelled':S.st==='due'?(b.st==='due'):b.st===S.st))
+      .sort((x,y)=>S.st==='pastdue'||S.st==='noshow'||S.st==='cancelled'?(x.start<y.start?1:-1):(x.start===y.start?x.type.localeCompare(y.type):x.start<y.start?-1:1));
+    $('list').innerHTML=rows.length?rows.map(row).join(''):`<p class="empty">Nothing here${S.filter==='all'?'':' for this path'}.</p>`;
+  }
+  function row(b){
+    const t=G.typeOf(b.type),a=b.a,l=b.l,ref=b.ref,v=b.v;
+    const amounts=l&&a.total?`<div class="meta">Bheta ${M$(a.total)}${a.disc&&!a.cash?` (${M$(a.fullOnline)} if all online)`:''} · Paid ${M$(a.paid)}${a.online&&a.cash?` (online ${M$(a.online)}, gurdwara ${M$(a.cash)})`:''} · <b>Balance ${M$(a.due)}</b>${!a.online&&a.state!=='paid'?` · Advance needed ${M$(a.advance)}`:''}</div>`:'';
+    const pend=b.pending.map(([id,r])=>`<div class="report"><span>💳 Reported ${M$(r.amount)} · UTR <b>${G.esc(r.utr)}</b></span>
+        <span class="row"><button class="btn" data-verify="${id}" data-ref="${G.esc(ref)}">Confirm and issue receipt</button><button class="btn ghost" data-reject="${id}" data-ref="${G.esc(ref)}">Not received</button></span></div>`).join('');
+    const cashForm=S.cashOpen[ref]?`<form class="cashForm" data-ref="${G.esc(ref)}"><div class="row">
+        <input name="amt" type="number" min="1" step="1" inputmode="numeric" value="${a.due||''}" style="width:120px" aria-label="Amount">
+        <select name="method" style="width:auto" aria-label="Mode"><option>Cash</option><option>Cheque</option><option>Bank transfer</option><option>UPI at counter</option></select>
+        <button class="btn" type="submit">Save and issue receipt</button><button class="btn ghost" type="button" data-cashclose="${G.esc(ref)}">Close</button></div></form>`:'';
+    const acts=[];
+    if(ref&&l&&a.due&&!l.closed)acts.push(`<button class="linkbtn" data-cash="${G.esc(ref)}">Record payment at gurdwara</button>`);
+    if(b.st==='pastdue')acts.push(`<button class="linkbtn" data-noshow="${G.esc(ref)}">Close as no-show (keep payment received)</button>`);
+    if(l&&l.closed==='noshow')acts.push(`<button class="linkbtn" data-reopen="${G.esc(ref)}">Reopen</button>`);
+    const rc=l&&l.receipts&&l.receipts.length?`<div class="meta">Receipts: ${l.receipts.map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&n=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)})`).join(', ')}</div>`:'';
+    const c=b.c;
+    const wa=c&&c.phone&&ref&&v?G.waLink(c.phone,G.confirmText({type:v.type,date:v.start,name:v.name,ref,gname:(S.settings&&S.settings.name)||'Gurdwara Sahib',url:location.origin+'/',phone:S.settings&&S.settings.phone})):'';
+    const details=b.id&&S.open[b.id]&&c?`<div class="meta">📞 <b>${G.esc(c.phone)}</b> · Ref ${G.esc(ref)}${c.note?'<br>'+G.esc(c.note):''}</div>${wa?`<a class="linkbtn" href="${wa}" target="_blank" rel="noopener">Send WhatsApp confirmation</a>`:''}`
+      :c?`<button class="linkbtn" data-show="${b.id}">Show phone</button>`:ref?`<div class="meta">Ref ${G.esc(ref)}</div>`:'';
+    return `<div class="bitem"><div class="bdate">${G.fmtShort(b.start)}<small>${G.fmtDow(b.start)}</small></div>
+      <div class="bmain"><div class="who">${t?t.en:G.esc(b.type)}</div>
+      <div class="meta">${G.esc(b.name)} parivar${v?' · '+G.esc(v.occasion):''}${v&&(G.capOf(S.settings,v.type)>1||(v.seat||1)>1)?' · Place '+(v.seat||1):''}${t&&t.days>1?' · Bhog '+G.fmtShort(G.add(b.start,2)):''}</div>
+      <div style="margin:4px 0">${G.chip(b.st)}</div>${amounts}${pend}${rc}
+      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${details}</div>
+      ${b.id&&b.start>=G.today?`<button class="btn danger" data-cancel="${b.id}">Cancel</button>`:'<span></span>'}</div>`;
+  }
+  function renderSettings(){
+    const s=S.settings||{name:'',phone:'',address:'',closed:[]};
+    $('gname').textContent=s.name||'Gurdwara Sahib';
+    if(document.activeElement.closest&&!document.activeElement.closest('#setForm')){$('s-name').value=s.name;$('s-phone').value=s.phone;$('s-addr').value=s.address}
+    if(!$('payForm').contains(document.activeElement)){
+      $('p-upi').value=s.upi||'';$('p-payee').value=s.payee||'';$('p-disc').value=G.discountOf(s);$('p-prefix').value=s.receiptPrefix||'RCPT';
+      $('feeRows').innerHTML=G.TYPES.map(t=>`<label for="fee-${t.key}" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">${t.en} <span class="hint">₹ amount</span></span>
+        <input id="fee-${t.key}" type="number" min="0" max="1000000" step="1" inputmode="numeric" value="${G.feeOf(s,t.key)}" style="width:120px"></label>`).join('');
+    }
+    if(!$('capForm').contains(document.activeElement)){
+      $('capRows').innerHTML=G.TYPES.map(t=>`<div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+        <label for="cap-${t.key}" style="min-width:0">${t.en}<span class="hint">${G.esc(t.pa)}</span></label>
+        <div class="row" style="flex-wrap:nowrap;gap:6px">
+          <button type="button" class="navbtn" data-step="-1" data-k="${t.key}" aria-label="Fewer places for ${t.en}">−</button>
+          <input id="cap-${t.key}" type="number" min="1" max="${G.MAX_PLACES}" value="${G.capOf(s,t.key)}" style="width:64px;text-align:center" inputmode="numeric">
+          <button type="button" class="navbtn" data-step="1" data-k="${t.key}" aria-label="More places for ${t.en}">+</button>
+        </div></div>`).join('');
+    }
+    const up=s.closed.filter(d=>d>=G.today).sort();
+    $('closedList').innerHTML=up.length?up.map(d=>`<span class="chip">${G.fmtLong(d)}<button data-open="${d}" aria-label="Reopen ${G.fmtLong(d)}">×</button></span>`).join(''):'<span class="empty">No closed dates.</span>';
+  }
+
+  API.onAuth((user,isAdmin)=>{
+    $('signOut').hidden=!user;
+    if(user&&!isAdmin){$('loginPanel').hidden=false;$('adminArea').hidden=true;
+      $('loginErr').innerHTML='<div class="note err">This account is not on the committee list. Add its User UID to the admins collection (see README, Step 5).</div>';return}
+    $('loginPanel').hidden=!!user;$('adminArea').hidden=!user;
+    if(user&&!S.watching){S.watching=true;
+      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports});if(!busy())renderList()});
+      API.watchSettings(s=>{S.settings=s;renderSettings();renderList()});}
+  });
+
+  $('loginForm').onsubmit=async e=>{e.preventDefault();const b=$('loginBtn');b.disabled=true;$('loginErr').innerHTML='';
+    try{await API.signIn($('l-email').value.trim(),$('l-pass').value)}
+    catch(x){const c=(x&&x.code)||'';
+      const m=c==='auth/operation-not-allowed'?'Email/Password sign-in is switched off. In Firebase, open Authentication → Sign-in method → Email/Password and turn on Enable.'
+        :c==='auth/too-many-requests'?'Too many tries. Wait a few minutes, or reset the password in Firebase.'
+        :c==='auth/network-request-failed'?'No internet connection to Firebase. Check your connection and try again.'
+        :c==='auth/invalid-email'?'That email address is not written correctly.'
+        :c==='auth/unauthorized-domain'?'This website address is not in Firebase → Authentication → Settings → Authorized domains.'
+        :c==='auth/invalid-api-key'||c==='auth/api-key-not-valid.-please-pass-a-valid-api-key.'?'The Firebase key in firebase-config.js is wrong.'
+        :API.demo?'Demo mode: the password is demo.'
+        :'Email or password is wrong. Check for extra spaces, or reset the password in Firebase → Authentication → Users.';
+      $('loginErr').innerHTML=`<div class="note err">${m}<div class="hint">Code: ${G.esc(c||'none')}</div></div>`}
+    b.disabled=false};
+  $('signOut').onclick=()=>API.signOut();
+  $('filter').onchange=e=>{S.filter=e.target.value;renderList()};
+  // Excel export: Bookings sheet + Receipts sheet.
+  $('xlsxBtn').onclick=()=>{
+    if(typeof XLSX==='undefined'){$('xlsxMsg').textContent='The Excel tool did not load. Check your internet connection and reload the page.';return}
+    const label=st=>(G.STATES[st]||['',st])[1];
+    const all=bookings().sort((x,y)=>x.start<y.start?-1:x.start>y.start?1:0);
+    const rows=all.map(b=>{const t=G.typeOf(b.type),a=b.a,c=b.c||{},v=b.v||{},l=b.l||{};
+      return {'Path date':b.start,'Day':G.fmtDow(b.start),'Path':t?t.en:b.type,'Bhog date':G.bhogDate(b.type,b.start),'Place':v.seat||'',
+        'Family name':b.name,'Phone':c.phone||'','Occasion':v.occasion||'','Note':c.note||'','Reference':b.ref||'',
+        'Bheta (Rs)':a.total,'Online discount (Rs)':a.disc&&!a.cash?a.disc:0,'Paid online (Rs)':a.online,'Paid at gurdwara (Rs)':a.cash,
+        'Total paid (Rs)':a.paid,'Balance (Rs)':a.due,'Status':label(b.st),'Payment being checked':l.checking?'Yes':'',
+        'Booked on':v.bookedAt?new Date(G.bookedMs(v)).toLocaleString('en-IN'):'','Date changed':l.prev?'Yes':''}});
+    const rec=[];
+    for(const [ref,l] of Object.entries(S.lookups)){const t=G.typeOf(l.type);
+      (l.receipts||[]).forEach(r=>rec.push({'Receipt no.':r.no,'Date':new Date(r.date).toLocaleString('en-IN'),'Reference':ref,'Family name':l.name,
+        'Path':t?t.en:l.type,'Path date':l.start,'Amount (Rs)':r.amount,'Mode':r.method,'UTR':r.utr||''}))}
+    rec.sort((x,y)=>x['Receipt no.']<y['Receipt no.']?-1:1);
+    const wb=XLSX.utils.book_new();
+    const ws1=XLSX.utils.json_to_sheet(rows.length?rows:[{'Path date':'No bookings yet'}]);
+    ws1['!cols']=[12,6,24,12,6,18,14,18,24,10,10,12,12,14,12,12,24,10,20,8].map(w=>({wch:w}));
+    const ws2=XLSX.utils.json_to_sheet(rec.length?rec:[{'Receipt no.':'No receipts yet'}]);
+    ws2['!cols']=[22,20,10,18,24,12,12,14,16].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws1,'Bookings');XLSX.utils.book_append_sheet(wb,ws2,'Receipts');
+    try{XLSX.writeFile(wb,`path-bookings-${G.today}.xlsx`);$('xlsxMsg').textContent=`Downloaded ${rows.length} bookings and ${rec.length} receipts. Check your Downloads folder.`}
+    catch(x){$('xlsxMsg').textContent='Could not create the file. Try again, or use a computer browser.'}
+  };
+  $('stFilter').onchange=e=>{S.st=e.target.value;renderList()};
+  $('counts').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(!b)return;S.st=b.dataset.st;$('stFilter').value=S.st;renderList()});
+  // Don't redraw the list while someone is typing an amount in it.
+  const busy=()=>{const a=document.activeElement;return a&&$('list').contains(a)&&/^(INPUT|SELECT)$/.test(a.tagName)};
+
+  $('list').addEventListener('click',async e=>{
+    const sh=e.target.closest('[data-show]');
+    if(sh){S.open[sh.dataset.show]=true;renderList();return}
+    const still=(ref,except)=>Object.entries(S.reports).some(([id,r])=>r.ref===ref&&!r.status&&id!==except);
+    const vf=e.target.closest('[data-verify]');
+    if(vf){vf.disabled=true;vf.textContent='Issuing receipt…';try{await API.verifyReport(vf.dataset.verify,still(vf.dataset.ref,vf.dataset.verify));API.notify(vf.dataset.ref,'payment')}catch(x){console.error(x);vf.textContent='Could not save. Retry';vf.disabled=false}return}
+    const rj=e.target.closest('[data-reject]');
+    if(rj){if(rj.dataset.armed!=='1'){rj.dataset.armed='1';rj.textContent='Tap again: payment not found in bank';return}
+      rj.disabled=true;try{await API.rejectReport(rj.dataset.reject,still(rj.dataset.ref,rj.dataset.reject))}catch(x){rj.textContent='Could not save. Retry';rj.disabled=false}return}
+    const cs=e.target.closest('[data-cash]');if(cs){S.cashOpen[cs.dataset.cash]=true;renderList();return}
+    const cc=e.target.closest('[data-cashclose]');if(cc){delete S.cashOpen[cc.dataset.cashclose];renderList();return}
+    const ns=e.target.closest('[data-noshow]');
+    if(ns){if(ns.dataset.armed!=='1'){ns.dataset.armed='1';ns.textContent='Tap again to close as no-show';return}
+      ns.disabled=true;try{await API.setClosed(ns.dataset.noshow,'noshow')}catch(x){ns.textContent='Could not save. Retry';ns.disabled=false}return}
+    const ro=e.target.closest('[data-reopen]');if(ro){ro.disabled=true;try{await API.setClosed(ro.dataset.reopen,'')}catch(x){ro.disabled=false}return}
+    const c=e.target.closest('[data-cancel]');if(!c)return;
+    if(c.dataset.armed!=='1'){c.dataset.armed='1';c.textContent='Tap again to cancel';setTimeout(()=>{if(c.isConnected){c.dataset.armed='';c.textContent='Cancel'}},4000);return}
+    c.disabled=true;try{await API.cancel(c.dataset.cancel)}catch(x){c.disabled=false;c.textContent='Could not cancel. Retry'}
+  });
+  $('list').addEventListener('submit',async e=>{
+    if(!e.target.classList.contains('cashForm'))return;e.preventDefault();
+    const fm=e.target,ref=fm.dataset.ref,amt=Math.round(Number(fm.amt.value)||0),btn=fm.querySelector('[type=submit]');
+    if(amt<1){fm.amt.focus();return}
+    btn.disabled=true;btn.textContent='Saving…';
+    try{await API.recordCash(ref,amt,fm.method.value);API.notify(ref,'payment');delete S.cashOpen[ref];document.activeElement.blur();renderList()}
+    catch(x){console.error(x);btn.disabled=false;btn.textContent='Could not save. Retry'}
+  });
+
+  const saveClosed=async list=>{const s={...S.settings,closed:list.filter(d=>d>=G.today).sort()};try{await API.saveSettings(s)}catch(x){alertNote('Could not save closed dates. Try again.')}};
+  const alertNote=m=>{$('closedList').insertAdjacentHTML('beforebegin',`<div class="note err" style="margin-bottom:8px">${m}</div>`)};
+  $('addClosed').onclick=()=>{const d=$('closeDate').value;if(!d||d<G.today)return;
+    const booked=Object.values(S.slots).filter(v=>v.date===d);
+    if(booked.length&&!$('addClosed').dataset.armed){$('addClosed').dataset.armed='1';$('addClosed').textContent=`${booked.length} booking(s) on this date. Tap again to close anyway`;return}
+    $('addClosed').dataset.armed='';$('addClosed').textContent='Close this date';
+    const c=new Set(S.settings.closed);c.add(d);saveClosed([...c])};
+  $('closedList').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)saveClosed(S.settings.closed.filter(d=>d!==b.dataset.open))});
+  $('capRows').addEventListener('click',e=>{const b=e.target.closest('[data-step]');if(!b)return;
+    const i=$('cap-'+b.dataset.k);i.value=Math.max(1,Math.min(G.MAX_PLACES,(parseInt(i.value,10)||1)+Number(b.dataset.step)))});
+  $('capForm').onsubmit=async e=>{e.preventDefault();const capacity={};
+    for(const t of G.TYPES){const n=parseInt($('cap-'+t.key).value,10);
+      if(!(n>=1&&n<=G.MAX_PLACES)){$('capMsg').innerHTML=`<div class="note err">Enter a number from 1 to ${G.MAX_PLACES} for ${t.en}.</div>`;return}
+      capacity[t.key]=n}
+    try{await API.saveSettings({...S.settings,capacity});$('capMsg').innerHTML='<div class="note good">Saved. The booking page now uses these numbers.</div>'}
+    catch(x){$('capMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
+  $('payForm').onsubmit=async e=>{e.preventDefault();
+    const upi=$('p-upi').value.trim(),payee=$('p-payee').value.trim(),fees={};
+    const onlineDiscount=Math.max(0,Math.round(Number($('p-disc').value)||0)),receiptPrefix=($('p-prefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'RCPT').toUpperCase();
+    if(upi&&!/^[A-Za-z0-9._-]{2,}@[A-Za-z][A-Za-z0-9.-]{1,}$/.test(upi)){$('payMsg').innerHTML='<div class="note err">That UPI ID does not look right. It should look like name@bank.</div>';return}
+    for(const t of G.TYPES){const n=Number($('fee-'+t.key).value||0);if(!(n>=0&&n<=1000000)){$('payMsg').innerHTML=`<div class="note err">Enter an amount from 0 for ${t.en}.</div>`;return}fees[t.key]=Math.round(n)}
+    try{await API.saveSettings({...S.settings,upi,payee,fees,onlineDiscount,receiptPrefix});$('payMsg').innerHTML=`<div class="note good">Saved. ${upi?'The booking page now shows UPI payment where an amount is set.':'Online payment is off until you add a UPI ID.'}</div>`}
+    catch(x){$('payMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
+  $('setForm').onsubmit=async e=>{e.preventDefault();
+    try{await API.saveSettings({...S.settings,name:$('s-name').value.trim(),phone:$('s-phone').value.trim(),address:$('s-addr').value.trim()});$('setMsg').innerHTML='<div class="note good">Saved.</div>'}
+    catch(x){$('setMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
+})();
+</script>
+</body>
+</html>

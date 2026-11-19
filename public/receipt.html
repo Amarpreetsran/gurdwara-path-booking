@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bheta Receipt</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1B2A5C">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@500;700;800&family=Mukta+Mahee:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .sheet{max-width:640px;margin:24px auto;background:#fff;color:#16213E;border:1px solid #DDE1EC;border-radius:14px;padding:28px 28px 22px}
+  .sheet .top{display:flex;gap:14px;align-items:center;border-bottom:2px solid #1B2A5C;padding-bottom:12px}
+  .sheet .om{font-family:var(--display);font-size:42px;color:#E3870E;line-height:1}
+  .sheet h1{font-family:var(--display);font-size:24px;margin:0;line-height:1.15}
+  .sheet .addr{font-size:13px;color:#5B6480}
+  .sheet .title{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin:14px 0 10px}
+  .sheet .title b{font-family:var(--display);font-size:20px}
+  .sheet table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+  .sheet td{padding:7px 0;border-bottom:1px solid #EEF0F5;vertical-align:top}
+  .sheet td:first-child{color:#5B6480;width:42%;padding-right:12px}
+  .sheet .amt{font-family:var(--display);font-size:26px}
+  .sheet .foot{margin-top:14px;font-size:12px;color:#5B6480}
+  .sheet .stamp{display:inline-block;border:2px solid #1F7A4D;color:#1F7A4D;border-radius:8px;padding:2px 10px;font-weight:700;transform:rotate(-3deg)}
+  .tools{max-width:640px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap}
+  @media print{ .tools,header{display:none!important} body{background:#fff} .sheet{border:0;margin:0;max-width:none} }
+</style>
+</head>
+<body>
+<main><div class="wrap" style="display:block;padding-block:16px 32px">
+  <div class="tools"><button class="btn" id="printBtn" type="button">Print or save as PDF</button><a class="btn ghost" href="index.html">Booking page</a></div>
+  <div class="sheet" id="sheet"><p>Loading receipt…</p></div>
+</div></main>
+<script src="firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function(){
+  const G=GPB,API=GPB_API,$=id=>document.getElementById(id),M$=G.money;
+  const q=new URLSearchParams(location.search),ref=(q.get('ref')||'').toUpperCase(),n=parseInt(q.get('n')||'0',10);
+  let settings=null,bk=null;
+  $('printBtn').onclick=()=>window.print();
+  function render(){
+    if(!settings||bk===null)return;
+    const sh=$('sheet');
+    if(!bk||!bk.l){sh.innerHTML='<p>No receipt found. Check the link, or ask at the gurdwara office.</p>';return}
+    const l=bk.l,list=l.receipts||[],r=list[n-1];
+    if(!r){sh.innerHTML='<p>This receipt number was not found for this booking.</p>';return}
+    const t=G.typeOf(l.type),start=(bk.data&&bk.data.start)||l.start;
+    // Amounts after this receipt.
+    let on=0,cash=0;list.slice(0,n).forEach(x=>{if(x.method==='UPI')on+=x.amount;else cash+=x.amount});
+    const a=G.account({...l,paidOnline:on,paidCash:cash,checking:false,closed:''});
+    document.title='Receipt '+r.no;
+    sh.innerHTML=`<div class="top"><div class="om">ੴ</div><div><h1>${G.esc(settings.name)}</h1>
+      <div class="addr">${G.esc(settings.address||'')}${settings.phone?` · ${G.esc(settings.phone)}`:''}</div></div></div>
+      <div class="title"><b>ਰਸੀਦ · Bheta Receipt</b><span>No. <b>${G.esc(r.no)}</b></span></div>
+      <table>
+        <tr><td>Date</td><td>${new Date(r.date).toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'})}</td></tr>
+        <tr><td>Received with thanks from</td><td><b>${G.esc(l.name)} parivar</b></td></tr>
+        <tr><td>Towards</td><td>${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(start)}${t&&t.days>1?` · bhog ${G.fmtLong(G.add(start,2))}`:''}</td></tr>
+        <tr><td>Booking reference</td><td>${G.esc(ref)}</td></tr>
+        <tr><td>Amount</td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
+        <tr><td>Payment mode</td><td>${G.esc(r.method)}${r.utr?` · UTR ${G.esc(r.utr)}`:''}</td></tr>
+        ${n>1?`<tr><td>Previous receipt${n>2?'s':''} for this booking</td><td>${list.slice(0,n-1).map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&n=${i+1}">${G.esc(x.no)}</a> · ${M$(x.amount)} · ${new Date(x.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`).join('<br>')}</td></tr>`:''}
+        <tr><td>Total bheta</td><td>${M$(a.total)}${a.disc&&!a.cash?` (${M$(a.fullOnline)} when paid fully online)`:''}</td></tr>
+        <tr><td>Paid so far</td><td>${M$(a.paid)}</td></tr>
+        <tr><td>Balance</td><td>${a.due?M$(a.due):'<span class="stamp">PAID IN FULL · ਪੂਰੀ ਭੇਟਾ ਪ੍ਰਾਪਤ</span>'}</td></tr>
+      </table>
+      <div class="foot">This is a computer-generated receipt and needs no signature. Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.</div>`;
+  }
+  API.watchSettings(s=>{settings=s;render()});
+  if(!ref||!n){bk=undefined;$('sheet').innerHTML='<p>This receipt link is incomplete.</p>';return}
+  API.findBooking(ref).then(b=>{bk=b||undefined;if(!b){$('sheet').innerHTML='<p>No receipt found for this reference.</p>';return}render()})
+    .catch(()=>{$('sheet').innerHTML='<p>Could not load the receipt. Check your internet connection and reload.</p>'});
+})();
+</script>
+</body>
+</html>
