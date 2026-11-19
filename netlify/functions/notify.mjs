@@ -36,7 +36,7 @@ export default async (req) => {
         let on = 0, cash = 0;
         rec.slice(0, i + 1).forEach(x => { if (x.method === 'UPI') on += x.amount; else cash += x.amount; });
         const a = account({ ...l, paidOnline: on, paidCash: cash });
-        const bal = a.due ? `Balance due: ${money(a.due)}` : 'Your bheta is now paid in full';
+        const bal = a.due ? `${money(a.due)} due` : 'ਪੂਰੀ ਭੇਟਾ ਪ੍ਰਾਪਤ / Paid in full';
         results.push(await sendOnce(`${ref}_r${i + 1}`, to, TEMPLATES.payment,
           [money(r.amount), path, whenText(l.type, l.start), ref, r.no, bal, url ? `${url}/receipt.html?ref=${ref}&n=${i + 1}` : `receipt ${r.no}`],
           { ref, event, receipt: r.no }));
