@@ -1,0 +1,220 @@
+rules_version = '2';
+// Security rules for Gurdwara Path Booking.
+// Paste this whole file into Firebase console > Firestore Database > Rules, then Publish.
+//
+// What these rules guarantee:
+//  - Anyone can see which dates are booked (family name and occasion only).
+//  - Anyone can book a free place, but nobody can overwrite or change an existing booking,
+//    so the same place can never be booked twice, and nobody can book more places than
+//    the committee allows for that path (settings/main -> capacity).
+//  - Phone numbers and notes (the "contacts" collection) can be read only by committee members.
+//  - Only committee members (listed in the "admins" collection) can cancel bookings,
+//    close dates or change the gurdwara details.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && (exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+            || exists(/databases/$(database)/documents/Gurlal/$(request.auth.uid)));
+    }
+    function isDate(s) {
+      return s is string && s.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+    function text(v, max) {
+      return v is string && v.size() > 0 && v.size() <= max;
+    }
+    function dateClosed(d) {
+      return exists(/databases/$(database)/documents/settings/main)
+        && d in get(/databases/$(database)/documents/settings/main).data.get('closed', []);
+    }
+    function inFuture(s) {
+      let p = s.split('-');
+      return timestamp.date(int(p[0]), int(p[1]), int(p[2])) > request.time;
+    }
+    function contactPath(id) { return /databases/$(database)/documents/contacts/$(id); }
+    function slotPath(id) { return /databases/$(database)/documents/slots/$(id); }
+    function movePath(id) { return /databases/$(database)/documents/reschedules/$(id); }
+    // True when this request also records a valid move of the booking that starts at startId.
+    function beingMoved(startId) {
+      return exists(contactPath(startId))
+        && existsAfter(movePath(startId + '_' + get(contactPath(startId)).data.ref));
+    }
+    // A booking keeps its original booking time when its date is changed, so the
+    // 24-hour change window always counts from when it was first booked.
+    function keptBookingTime(d) {
+      let startId = d.start + '__' + d.type + '__' + string(d.seat);
+      let ref = getAfter(contactPath(startId)).data.ref;
+      let l = getAfter(/databases/$(database)/documents/lookup/$(ref)).data;
+      return l.slot == startId && l.get('prev', '') != ''
+        && existsAfter(movePath(l.prev + '_' + ref))
+        && get(slotPath(l.prev)).data.get('bookedAt', null) == d.bookedAt;
+    }
+    function settingsPath() { return /databases/$(database)/documents/settings/main; }
+    function feeFor(type) {
+      return exists(settingsPath()) ? get(settingsPath()).data.get('fees', {}).get(type, 0) : 0;
+    }
+    function discountSetting() {
+      return exists(settingsPath()) ? get(settingsPath()).data.get('onlineDiscount', 500) : 500;
+    }
+    function lookupPath(ref) { return /databases/$(database)/documents/lookup/$(ref); }
+    function validReport(rid) {
+      let r = request.resource.data;
+      let l = get(lookupPath(r.ref)).data;
+      let n = l.get('reports', 0) + 1;
+      return r.keys().hasOnly(['ref', 'utr', 'amount', 'createdAt'])
+        && l.get('closed', '') == ''
+        && rid == r.ref + '_' + string(n)
+        && getAfter(lookupPath(r.ref)).data.reports == n
+        && r.utr is string && r.utr.matches('^[0-9A-Za-z]{6,30}$')
+        && r.amount is number && r.amount >= 1 && r.amount <= l.total
+        && (l.get('paidOnline', 0) > 0 || l.get('checking', false) == true || r.amount * 100 >= l.total * 20)
+        && r.createdAt == request.time;
+    }
+    // How many places the committee allows for this path (set on the committee page, max 10).
+    function placesFor(type) {
+      return exists(/databases/$(database)/documents/settings/main)
+        ? get(/databases/$(database)/documents/settings/main).data.get('capacity', {}).get(type, 1)
+        : 1;
+    }
+
+    function validSlot(id) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['type', 'date', 'start', 'part', 'seat', 'name', 'occasion', 'next', 'bookedAt', 'createdAt'])
+        && d.type in ['akhand', 'sehaj', 'sukh-am', 'sukh-pm']
+        && isDate(d.date) && isDate(d.start)
+        && d.seat is int && d.seat >= 1 && d.seat <= 10 && d.seat <= placesFor(d.type)
+        && id == d.date + '__' + d.type + '__' + string(d.seat)
+        && text(d.name, 60) && text(d.occasion, 60)
+        && d.createdAt == request.time
+        && d.bookedAt is timestamp
+        && (d.bookedAt == request.time || keptBookingTime(d))
+        && !dateClosed(d.date)
+        && inFuture(d.start)
+        && (
+          // First day of any path: must come with the private contact record.
+          (d.part == 0 && d.date == d.start && existsAfter(contactPath(id))
+            && (d.type != 'akhand'
+                || (d.next is string && existsAfter(slotPath(d.next))
+                    && getAfter(slotPath(d.next)).data.start == d.start
+                    && getAfter(slotPath(d.next)).data.part == 1
+                    && getAfter(slotPath(d.next)).data.seat == d.seat)))
+          // Second day of an Akhand Path: must come with its first day.
+          || (d.part == 1 && d.type == 'akhand' && d.date > d.start
+              && existsAfter(slotPath(d.start + '__akhand__' + string(d.seat)))
+              && getAfter(slotPath(d.start + '__akhand__' + string(d.seat))).data.next == id)
+        );
+    }
+
+    match /slots/{id} {
+      allow read: if true;
+      allow create: if validSlot(id);
+      allow update: if false;
+      allow delete: if isAdmin()
+        || beingMoved(resource.data.start + '__' + resource.data.type + '__' + string(resource.data.seat));
+    }
+
+    match /contacts/{id} {
+      allow read: if isAdmin();
+      allow delete: if isAdmin() || existsAfter(movePath(id + '_' + resource.data.ref));
+      allow create: if !exists(slotPath(id))
+        && existsAfter(slotPath(id))
+        && request.resource.data.keys().hasOnly(['phone', 'note', 'name', 'ref', 'pkey', 'createdAt'])
+        && request.resource.data.phone is string
+        && request.resource.data.phone.matches('^[0-9+ -]{7,20}$')
+        && request.resource.data.note is string && request.resource.data.note.size() <= 400
+        && text(request.resource.data.name, 60)
+        && text(request.resource.data.ref, 10)
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+    }
+
+    // Booking reference -> the booking's bheta account (amounts, receipts, status).
+    // Anyone who knows a reference can read it; nobody but the committee can list them.
+    match /lookup/{ref} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['slot', 'type', 'name', 'start', 'total', 'discount',
+            'paidOnline', 'paidCash', 'receipts', 'reports', 'checking', 'closed'])
+        && request.resource.data.slot is string
+        && !exists(slotPath(request.resource.data.slot))
+        && existsAfter(slotPath(request.resource.data.slot))
+        && getAfter(contactPath(request.resource.data.slot)).data.ref == ref
+        && request.resource.data.type == getAfter(slotPath(request.resource.data.slot)).data.type
+        && request.resource.data.name == getAfter(slotPath(request.resource.data.slot)).data.name
+        && request.resource.data.start == getAfter(slotPath(request.resource.data.slot)).data.start
+        && request.resource.data.total == feeFor(request.resource.data.type)
+        && request.resource.data.discount == (request.resource.data.total > discountSetting() ? discountSetting() : 0)
+        && request.resource.data.paidOnline == 0 && request.resource.data.paidCash == 0
+        && request.resource.data.receipts == [] && request.resource.data.reports == 0
+        && request.resource.data.checking == false && request.resource.data.closed == '';
+      allow update: if isAdmin()
+        // date change by the person who booked
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['slot', 'prev', 'start'])
+          && request.resource.data.prev == resource.data.slot
+          && existsAfter(movePath(resource.data.slot + '_' + ref))
+          && existsAfter(slotPath(request.resource.data.slot))
+          && getAfter(contactPath(request.resource.data.slot)).data.ref == ref
+          && request.resource.data.start == getAfter(slotPath(request.resource.data.slot)).data.start)
+        // "I have paid" report, together with the report itself
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reports', 'checking'])
+          && request.resource.data.reports == resource.data.get('reports', 0) + 1
+          && request.resource.data.checking == true
+          && existsAfter(/databases/$(database)/documents/reports/$(ref + '_' + string(request.resource.data.reports))));
+      allow delete: if isAdmin();
+    }
+
+    // A record of each date change made by the person who booked.
+    // Allowed only with the right phone number, within 24 hours of booking, and only
+    // when the old dates are removed and the new booking is added in the same step.
+    match /reschedules/{rid} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['old', 'ref', 'pkey', 'next', 'createdAt'])
+        && rid == request.resource.data.old + '_' + request.resource.data.ref
+        && exists(contactPath(request.resource.data.old))
+        && get(contactPath(request.resource.data.old)).data.ref == request.resource.data.ref
+        && get(contactPath(request.resource.data.old)).data.get('pkey', '') == request.resource.data.pkey
+        && request.resource.data.pkey.size() >= 7
+        && get(slotPath(request.resource.data.old)).data.bookedAt + duration.value(24, 'h') > request.time
+        && inFuture(get(slotPath(request.resource.data.old)).data.start)
+        && !existsAfter(slotPath(request.resource.data.old))
+        && existsAfter(slotPath(request.resource.data.next))
+        && getAfter(contactPath(request.resource.data.next)).data.ref == request.resource.data.ref
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // "I have paid" reports from devotees (UPI transaction ID). Only the committee can read them.
+    // The first payment must be at least 20% of the bheta (the advance).
+    match /reports/{rid} {
+      allow read, update, delete: if isAdmin();
+      allow create: if validReport(rid);
+    }
+
+    // Receipt numbering. Committee only.
+    // Record of automatic WhatsApp messages. Written only by the server.
+    match /notices/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /counters/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Committee members: one document per member, named with their User UID.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // add committee members by hand in the Firebase console
+    }
+    match /Gurlal/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}
