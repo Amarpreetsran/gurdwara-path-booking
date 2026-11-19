@@ -111,6 +111,7 @@ Updated keys
   fake bookings, cancel them from the committee page. If it becomes a problem, Firebase **App Check**
   (free) can be added later to block bots.
 - Back up bookings any time from the Firebase console (Firestore → Data).
+Updated keys
 
 ## Later: Android app
 Once the website is online, go to **pwabuilder.com**, enter your website address and download the
