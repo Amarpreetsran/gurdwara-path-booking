@@ -106,6 +106,7 @@ If you add a new path type, also add its key to the list in `firestore.rules`
 (`['akhand', 'sehaj', 'sukh-am', 'sukh-pm']`) and publish the rules again.
 
 ## Good to know
+Updated keys
 - Anyone with the link can book, without logging in. That keeps it easy for elders. If someone makes
   fake bookings, cancel them from the committee page. If it becomes a problem, Firebase **App Check**
   (free) can be added later to block bots.
