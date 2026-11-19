@@ -97,8 +97,9 @@ export async function queryEq(collection, filters) {
 }
 
 // ---------- Booking helpers (same rules as the website) ----------
-export const TYPES = { akhand: { en: 'Akhand Path Sahib', days: 2 }, sehaj: { en: 'Sehaj Path Bhog', days: 1 },
-  'sukh-am': { en: 'Sukhmani Sahib (7:00 AM)', days: 1 }, 'sukh-pm': { en: 'Sukhmani Sahib (5:00 PM)', days: 1 } };
+// Path names are sent in Punjabi and English, e.g. "ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ / Akhand Path Sahib".
+export const TYPES = { akhand: { en: 'ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ / Akhand Path Sahib', days: 2 }, sehaj: { en: 'ਸਹਿਜ ਪਾਠ ਦਾ ਭੋਗ / Sehaj Path Bhog', days: 1 },
+  'sukh-am': { en: 'ਸੁਖਮਨੀ ਸਾਹਿਬ / Sukhmani Sahib (7:00 AM)', days: 1 }, 'sukh-pm': { en: 'ਸੁਖਮਨੀ ਸਾਹਿਬ / Sukhmani Sahib (5:00 PM)', days: 1 } };
 export const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
 const addDays = (s, n) => { const d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const fmt = s => new Date(s + 'T12:00:00Z').toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
