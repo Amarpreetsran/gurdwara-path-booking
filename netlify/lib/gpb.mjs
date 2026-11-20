@@ -115,7 +115,7 @@ export function whenText(type, start) {
 }
 export function account(l) {
   const total = Number(l.total) || 0, disc = Number(l.discount) || 0;
-  const online = Number(l.paidOnline) || 0, cash = Number(l.paidCash) || 0, paid = online + cash;
+  const online = Number(l.paidOnline) || 0, cash = Number(l.paidCash) || 0, paid = Math.max(0, online + cash - (Number(l.refunded) || 0));
   const target = cash > 0 ? total : Math.max(0, total - disc);
   const due = Math.max(0, target - paid), advance = Math.ceil(total * 0.2);
   return { total, disc, online, cash, paid, due, advance };
