@@ -133,7 +133,9 @@ service cloud.firestore {
     match /contacts/{id} {
       allow read: if isAdmin();
       allow delete: if isAdmin() || existsAfter(movePath(id + '_' + resource.data.ref));
-      allow create: if !exists(slotPath(id))
+      // The committee moves a cancelled booking's contact to "cx_<ref>" so its date can be booked again.
+      allow create: if (isAdmin() && id.matches('^cx_[A-Z0-9]{6}$'))
+        || (!exists(slotPath(id))
         && existsAfter(slotPath(id))
         && request.resource.data.keys().hasOnly(['phone', 'note', 'name', 'ref', 'pkey', 'createdAt'])
         && request.resource.data.phone is string
@@ -141,7 +143,7 @@ service cloud.firestore {
         && request.resource.data.note is string && request.resource.data.note.size() <= 1200
         && text(request.resource.data.name, 150)
         && text(request.resource.data.ref, 10)
-        && request.resource.data.createdAt == request.time;
+        && request.resource.data.createdAt == request.time);
       allow update: if false;
     }
 

@@ -151,3 +151,116 @@ message is never sent twice.
    **Generate token** for your app with `whatsapp_business_messaging` and `whatsapp_business_management`.
 4. In Netlify, update `WA_TOKEN` (permanent token) and `WA_PHONE_ID` (the new number's ID),
    **delete `WA_TEST_TO`**, and trigger a deploy. Messages now go to each devotee's own number.
+
+---
+
+## More automatic messages (6 more templates)
+
+Create each one exactly like the first three: WhatsApp Manager → Message templates → Create template →
+Category **Utility** → Language **English** → Variable type **Number** → paste the body → fill the samples → Submit.
+Until a template is **Active**, that message is simply skipped; nothing else is affected.
+
+### 4. path_payment_checking  (devotee tapped "I have paid")
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਵੱਲੋਂ ਭੇਜੀ ਭੇਟਾ ਦੀ ਜਾਣਕਾਰੀ ਮਿਲ ਗਈ ਹੈ ਜੀ। ਸੇਵਾਦਾਰ ਭੁਗਤਾਨ ਦੀ ਜਾਂਚ ਕਰ ਰਹੇ ਹਨ, ਰਸੀਦ ਜਲਦੀ ਭੇਜੀ ਜਾਵੇਗੀ।
+We have received your payment details. A sevadar is checking the payment and your receipt will be sent soon.
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਪਾਠ / Path: {{2}}
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{3}}
+ਰਕਮ / Amount: {{4}}
+UTR: {{5}}
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
+```
+Samples: `Sra` · `Sehaj Path Bhog` · `K7MQ2D` · `Rs 1121` · `123456789012`
+
+### 5. path_payment_not_found  (committee tapped "Not received")
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਮਾਫ਼ ਕਰਨਾ ਜੀ, ਇਹ ਭੁਗਤਾਨ ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਦੇ ਖਾਤੇ ਵਿੱਚ ਨਹੀਂ ਮਿਲਿਆ।
+We are sorry, we could not find this payment in the Gurdwara Sahib account.
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{2}}
+ਰਕਮ / Amount: {{3}}
+UTR: {{4}}
+
+ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੀ UPI ਐਪ ਵਿੱਚ ਭੁਗਤਾਨ ਦੀ ਜਾਂਚ ਕਰੋ ਜੀ। ਜੇ ਰਕਮ ਕੱਟੀ ਗਈ ਹੈ ਤਾਂ "ਮੇਰੀ ਬੁਕਿੰਗ" ਵਿੱਚ ਸਹੀ UTR ਨਾਲ ਦੁਬਾਰਾ ਭੇਜੋ, ਜਾਂ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ।
+Kindly check the payment in your UPI app. If the money was deducted, send it again with the correct UTR under My booking, or contact the gurdwara office.
+ਸੰਪਰਕ / Contact: {{5}}
+```
+Samples: `Sra` · `K7MQ2D` · `Rs 1121` · `123456789012` · `9876500000`
+
+### 6. path_date_changed  (devotee changed the date)
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਦੀ ਬੁਕਿੰਗ ਦੀ ਮਿਤੀ ਬਦਲ ਦਿੱਤੀ ਗਈ ਹੈ ਜੀ। Your booking date has been changed.
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਪਾਠ / Path: {{2}}
+ਪਹਿਲੀ ਮਿਤੀ / Old date: {{3}}
+ਨਵੀਂ ਮਿਤੀ / New date: {{4}}
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{5}}
+ਭੇਟਾ / Bheta: {{6}}
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
+```
+Samples: `Sra` · `Sehaj Path Bhog` · `Wed 25 Nov 2026` · `Fri 27 Nov 2026` · `K7MQ2D` · `advance of Rs 620 needed`
+
+### 7. path_booking_cancelled  (cancelled by the committee, or automatically when no advance came)
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਨਿਮਰਤਾ ਸਹਿਤ ਸੂਚਨਾ ਜੀ: ਆਪ ਜੀ ਦੀ ਇਹ ਬੁਕਿੰਗ ਰੱਦ ਕੀਤੀ ਗਈ ਹੈ।
+With respect, we inform you that this booking has been cancelled.
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਪਾਠ / Path: {{2}}
+ਮਿਤੀ / Date: {{3}}
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{4}}
+ਕਾਰਨ / Reason: {{5}}
+
+ਗੁਰੂ ਘਰ ਦੇ ਦਰਵਾਜ਼ੇ ਆਪ ਜੀ ਲਈ ਹਮੇਸ਼ਾ ਖੁੱਲ੍ਹੇ ਹਨ ਜੀ। ਆਪ ਜੀ ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਵਿਖੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰ ਸਕਦੇ ਹੋ।
+The doors of Guru Ghar are always open for you. You are welcome to book again online or at the gurdwara office.
+ਬੁਕਿੰਗ / Booking: {{6}}
+```
+Samples: `Sra` · `Sehaj Path Bhog` · `Wed 25 Nov 2026` · `K7MQ2D` · `Advance not received in time` · `https://babajeonsinghpathbooking.netlify.app`
+
+### 8. path_receipt_void  (committee voided a receipt)
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਦੀ ਇੱਕ ਰਸੀਦ ਰੱਦ (VOID) ਕੀਤੀ ਗਈ ਹੈ ਜੀ। One of your receipts has been cancelled (void).
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{2}}
+ਰਸੀਦ ਨੰਬਰ / Receipt no.: {{3}}
+ਰਕਮ / Amount: {{4}}
+ਕਾਰਨ / Reason: {{5}}
+ਬਕਾਇਆ / Balance: {{6}}
+
+ਕਿਸੇ ਵੀ ਜਾਣਕਾਰੀ ਲਈ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ। For any questions, kindly contact the gurdwara office.
+```
+Samples: `Sra` · `K7MQ2D` · `RCPT/2026-27/0002` · `Rs 500` · `Wrong amount` · `Rs 1600 due`
+
+### 9. path_refund_issued  (committee recorded a refund)
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਦੀ ਭੇਟਾ ਵਾਪਸ ਕੀਤੀ ਗਈ ਹੈ ਜੀ। Your bheta has been refunded.
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{2}}
+ਵਾਪਸੀ ਰਕਮ / Amount refunded: {{3}}
+ਢੰਗ / Paid back by: {{4}}
+ਵਾਊਚਰ ਨੰਬਰ / Voucher no.: {{5}}
+ਵਾਊਚਰ / Voucher: {{6}}
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
+```
+Samples: `Sra` · `K7MQ2D` · `Rs 400` · `Cash` · `REFUND/2026-27/0001` · `https://babajeonsinghpathbooking.netlify.app/receipt.html?ref=K7MQ2D&f=1`
