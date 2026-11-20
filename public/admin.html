@@ -65,10 +65,30 @@
         <div id="feeRows" style="display:grid;gap:10px"></div>
         <label for="p-disc" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Discount when the whole amount is paid online <span class="hint">% of the bheta (0 to 50)</span></span><input id="p-disc" type="number" min="0" max="50" step="1" inputmode="numeric" style="width:120px"></label>
         <label for="p-prefix">Receipt number prefix <span class="hint">e.g. GBJS gives receipts like GBJS/2026-27/0001</span><input id="p-prefix" maxlength="12" autocomplete="off"></label>
+        <label for="p-rprefix">Refund voucher number prefix <span class="hint">Refunds get their own series, e.g. REFUND/2026-27/0001</span><input id="p-rprefix" maxlength="12" autocomplete="off"></label>
         <label for="p-sprefix">Seva receipt number prefix <span class="hint">Seva bheta has its own series, e.g. SEVA/2026-27/0001</span><input id="p-sprefix" maxlength="12" autocomplete="off"></label>
         <p class="hint" style="margin:0">A 20% advance is required within 48 hours of booking (online, or at the gurdwara). The first online payment must be at least 20%. Paying everything at the gurdwara gets no discount. A new discount applies to bookings made after you save.</p>
         <div id="payMsg"></div>
         <div class="row"><button class="btn" type="submit">Save payment settings</button></div>
+      </form>
+    </div>
+    <div class="panel" id="rcPanel">
+      <h3>Receipts</h3>
+      <p class="hint">Download all receipts for a period as Excel, or open them all as one printable file (one receipt per page) and save it as PDF into your receipts folder.</p>
+      <div class="row" style="align-items:flex-end">
+        <label for="rc-from" style="width:auto">From<input id="rc-from" type="date"></label>
+        <label for="rc-to" style="width:auto">To<input id="rc-to" type="date"></label>
+        <label for="rc-type" style="width:auto">Type<select id="rc-type"><option value="all">Path and seva</option><option value="path">Path bheta only</option><option value="seva">Seva bheta only</option></select></label>
+      </div>
+      <div class="row" style="margin-top:8px"><button class="btn" type="button" id="rcXlsx">Download receipts (Excel)</button><button class="btn ghost" type="button" id="rcPrint">Open all receipts to print or save as PDF</button></div>
+      <div id="rcMsg" class="hint" style="margin-top:6px"></div>
+      <h4 style="margin:16px 0 4px">Receipt numbers</h4>
+      <p class="hint">Set where numbering continues, e.g. to follow on from your printed receipt book. Numbers restart at 1 every 1 April unless you set them again.</p>
+      <form id="numForm">
+        <label for="n-path" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next path receipt number <span class="hint" id="n-path-last"></span></span><input id="n-path" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
+        <label for="n-seva" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next seva receipt number <span class="hint" id="n-seva-last"></span></span><input id="n-seva" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
+        <div id="numMsg"></div>
+        <div class="row"><button class="btn" type="submit">Save receipt numbers</button></div>
       </form>
     </div>
     <div class="panel">
@@ -87,6 +107,7 @@
       <h3>Booking rules</h3>
       <form id="ruleForm">
         <label for="r-hold" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Cancel bookings without the 20% advance after <span class="hint">hours from booking; 0 = never. A booking is cancelled only when nothing has been received and no payment is being checked, and only before the path date. The devotee must book again.</span></span><input id="r-hold" type="number" min="0" max="168" step="1" inputmode="numeric" style="width:120px"></label>
+        <div id="leadRows"></div>
         <label for="r-policy">Refund and date-change policy <span class="hint">Shown on the booking form, on "My booking" and on every receipt. Leave empty to use the standard wording.</span><textarea id="r-policy" maxlength="1500" rows="6"></textarea></label>
         <div id="ruleMsg"></div>
         <div class="row"><button class="btn" type="submit">Save booking rules</button><button class="btn ghost" type="button" id="policyDefault">Use standard wording</button></div>
@@ -112,7 +133,7 @@
 <script>
 (function(){
   const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
-  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},open:{},cashOpen:{},filter:'all',st:'upcoming',watching:false};
+  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},open:{},cashOpen:{},voidOpen:{},refundOpen:{},cancelOpen:{},filter:'all',st:'upcoming',watching:false};
   $('demoBar').hidden=!API.demo;
   $('filter').innerHTML+=G.TYPES.map(t=>`<option value="${t.key}">${t.en}</option>`).join('');
   const FILTERS=[['upcoming','Upcoming bookings'],['due','Advance due'],['checking','Payment being checked'],['partial','Part paid'],['paid','Fully paid'],['pastdue','Bhog done, balance pending'],['noshow','No-show'],['cancelled','Cancelled with payment'],['expired','Cancelled, advance not paid']];
@@ -154,7 +175,8 @@
     return others.length?`<div class="warn">⚠ This phone number has ${others.length} other unpaid booking${others.length>1?'s':''}: ${others.map(([id,c])=>G.esc(c.ref)+' ('+G.fmtShort(S.slots[id].start)+')').join(', ')}.</div>`:''}
   function row(b){
     const t=G.typeOf(b.type),a=b.a,l=b.l,ref=b.ref,v=b.v;
-    const amounts=l&&a.total?`<div class="meta">Bheta ${M$(a.total)}${a.disc&&!a.cash?` (${M$(a.fullOnline)} if all online)`:''} · Paid ${M$(a.paid)}${a.online&&a.cash?` (online ${M$(a.online)}, gurdwara ${M$(a.cash)})`:''} · <b>Balance ${M$(a.due)}</b>${G.sevaOf(l)?` · Seva received ${M$(G.sevaOf(l))}`:''}${a.paid<a.advance&&a.due&&!l.closed?` · <b>Advance needed ${M$(a.advance)}</b>`:''}</div>`:'';
+    const canDelete=l&&!G.hasMoney(l)&&(l.closed||b.start<G.today);
+    const amounts=l&&a.total?`<div class="meta">Bheta ${M$(a.total)}${a.disc&&!a.cash?` (${M$(a.fullOnline)} if all online)`:''} · Paid ${M$(a.paid)}${a.online&&a.cash?` (online ${M$(a.online)}, gurdwara ${M$(a.cash)})`:''}${l.closed?'':` · <b>Balance ${M$(a.due)}</b>`}${a.refunded?` · Refunded ${M$(a.refunded)}`:''}${l.cancelReason?` · Cancelled: ${G.esc(l.cancelReason)}`:''}${G.sevaOf(l)?` · Seva received ${M$(G.sevaOf(l))}`:''}${a.paid<a.advance&&a.due&&!l.closed?` · <b>Advance needed ${M$(a.advance)}</b>`:''}</div>`:'';
     const pend=b.pending.map(([id,r])=>`<div class="report"><span>💳 Reported ${M$(r.amount)}${r.seva?` + seva ${M$(r.seva)} = <b>${M$(r.amount+r.seva)}</b>`:''} · UTR <b>${G.esc(r.utr)}</b>${dupUtr(r.utr,id)}</span>
         <span class="row"><button class="btn" data-verify="${id}" data-ref="${G.esc(ref)}">Confirm and issue receipt</button><button class="btn ghost" data-reject="${id}" data-ref="${G.esc(ref)}">Not received</button></span></div>`).join('');
     const cashForm=S.cashOpen[ref]?`<form class="cashForm" data-ref="${G.esc(ref)}"><div class="row">
@@ -166,8 +188,25 @@
     if(ref&&l&&!l.closed&&(a.due||a.total))acts.push(`<button class="linkbtn" data-cash="${G.esc(ref)}">${a.due?'Record payment at gurdwara':'Record seva bheta at gurdwara'}</button>`);
     if(b.st==='pastdue')acts.push(`<button class="linkbtn" data-noshow="${G.esc(ref)}">Close as no-show (keep payment received)</button>`);
     if(l&&l.closed==='noshow')acts.push(`<button class="linkbtn" data-reopen="${G.esc(ref)}">Reopen</button>`);
-    const rc=l&&l.receipts&&l.receipts.length?`<div class="meta">Receipts: ${l.receipts.map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&n=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)})`).join(', ')}</div>`:'';
-    const sr=l&&l.sevaReceipts&&l.sevaReceipts.length?`<div class="meta">Seva receipts: ${l.sevaReceipts.map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&s=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)})`).join(', ')}</div>`:'';
+    if(ref&&l&&a.paid>0)acts.push(`<button class="linkbtn" data-refund="${G.esc(ref)}">Record refund</button>`);
+    if(canDelete)acts.push(`<button class="linkbtn danger-text" data-delete="${G.esc(ref)}">Delete entry (no payment)</button>`);
+    // Receipts with Void; refunds with their vouchers.
+    const rlist=(arr,kind,q,label)=>arr&&arr.length?`<div class="meta">${label}: ${arr.map((x,i)=>{const k=`${ref}|${kind}|${i}`;
+        return `<span class="rcitem${x.void?' voided':''}"><a href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)})${x.void?` <b>VOID</b>: ${G.esc(x.void.reason)}${x.void.note?' · '+G.esc(x.void.note):''}`:` <button class="linkbtn" data-void="${G.esc(k)}">Void</button>`}</span>${S.voidOpen[k]?voidForm(k,x):''}`}).join('')}</div>`:'';
+    const rc=l?rlist(l.receipts,'path','n','Receipts'):'';
+    const sr=l?rlist(l.sevaReceipts,'seva','s','Seva receipts'):'';
+    const rf=l&&l.refunds&&l.refunds.length?`<div class="meta">Refunds: ${l.refunds.map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&f=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)}, ${G.esc(x.reason)})`).join(', ')}</div>`:'';
+    const refundForm=S.refundOpen[ref]?`<form class="refundForm" data-ref="${G.esc(ref)}"><div class="row">
+        <label style="width:auto">Refund amount (₹)<input name="amt" type="number" min="1" max="${a.paid}" step="1" inputmode="numeric" value="${a.paid}" style="width:120px"></label>
+        <label style="width:auto">Paid back by<select name="method"><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Cheque</option></select></label>
+        <label style="width:auto">Reason<select name="reason">${G.REFUND_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+        <label style="width:auto">Note<input name="note" maxlength="120" placeholder="optional"></label></div>
+        <div class="row"><button class="btn" type="submit">Save refund and issue voucher</button><button class="btn ghost" type="button" data-refclose="${G.esc(ref)}">Close</button></div>
+        <div class="hint">Path bheta paid so far: ${M$(a.paid)}. A refund voucher with its own number is created for your records.</div></form>`:'';
+    const cancelForm=b.id&&S.cancelOpen[b.id]?`<form class="cancelForm" data-id="${b.id}"><div class="row">
+        <label style="width:auto">Reason<select name="reason">${G.CANCEL_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+        <button class="btn danger" type="submit">Confirm cancel</button><button class="btn ghost" type="button" data-cancelclose="${b.id}">Keep booking</button></div>
+        <div class="hint">${l&&(a.paid>0||G.hasMoney(l))?'Money has been received, so the booking is kept as Cancelled with its receipts. Use Record refund if you give money back.':'No payment received: the booking and its details are deleted completely and the date opens again.'}</div></form>`:'';
     const c=b.c;
     const wa=c&&c.phone&&ref&&v?G.waLink(c.phone,G.confirmText({type:v.type,date:v.start,name:v.name,ref,gname:(S.settings&&S.settings.name)||'Gurdwara Sahib',url:location.origin+'/',phone:S.settings&&S.settings.phone})):'';
     const details=b.id&&S.open[b.id]&&c?`<div class="meta">📞 <b>${G.esc(c.phone)}</b> · Ref ${G.esc(ref)}${c.note?'<br>'+G.esc(c.note):''}</div>${wa?`<a class="linkbtn" href="${wa}" target="_blank" rel="noopener">Send WhatsApp confirmation</a>`:''}`
@@ -175,9 +214,16 @@
     return `<div class="bitem"><div class="bdate">${G.fmtShort(b.start)}<small>${G.fmtDow(b.start)}</small></div>
       <div class="bmain"><div class="who">${t?t.en:G.esc(b.type)}</div>
       <div class="meta">${G.esc(b.name)} parivar${v?' · '+G.esc(v.occasion):''}${v&&(G.capOf(S.settings,v.type)>1||(v.seat||1)>1)?' · Place '+(v.seat||1):''}${t&&t.days>1?' · Bhog '+G.fmtShort(G.add(b.start,2)):''}</div>
-      <div style="margin:4px 0">${G.chip(b.st)}</div>${samePhone(b)}${shortAdvance(b)}${amounts}${pend}${rc}${sr}
-      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${details}</div>
-      ${b.id&&b.start>=G.today?`<button class="btn danger" data-cancel="${b.id}">Cancel</button>`:'<span></span>'}</div>`;
+      <div style="margin:4px 0">${G.chip(b.st)}</div>${samePhone(b)}${shortAdvance(b)}${amounts}${pend}${rc}${sr}${rf}
+      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${refundForm}${cancelForm}${details}</div>
+      ${b.id&&b.start>=G.today&&!(l&&l.closed)?`<button class="btn danger" data-cancel="${b.id}">Cancel</button>`:'<span></span>'}</div>`;
+  }
+  function voidForm(k,x){
+    return `<form class="voidForm" data-k="${G.esc(k)}"><div class="row">
+        <label style="width:auto">Why void ${G.esc(x.no)}?<select name="reason">${G.VOID_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+        <label style="width:auto">Note<input name="note" maxlength="120" placeholder="optional"></label>
+        <button class="btn danger" type="submit">Void receipt</button><button class="btn ghost" type="button" data-voidclose="${G.esc(k)}">Close</button></div>
+        <div class="hint">The receipt stays in the records marked VOID and its number is never reused. ${M$(x.amount)} is taken off what this family has paid. This cannot be undone.</div></form>`;
   }
   function renderSettings(){
     const s=S.settings||{name:'',phone:'',address:'',closed:[]};
@@ -186,9 +232,10 @@
     if(!$('infoForm').contains(document.activeElement)){const D=G.INFO_DEFAULTS;
       $('i-inc').value=(s.includes&&s.includes.length?s.includes:D.includes).join('\n');$('i-big').value=s.bigEvent||D.bigEvent;$('i-sukh').value=s.sukhmaniNote||D.sukhmaniNote;
       $('i-gr').value=(s.granthis||[]).map(g=>[g.name,g.phone,g.note].filter(Boolean).join(', ')).join('\n')}
-    if(!$('ruleForm').contains(document.activeElement)){$('r-hold').value=G.holdHours(s);$('r-policy').value=s.policy||G.DEFAULT_POLICY}
+    if(!$('ruleForm').contains(document.activeElement)){$('r-hold').value=G.holdHours(s);
+      $('leadRows').innerHTML=G.TYPES.map(t=>`<label for="lead-${t.key}" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">${t.en}: book at least <span class="hint">days ahead (1 to 90). Keep 3 or more so the 48-hour advance and date-change window end before the path.</span></span><input id="lead-${t.key}" type="number" min="1" max="90" step="1" inputmode="numeric" style="width:120px" value="${G.leadDays(s,t.key)}"></label>`).join('');$('r-policy').value=s.policy||G.DEFAULT_POLICY}
     if(!$('payForm').contains(document.activeElement)){
-      $('p-upi').value=s.upi||'';$('p-payee').value=s.payee||'';$('p-disc').value=G.discountPct(s);$('p-prefix').value=s.receiptPrefix||'RCPT';$('p-sprefix').value=s.sevaPrefix||'SEVA';
+      $('p-upi').value=s.upi||'';$('p-payee').value=s.payee||'';$('p-disc').value=G.discountPct(s);$('p-prefix').value=s.receiptPrefix||'RCPT';$('p-sprefix').value=s.sevaPrefix||'SEVA';$('p-rprefix').value=s.refundPrefix||'REFUND';
       $('feeRows').innerHTML=G.TYPES.map(t=>`<label for="fee-${t.key}" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">${t.en} <span class="hint">₹ amount</span></span>
         <input id="fee-${t.key}" type="number" min="0" max="1000000" step="1" inputmode="numeric" value="${G.feeOf(s,t.key)}" style="width:120px"></label>`).join('');
     }
@@ -211,7 +258,7 @@
       $('loginErr').innerHTML='<div class="note err">This account is not on the committee list. Add its User UID to the admins collection (see README, Step 5).</div>';return}
     $('loginPanel').hidden=!!user;$('adminArea').hidden=!user;
     if(user&&!S.watching){S.watching=true;
-      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports});if(!busy())renderList()});
+      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports,counters:d.counters||{}});if(!busy())renderList();renderNums()});
       API.watchSettings(s=>{S.settings=s;renderSettings();renderList()});}
   });
 
@@ -239,19 +286,20 @@
       return {'Path date':b.start,'Day':G.fmtDow(b.start),'Path':t?t.en:b.type,'Bhog date':G.bhogDate(b.type,b.start),'Place':v.seat||'',
         'Family name':b.name,'Phone':c.phone||'','Occasion':v.occasion||'','Note':c.note||'','Reference':b.ref||'',
         'Bheta (Rs)':a.total,'Online discount (Rs)':a.disc&&!a.cash?a.disc:0,'Paid online (Rs)':a.online,'Paid at gurdwara (Rs)':a.cash,
-        'Total paid (Rs)':a.paid,'Balance (Rs)':a.due,'Seva bheta (Rs)':G.sevaOf(l),'Status':label(b.st),'Payment being checked':l.checking?'Yes':'',
+        'Refunded (Rs)':a.refunded||0,'Total paid (Rs)':a.paid,'Balance (Rs)':a.due,'Seva bheta (Rs)':G.sevaOf(l),'Status':label(b.st),'Payment being checked':l.checking?'Yes':'',
         'Booked on':v.bookedAt?new Date(G.bookedMs(v)).toLocaleString('en-IN'):'','Date changed':l.prev?'Yes':''}});
     const rec=[];
     for(const [ref,l] of Object.entries(S.lookups)){const t=G.typeOf(l.type);
       const add=(r,kind)=>rec.push({'Receipt no.':r.no,'Type':kind,'Date':new Date(r.date).toLocaleString('en-IN'),'Reference':ref,'Family name':l.name,
-        'Path':t?t.en:l.type,'Path date':l.start,'Amount (Rs)':r.amount,'Mode':r.method,'UTR':r.utr||''});
-      (l.receipts||[]).forEach(r=>add(r,'Path bheta'));(l.sevaReceipts||[]).forEach(r=>add(r,'Seva bheta'))}
+        'Path':t?t.en:l.type,'Path date':l.start,'Amount (Rs)':kind==='Refund'?-r.amount:r.amount,'Mode':r.method,'UTR':r.utr||'',
+        'Status':r.void?'VOID':'Valid','Reason':r.void?[r.void.reason,r.void.note].filter(Boolean).join(' · '):kind==='Refund'?[r.reason,r.note].filter(Boolean).join(' · '):''});
+      (l.receipts||[]).forEach(r=>add(r,'Path bheta'));(l.sevaReceipts||[]).forEach(r=>add(r,'Seva bheta'));(l.refunds||[]).forEach(r=>add(r,'Refund'))}
     rec.sort((x,y)=>x.Type!==y.Type?(x.Type<y.Type?-1:1):x['Receipt no.']<y['Receipt no.']?-1:1);
     const wb=XLSX.utils.book_new();
     const ws1=XLSX.utils.json_to_sheet(rows.length?rows:[{'Path date':'No bookings yet'}]);
-    ws1['!cols']=[12,6,24,12,6,18,14,18,24,10,10,12,12,14,12,12,12,24,10,20,8].map(w=>({wch:w}));
+    ws1['!cols']=[12,6,24,12,6,18,14,18,24,10,10,12,12,14,12,12,12,12,24,10,20,8].map(w=>({wch:w}));
     const ws2=XLSX.utils.json_to_sheet(rec.length?rec:[{'Receipt no.':'No receipts yet'}]);
-    ws2['!cols']=[22,12,20,10,18,24,12,12,14,16].map(w=>({wch:w}));
+    ws2['!cols']=[22,12,20,10,18,24,12,12,14,16,8,30].map(w=>({wch:w}));
     XLSX.utils.book_append_sheet(wb,ws1,'Bookings');XLSX.utils.book_append_sheet(wb,ws2,'Receipts');
     try{XLSX.writeFile(wb,`path-bookings-${G.today}.xlsx`);$('xlsxMsg').textContent=`Downloaded ${rows.length} bookings and ${rec.length} receipts. Check your Downloads folder.`}
     catch(x){$('xlsxMsg').textContent='Could not create the file. Try again, or use a computer browser.'}
@@ -276,13 +324,28 @@
     if(ns){if(ns.dataset.armed!=='1'){ns.dataset.armed='1';ns.textContent='Tap again to close as no-show';return}
       ns.disabled=true;try{await API.setClosed(ns.dataset.noshow,'noshow')}catch(x){ns.textContent='Could not save. Retry';ns.disabled=false}return}
     const ro=e.target.closest('[data-reopen]');if(ro){ro.disabled=true;try{await API.setClosed(ro.dataset.reopen,'')}catch(x){ro.disabled=false}return}
-    const c=e.target.closest('[data-cancel]');if(!c)return;
-    if(c.dataset.armed!=='1'){c.dataset.armed='1';c.textContent='Tap again to cancel';setTimeout(()=>{if(c.isConnected){c.dataset.armed='';c.textContent='Cancel'}},4000);return}
-    c.disabled=true;try{await API.cancel(c.dataset.cancel)}catch(x){c.disabled=false;c.textContent='Could not cancel. Retry'}
+    const tog=(attr,map,val)=>{const el=e.target.closest(`[${attr}]`);if(!el)return false;map[el.getAttribute(attr)]=val;renderList();return true};
+    if(tog('data-void',S.voidOpen,true)||tog('data-voidclose',S.voidOpen,false)||tog('data-refund',S.refundOpen,true)||tog('data-refclose',S.refundOpen,false)
+      ||tog('data-cancel',S.cancelOpen,true)||tog('data-cancelclose',S.cancelOpen,false))return;
+    const del=e.target.closest('[data-delete]');
+    if(del){if(del.dataset.armed!=='1'){del.dataset.armed='1';del.textContent='Tap again to delete for good';setTimeout(()=>{if(del.isConnected){del.dataset.armed='';del.textContent='Delete entry (no payment)'}},4000);return}
+      const ref=del.dataset.delete,ids=Object.entries(S.reports).filter(([,r])=>r.ref===ref).map(([id])=>id);
+      del.disabled=true;try{await API.deleteEntry(ref,ids)}catch(x){del.disabled=false;del.textContent=x&&x.message==='has-money'?'Has payment records, cannot delete':'Could not delete. Retry'}}
   });
   $('list').addEventListener('submit',async e=>{
+    const fm=e.target,btn=fm.querySelector('[type=submit]');
+    if(fm.classList.contains('voidForm')){e.preventDefault();const [ref,kind,i]=fm.dataset.k.split('|');btn.disabled=true;
+      try{await API.voidReceipt(ref,kind,Number(i),fm.reason.value,fm.note.value.trim());S.voidOpen[fm.dataset.k]=false;document.activeElement.blur();renderList()}
+      catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
+    if(fm.classList.contains('refundForm')){e.preventDefault();const ref=fm.dataset.ref,l=S.lookups[ref],paid=l?G.account(l).paid:0,amt=Math.round(Number(fm.amt.value)||0);
+      if(!(amt>=1&&amt<=paid)){fm.amt.focus();return}btn.disabled=true;
+      try{const no=await API.refund(ref,amt,fm.method.value,fm.reason.value,fm.note.value.trim());S.refundOpen[ref]=false;document.activeElement.blur();renderList()}
+      catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
+    if(fm.classList.contains('cancelForm')){e.preventDefault();btn.disabled=true;
+      try{await API.cancel(fm.dataset.id,fm.reason.value);S.cancelOpen[fm.dataset.id]=false;document.activeElement.blur()}
+      catch(x){btn.disabled=false;btn.textContent='Could not cancel. Retry'}return}
     if(!e.target.classList.contains('cashForm'))return;e.preventDefault();
-    const fm=e.target,ref=fm.dataset.ref,amt=Math.max(0,Math.round(Number(fm.amt.value)||0)),seva=Math.max(0,Math.round(Number(fm.seva.value)||0)),btn=fm.querySelector('[type=submit]');
+    const ref=fm.dataset.ref,amt=Math.max(0,Math.round(Number(fm.amt.value)||0)),seva=Math.max(0,Math.round(Number(fm.seva.value)||0));
     const l=S.lookups[ref],la=l?G.account(l):null,due=la?Math.max(0,la.total-la.paid):0;
     if(amt>due){fm.amt.value=due;fm.amt.focus();return}
     if(amt+seva<1){fm.amt.focus();return}
@@ -309,11 +372,46 @@
     catch(x){$('capMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
   $('payForm').onsubmit=async e=>{e.preventDefault();
     const upi=$('p-upi').value.trim(),payee=$('p-payee').value.trim(),fees={};
-    const onlineDiscountPct=Math.min(50,Math.max(0,Math.round(Number($('p-disc').value)||0))),receiptPrefix=($('p-prefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'RCPT').toUpperCase(),sevaPrefix=($('p-sprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'SEVA').toUpperCase();
+    const onlineDiscountPct=Math.min(50,Math.max(0,Math.round(Number($('p-disc').value)||0))),receiptPrefix=($('p-prefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'RCPT').toUpperCase(),sevaPrefix=($('p-sprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'SEVA').toUpperCase(),refundPrefix=($('p-rprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'REFUND').toUpperCase();
     if(upi&&!/^[A-Za-z0-9._-]{2,}@[A-Za-z][A-Za-z0-9.-]{1,}$/.test(upi)){$('payMsg').innerHTML='<div class="note err">That UPI ID does not look right. It should look like name@bank.</div>';return}
     for(const t of G.TYPES){const n=Number($('fee-'+t.key).value||0);if(!(n>=0&&n<=1000000)){$('payMsg').innerHTML=`<div class="note err">Enter an amount from 0 for ${t.en}.</div>`;return}fees[t.key]=Math.round(n)}
-    try{await API.saveSettings({...S.settings,upi,payee,fees,onlineDiscountPct,receiptPrefix,sevaPrefix});$('payMsg').innerHTML=`<div class="note good">Saved. ${upi?'The booking page now shows UPI payment where an amount is set.':'Online payment is off until you add a UPI ID.'}</div>`}
+    try{await API.saveSettings({...S.settings,upi,payee,fees,onlineDiscountPct,receiptPrefix,sevaPrefix,refundPrefix});$('payMsg').innerHTML=`<div class="note good">Saved. ${upi?'The booking page now shows UPI payment where an amount is set.':'Online payment is off until you add a UPI ID.'}</div>`}
     catch(x){$('payMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
+  // ---------- Receipts: numbering and bulk download ----------
+  const fyStart=()=>{const d=new Date(),y=d.getMonth()<3?d.getFullYear()-1:d.getFullYear();return `${y}-04-01`};
+  $('rc-from').value=fyStart();$('rc-to').value=G.today;
+  function allReceipts(){const from=$('rc-from').value||'0000',to=$('rc-to').value||'9999',type=$('rc-type').value,out=[];
+    for(const [ref,l] of Object.entries(S.lookups||{})){const t=G.typeOf(l.type);
+      const add=(r,kind,i)=>{const day=G.iso(new Date(r.date));if(day<from||day>to)return;
+        out.push({ref,l,r,kind,i,t,day})};
+      if(type!=='seva')(l.receipts||[]).forEach((r,i)=>add(r,'Path bheta',i));
+      if(type!=='path')(l.sevaReceipts||[]).forEach((r,i)=>add(r,'Seva bheta',i));
+      if(type==='all')(l.refunds||[]).forEach((r,i)=>add(r,'Refund',i))}
+    return out.sort((a,b)=>a.kind!==b.kind?(a.kind<b.kind?-1:1):G.receiptSerial(a.r.no)-G.receiptSerial(b.r.no))}
+  $('rcXlsx').onclick=()=>{if(typeof XLSX==='undefined'){$('rcMsg').textContent='The Excel tool did not load. Check your internet connection and reload the page.';return}
+    const list=allReceipts();if(!list.length){$('rcMsg').textContent='No receipts in this period.';return}
+    const rows=list.map(x=>({'Receipt no.':x.r.no,'Type':x.kind,'Date':new Date(x.r.date).toLocaleString('en-IN'),'Reference':x.ref,'Family name':x.l.name,
+      'Path':x.t?x.t.en:x.l.type,'Path date':x.l.start,'Amount (Rs)':x.kind==='Refund'?-x.r.amount:x.r.amount,'Mode':x.r.method,'UTR':x.r.utr||'',
+      'Status':x.r.void?'VOID':'Valid','Reason':x.r.void?[x.r.void.reason,x.r.void.note].filter(Boolean).join(' · '):x.kind==='Refund'?[x.r.reason,x.r.note].filter(Boolean).join(' · '):''}));
+    const tot=list.reduce((s,x)=>s+(x.r.void?0:x.kind==='Refund'?-x.r.amount:(Number(x.r.amount)||0)),0);rows.push({'Receipt no.':'TOTAL (valid receipts less refunds)','Amount (Rs)':tot});
+    const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[22,12,20,10,18,24,12,12,14,16,8,30].map(w=>({wch:w}));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Receipts');
+    try{XLSX.writeFile(wb,`receipts-${$('rc-from').value}-to-${$('rc-to').value}.xlsx`);$('rcMsg').textContent=`Downloaded ${list.length} receipts, total ${M$(tot)}. Check your Downloads folder.`}
+    catch(e){$('rcMsg').textContent='Could not create the file. Try again.'}};
+  $('rcPrint').onclick=()=>{const u=`receipt.html?all=1&from=${encodeURIComponent($('rc-from').value)}&to=${encodeURIComponent($('rc-to').value)}&type=${$('rc-type').value}`;window.open(u,'_blank')};
+  function lastIssued(key){let m=0;const fy=G.finYear();
+    for(const l of Object.values(S.lookups||{}))((key==='seva'?l.sevaReceipts:l.receipts)||[]).forEach(r=>{if(String(r.no).includes('/'+fy+'/'))m=Math.max(m,G.receiptSerial(r.no))});return m}
+  function nextOf(key){const c=(S.counters||{})[key];return c&&c.fy===G.finYear()?c.next:lastIssued(key)+1}
+  function renderNums(){if($('numForm').contains(document.activeElement))return;
+    for(const [key,id] of [['receipts','path'],['seva','seva']]){$('n-'+id).value=nextOf(key);const li=lastIssued(key);
+      $(`n-${id}-last`).textContent=li?`(last issued this year: ${li})`:'(none issued this year yet)'}}
+  $('numForm').onsubmit=async e=>{e.preventDefault();const vals={receipts:Math.round(Number($('n-path').value)||0),seva:Math.round(Number($('n-seva').value)||0)};
+    for(const [k,v] of Object.entries(vals)){const li=lastIssued(k);
+      if(!(v>=1&&v<=9999999)){$('numMsg').innerHTML='<div class="note err">Enter a number from 1.</div>';return}
+      if(v<=li){$('numMsg').innerHTML=`<div class="note err">${k==='seva'?'Seva':'Path'} receipt ${li} has already been issued this year. Choose ${li+1} or higher so no number repeats.</div>`;return}}
+    try{await API.setNextReceipt('receipts',vals.receipts);await API.setNextReceipt('seva',vals.seva);
+      document.activeElement.blur();$('numMsg').innerHTML=`<div class="note good">Saved. The next path receipt will be no. ${vals.receipts} and the next seva receipt no. ${vals.seva}.</div>`}
+    catch(x){$('numMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
   $('infoDefault').onclick=()=>{const D=G.INFO_DEFAULTS;$('i-inc').value=D.includes.join('\n');$('i-big').value=D.bigEvent;$('i-sukh').value=D.sukhmaniNote};
   $('infoForm').onsubmit=async e=>{e.preventDefault();const D=G.INFO_DEFAULTS,bad=[];
     const includes=$('i-inc').value.split('\n').map(x=>x.trim()).filter(Boolean);
@@ -329,8 +427,9 @@
   $('policyDefault').onclick=()=>{$('r-policy').value=G.DEFAULT_POLICY};
   $('ruleForm').onsubmit=async e=>{e.preventDefault();
     const holdHours=Math.min(168,Math.max(0,Math.round(Number($('r-hold').value)||0)));
+    const leadDays={};for(const t of G.TYPES){const n=Math.round(Number($('lead-'+t.key).value)||0);if(!(n>=1&&n<=90)){$('ruleMsg').innerHTML=`<div class="note err">Enter 1 to 90 days for ${t.en}.</div>`;return}leadDays[t.key]=n}
     let policy=$('r-policy').value.trim();if(policy===G.DEFAULT_POLICY.trim())policy='';
-    try{await API.saveSettings({...S.settings,holdHours,policy});$('ruleMsg').innerHTML=`<div class="note good">Saved. ${holdHours?`Bookings without an advance are cancelled ${holdHours} hours after booking.`:'Bookings are never cancelled automatically.'}</div>`}
+    try{await API.saveSettings({...S.settings,holdHours,policy,leadDays});$('ruleMsg').innerHTML=`<div class="note good">Saved. ${holdHours?`Bookings without an advance are cancelled ${holdHours} hours after booking.`:'Bookings are never cancelled automatically.'}</div>`}
     catch(x){$('ruleMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
   $('forgotBtn').onclick=async()=>{const em=$('l-email').value.trim();
     if(!em){$('loginErr').innerHTML='<div class="note err">Type your email address above first, then tap "Forgot password?".</div>';$('l-email').focus();return}

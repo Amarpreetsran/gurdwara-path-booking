@@ -260,7 +260,7 @@
     <div class="legend">
       <span><i></i>ਥਾਂ ਖਾਲੀ</span>
       <span><i class="off"></i>ਬੁੱਕ ਹੋ ਚੁੱਕਾ</span>
-      <span>ਕੱਲ੍ਹ ਤੋਂ ਛੇ ਮਹੀਨੇ ਅੱਗੇ ਤੱਕ ਬੁਕਿੰਗ ਹੋ ਸਕਦੀ ਹੈ।</span>
+      <span id="leadNote">ਛੇ ਮਹੀਨੇ ਅੱਗੇ ਤੱਕ ਬੁਕਿੰਗ ਹੋ ਸਕਦੀ ਹੈ ਜੀ।</span>
     </div>
     <div id="status" class="note" style="margin-top:12px">ਬੁਕਿੰਗਾਂ ਲੋਡ ਹੋ ਰਹੀਆਂ ਹਨ…</div>
   </div>
@@ -279,7 +279,7 @@
 <script>
 (function(){
   const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
-  const S={slots:{},settings:{name:'Gurdwara Sahib',phone:'',address:'',closed:[],upi:'',payee:'',fees:{},onlineDiscountPct:10,holdHours:48,policy:''},view:null,sel:G.first,form:null,done:null,loaded:false,mg:null,lk:{},watching:{}};
+  const S={slots:{},settings:{name:'Gurdwara Sahib',phone:'',address:'',closed:[],upi:'',payee:'',fees:{},onlineDiscountPct:10,holdHours:48,policy:''},view:null,sel:G.add(G.today,3),form:null,done:null,loaded:false,mg:null,lk:{},watching:{}};
   const f=G.parse(G.first); S.view=new Date(f.getFullYear(),f.getMonth(),1);
   $('demoBar').hidden=!API.demo;
   const siteUrl=()=>location.origin+location.pathname.replace(/index\.html$/,'');
@@ -326,8 +326,8 @@
   }
   // Unpaid bookings are held for a set time, then the date opens for other sangat.
   function ruleText(){const h=G.holdHours(S.settings);
-    return h?`<b>ਜ਼ਰੂਰੀ ਸੂਚਨਾ ਜੀ:</b> ਬੁਕਿੰਗ ਪੱਕੀ ਰੱਖਣ ਲਈ <b>${h} ਘੰਟਿਆਂ ਦੇ ਅੰਦਰ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਭੇਟਾ</b> (ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰੇ) ਜ਼ਰੂਰੀ ਹੈ। ਨਹੀਂ ਤਾਂ ਬੁਕਿੰਗ <b>ਆਪਣੇ ਆਪ ਰੱਦ</b> ਹੋ ਜਾਵੇਗੀ ਅਤੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰਨੀ ਪਵੇਗੀ। ਮਿਤੀ ${G.CHANGE_HOURS} ਘੰਟਿਆਂ ਤੱਕ "ਮੇਰੀ ਬੁਕਿੰਗ" ਵਿੱਚ ਬਦਲੀ ਜਾ ਸਕਦੀ ਹੈ।
-      <div class="en">Important: an advance of at least ${G.ADVANCE_PCT}% (online or at the gurdwara) is required within ${h} hours of booking, or the booking is cancelled automatically and you will need to book again. The date can be changed under "My booking" for ${G.CHANGE_HOURS} hours.</div>`:''}
+    return h?`<b>ਜ਼ਰੂਰੀ ਸੂਚਨਾ ਜੀ:</b> ਬੁਕਿੰਗ ਪੱਕੀ ਰੱਖਣ ਲਈ <b>${h} ਘੰਟਿਆਂ ਦੇ ਅੰਦਰ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਭੇਟਾ</b> (ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰੇ) ਜ਼ਰੂਰੀ ਹੈ। ਨਹੀਂ ਤਾਂ ਬੁਕਿੰਗ <b>ਆਪਣੇ ਆਪ ਰੱਦ</b> ਹੋ ਜਾਵੇਗੀ ਅਤੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰਨੀ ਪਵੇਗੀ। ਮਿਤੀ ${G.CHANGE_HOURS} ਘੰਟਿਆਂ ਤੱਕ "ਮੇਰੀ ਬੁਕਿੰਗ" ਵਿੱਚ ਬਦਲੀ ਜਾ ਸਕਦੀ ਹੈ। ਬੁਕਿੰਗ ਘੱਟੋ-ਘੱਟ ${G.TYPES.map(t=>`${t.pa} ${G.leadDays(S.settings,t.key)} ਦਿਨ`).join(', ')} ਪਹਿਲਾਂ ਕਰੋ ਜੀ।
+      <div class="en">Important: an advance of at least ${G.ADVANCE_PCT}% (online or at the gurdwara) is required within ${h} hours of booking, or the booking is cancelled automatically and you will need to book again. The date can be changed under "My booking" for ${G.CHANGE_HOURS} hours. Book at least ${G.TYPES.map(t=>`${G.leadDays(S.settings,t.key)} days ahead for ${t.en}`).join(' and ')}.</div>`:''}
   function holdNote(){const r=ruleText();return r?`<div class="note warnnote" style="margin-top:8px">${r}</div>`:''}
   function payByNote(l,bms){const h=G.holdHours(S.settings),a=G.account(l);
     if(!h||!bms||a.state!=='due'||l.checking)return'';
@@ -342,21 +342,31 @@
       ${a.disc&&!a.cash?`<div class="pr save"><span>ਆਨਲਾਈਨ ਛੋਟ (ਪੂਰੀ ਭੇਟਾ ਆਨਲਾਈਨ)</span><b>− ${M$(a.disc)}</b></div>`:''}
       <div class="pr"><span>ਪ੍ਰਾਪਤ ਭੇਟਾ${a.online&&a.cash?` (ਆਨਲਾਈਨ ${M$(a.online)}, ਗੁਰਦੁਆਰੇ ${M$(a.cash)})`:''}</span><b>${M$(a.paid)}</b></div>
       <div class="pr total"><span>ਬਾਕੀ</span><b>${M$(a.due)}</b></div>
+      ${a.refunded?`<div class="pr"><span>ਵਾਪਸ ਕੀਤੀ ਭੇਟਾ <span class="en">Refunded</span></span><b>${M$(a.refunded)}</b></div>`:''}
       ${G.sevaOf(l)?`<div class="pr save"><span>🙏 ਸੇਵਾ ਭੇਟਾ ਪ੍ਰਾਪਤ (ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ)</span><b>${M$(G.sevaOf(l))}</b></div>`:''}</div>`;
   }
   const legend=()=>`<div class="bhlegend"><div class="hint" style="margin-bottom:4px">ਸਥਿਤੀ ਦਾ ਮਤਲਬ</div>
     ${['due','checking','partial','paid'].map(k=>`<div>${G.chip(k)}</div>`).join('')}</div>`;
   function receiptsBox(ref,l){
-    const r=(l&&l.receipts)||[],s=(l&&l.sevaReceipts)||[];if(!r.length&&!s.length)return'';
-    const list=(arr,q)=>arr.map((x,i)=>`<a class="rcpt" href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}" target="_blank" rel="noopener"><span>${G.esc(x.no)}</span><span>${M$(x.amount)} · ${G.esc(x.method)}</span></a>`).join('');
+    const r=(l&&l.receipts)||[],s=(l&&l.sevaReceipts)||[];if(!r.length&&!s.length&&!((l&&l.refunds)||[]).length)return'';
+    const list=(arr,q)=>arr.map((x,i)=>`<a class="rcpt${x.void?' voided':''}" href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}" target="_blank" rel="noopener"><span>${G.esc(x.no)}${x.void?' · ਰੱਦ (VOID)':''}</span><span>${M$(x.amount)} · ${G.esc(x.method)}</span></a>`).join('');
+    const f=(l&&l.refunds)||[];
     return (r.length?`<div class="stepno" style="margin-top:6px">ਪਾਠ ਦੀ ਭੇਟਾ ਦੀਆਂ ਰਸੀਦਾਂ</div><div class="rlist">${list(r,'n')}</div>`:'')+
-      (s.length?`<div class="stepno" style="margin-top:6px">🙏 ਸੇਵਾ ਭੇਟਾ ਦੀਆਂ ਰਸੀਦਾਂ</div><div class="rlist">${list(s,'s')}</div>`:'');
+      (s.length?`<div class="stepno" style="margin-top:6px">🙏 ਸੇਵਾ ਭੇਟਾ ਦੀਆਂ ਰਸੀਦਾਂ</div><div class="rlist">${list(s,'s')}</div>`:'')+
+      (f.length?`<div class="stepno" style="margin-top:6px">ਭੇਟਾ ਵਾਪਸੀ ਵਾਊਚਰ <span class="en">Refunds</span></div><div class="rlist">${list(f,'f')}</div>`:'');
   }
   // Optional seva bheta for Gurdwara Sahib, added on top of the path bheta in the same UPI payment.
   const sevaPick=(def)=>`<div class="sevabox"><div class="stepno" style="margin:0">🙏 ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ <span class="en">Seva bheta (optional)</span></div>
       <div class="hint">ਪਾਠ ਦੀ ਭੇਟਾ ਤੋਂ ਇਲਾਵਾ, ਇੱਛਾ ਅਨੁਸਾਰ ਜੀ। ਇਸ ਦੀ ਰਸੀਦ ਵੱਖਰੀ ਬਣੇਗੀ। <span class="en">Any amount you wish; it gets its own separate receipt.</span></div>
       <div class="row" style="margin-top:6px">${def?'':`<button type="button" class="btn ghost sevapick" data-v="0">ਨਹੀਂ</button>`}${G.SEVA_PICKS.map(v=>`<button type="button" class="btn ghost sevapick" data-v="${v}">${M$(v)}</button>`).join('')}</div>
       <label style="margin-top:6px">ਸੇਵਾ ਭੇਟਾ (₹)<input class="seva" type="number" min="0" max="100000" step="1" inputmode="numeric" value="${def||0}"></label></div>`;
+  // Main UPI button plus direct buttons per app: some phones send plain UPI links to WhatsApp or another default app.
+  const UPI_APPS=[['Google Pay','tez://upi/pay'],['PhonePe','phonepe://pay'],['Paytm','paytmmp://pay']];
+  const upiButtons=()=>`<div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">UPI ਨਾਲ ਭੇਜੋ</a></div>
+      <div class="hint" style="margin-top:8px">ਜੇ ਗ਼ਲਤ ਐਪ (ਜਿਵੇਂ WhatsApp) ਖੁੱਲ੍ਹੇ, ਤਾਂ ਹੇਠਾਂ ਆਪਣੀ ਐਪ ਚੁਣੋ ਜੀ: <span class="en">If the wrong app opens (such as WhatsApp), pick your app below:</span></div>
+      <div class="row upiapps" style="margin-top:6px">${UPI_APPS.map(([n,sch])=>`<a class="btn ghost appbtn" data-sch="${sch}" href="#">${n}</a>`).join('')}</div>
+      <div class="hint" style="margin-top:8px">ਜਾਂ UPI ID ਕਾਪੀ ਕਰੋ, ਆਪਣੀ UPI ਐਪ ਵਿੱਚ "UPI ID ਤੇ ਭੇਜੋ" ਚੁਣ ਕੇ ਪੇਸਟ ਕਰੋ ਅਤੇ ਰਕਮ ਭਰੋ ਜੀ। <span class="en">Or copy the UPI ID and pay to it from any UPI app.</span></div>
+      <div class="row" style="margin-top:6px"><span class="sel"><b>${G.esc(S.settings.upi)}</b></span><button type="button" class="btn ghost copyupi">UPI ID ਕਾਪੀ ਕਰੋ</button></div>`;
   function payBlock(ref,l){
     const a=G.account(l);
     if(['free','noshow','cancelled','expired'].includes(a.state))return'';
@@ -374,12 +384,12 @@
       <div class="row" style="margin-top:6px">${opts.map(([v,t])=>`<button type="button" class="btn ghost amtpick" data-v="${v}">${t}</button>`).join('')}</div>
       <label style="margin-top:6px">ਪਾਠ ਦੀ ਭੇਟਾ, ਭੇਜਣ ਵਾਲੀ ਰਕਮ (₹)<input class="amt" type="number" min="${min}" max="${a.due}" step="1" inputmode="numeric" value="${def}"></label>
       ${sevaPick(0)}
-      <div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">UPI ਨਾਲ ਭੇਜੋ</a></div>${payTail(ref,min,a.due)}`;
+      ${upiButtons()}${payTail(ref,min,a.due)}`;
   }
   function sevaOnlyBlock(ref){
     return `<details class="sevaonly" data-ref="${G.esc(ref)}" style="margin-top:10px" ${S.sevaOpen&&S.sevaOpen[ref]?'open':''}><summary>🙏 ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ ਭੇਜੋ ਜੀ <span class="en">Send seva bheta</span></summary>
       <div class="paybox" data-ref="${G.esc(ref)}" style="margin-top:8px"><input class="amt" type="hidden" value="0">${sevaPick(G.SEVA_PICKS[0])}
-      <div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">UPI ਨਾਲ ਭੇਜੋ</a></div>${payTail(ref,0,0)}</details>`;
+      ${upiButtons()}${payTail(ref,0,0)}</details>`;
   }
   function payTail(ref,min,max){
     return `
@@ -399,10 +409,14 @@
     document.querySelectorAll('#side .paybox').forEach(pb=>{
       const ref=pb.dataset.ref,inp=pb.querySelector('.amt'),sv=pb.querySelector('.seva'),btn=pb.querySelector('.upibtn'),qr=pb.querySelector('.qr');
       const upd=()=>{const s=Math.max(0,Math.round(Number(sv&&sv.value)||0)),v=Math.round(Number(inp.value)||0)+s;const link=G.upiLink(S.settings,v,ref);btn.href=link;
+        pb.querySelectorAll('.appbtn').forEach(x=>{x.href=link.replace('upi://pay',x.dataset.sch)});
         btn.textContent=s&&v>s?`${M$(v)} UPI ਨਾਲ ਭੇਜੋ (ਸੇਵਾ ${M$(s)} ਸਮੇਤ)`:`${M$(v)} UPI ਨਾਲ ਭੇਜੋ`;
         pb.querySelectorAll('.sevapick').forEach(b=>b.classList.toggle('on',Number(b.dataset.v)===s));
         qr.innerHTML='';if(typeof QRCode!=='undefined'&&v>0){try{new QRCode(qr,{text:link,width:150,height:150,correctLevel:QRCode.CorrectLevel.M})}catch(e){}}};
       inp.addEventListener('input',upd);if(sv)sv.addEventListener('input',upd);
+      const cp=pb.querySelector('.copyupi');if(cp)cp.addEventListener('click',async()=>{const id=S.settings.upi;
+        try{await navigator.clipboard.writeText(id);cp.textContent='ਕਾਪੀ ਹੋ ਗਿਆ ✓'}catch(e){const r=document.createRange(),el=pb.querySelector('.sel');r.selectNodeContents(el);const w=getSelection();w.removeAllRanges();w.addRange(r);cp.textContent='ID ਚੁਣ ਲਿਆ, ਕਾਪੀ ਕਰੋ'}
+        setTimeout(()=>{cp.textContent='UPI ID ਕਾਪੀ ਕਰੋ'},2500)});
       pb.querySelectorAll('.sevapick').forEach(b=>b.addEventListener('click',()=>{sv.value=b.dataset.v;upd()}));
       // UTR from a payment screenshot (optional; read on the phone itself).
       const fi=pb.querySelector('.utrfile'),msg=pb.querySelector('.utrmsg'),utrIn=pb.querySelector('input[name=utr]');
@@ -441,14 +455,16 @@
     h+='<div class="slots">';
     for(const t of G.TYPES){
       const left=G.freeSeats(t,d,S.slots,S.settings).length,free=left>0,cap=G.capOf(S.settings,t.key),booked=G.bookingsOn(t,d,S.slots);
+      const lead=G.leadDays(S.settings,t.key),early=d<G.firstFor(S.settings,t.key)&&d>=G.first;
       const full=booked.length>=cap,fee=G.feeOf(S.settings,t.key);
       let right=free?`<button class="btn" data-book="${t.key}" ${S.loaded?'':'disabled'}>ਬੁੱਕ ਕਰੋ</button>`
         :booked.length&&full?`<span class="tag">${booked.every(b=>b.part===1)?'ਅਖੰਡ ਪਾਠ ਚੱਲ ਰਿਹਾ ਹੈ':'ਪੂਰੀ ਬੁੱਕ'}</span>`
-        :`<span class="tag">${closed?'ਬੰਦ':'ਉਪਲਬਧ ਨਹੀਂ'}</span>`;
+        :`<span class="tag">${closed?'ਬੰਦ':early?`${lead} ਦਿਨ ਪਹਿਲਾਂ`:'ਉਪਲਬਧ ਨਹੀਂ'}</span>`;
       const places=cap>1&&!closed&&d>=G.first?`<div class="when"><b>${cap} ਵਿੱਚੋਂ ${left} ਥਾਂ ਖਾਲੀ</b></div>`:'';
       const names=booked.length?`<div class="hint">ਬੁਕਿੰਗ: ${booked.map(b=>`${G.esc(b.name)} ਪਰਿਵਾਰ${b.part===1?' (ਅਖੰਡ ਪਾਠ, ਦੂਜਾ ਦਿਨ)':b.occasion?' · '+G.esc(b.occasion):''}`).join('; ')}</div>`:'';
       const info=`<div class="when">${G.esc(t.when(d))}${fee?` · ਭੇਟਾ ${M$(fee)}`:''}</div>${places}${names}`;
-      const why=!free&&!full&&!closed&&t.days>1&&d>=G.first&&d<=G.last?`<div class="hint">48 ਘੰਟਿਆਂ ਦੇ ਪਾਠ ਲਈ ਦੋਵੇਂ ਦਿਨ ਥਾਂ ਖਾਲੀ ਨਹੀਂ, ਜਾਂ ਅਗਲੇ ਦਿਨ ਬੁਕਿੰਗ ਬੰਦ ਹੈ।</div>`:'';
+      const why=early&&!closed?`<div class="hint">ਇਸ ਪਾਠ ਦੀ ਬੁਕਿੰਗ ਘੱਟੋ-ਘੱਟ ${lead} ਦਿਨ ਪਹਿਲਾਂ ਹੁੰਦੀ ਹੈ ਜੀ, ਤਾਂ ਜੋ ਅਗਾਊਂ ਭੇਟਾ ਅਤੇ ਤਿਆਰੀ ਲਈ ਸਮਾਂ ਰਹੇ। ਸਭ ਤੋਂ ਨੇੜੇ ਮਿਤੀ: <b>${G.fmtShort(G.firstFor(S.settings,t.key))}</b> <span class="en">Book at least ${lead} days ahead.</span></div>`
+        :!free&&!full&&!closed&&t.days>1&&d>=G.first&&d<=G.last?`<div class="hint">48 ਘੰਟਿਆਂ ਦੇ ਪਾਠ ਲਈ ਦੋਵੇਂ ਦਿਨ ਥਾਂ ਖਾਲੀ ਨਹੀਂ, ਜਾਂ ਅਗਲੇ ਦਿਨ ਬੁਕਿੰਗ ਬੰਦ ਹੈ।</div>`:'';
       h+=`<div class="slot ${free?'free':''}"><div class="txt"><div class="pa">${t.pa}</div><div class="en">${t.en}</div>${info}${why}</div>${right}</div>`;
     }
     h+=`</div><button type="button" class="sukhlink" data-info="sukh">🏠 <span><b>ਸੁਖਮਨੀ ਸਾਹਿਬ ਘਰ ਵਿੱਚ?</b> ਗ੍ਰੰਥੀ ਸਿੰਘ ਸਾਹਿਬਾਨ ਨਾਲ ਸਿੱਧਾ ਸੰਪਰਕ ਕਰੋ ਜੀ <span class="en">Sukhmani Sahib at home: contact the Granthi Singhs</span></span></button>`;
@@ -566,7 +582,7 @@
     const s=S.settings;
     $('contactInfo').innerHTML=[s.address&&`<div>${G.esc(s.address)}</div>`,s.phone&&`<div>ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ: <b>${G.esc(s.phone)}</b></div>`,`<div><a href="admin.html" style="color:inherit">ਕਮੇਟੀ ਲੌਗਇਨ</a></div>`].filter(Boolean).join('');
   }
-  function renderAll(){renderInfo();$('ruleBanner').innerHTML=ruleText();$('ruleBanner').hidden=!ruleText();$('gname').textContent=gname();document.title='ਪਾਠ ਬੁਕਿੰਗ · '+gname();renderCal();renderSide();renderFooter()}
+  function renderAll(){renderInfo();$('leadNote').textContent=`ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ ਘੱਟੋ-ਘੱਟ ${G.leadDays(S.settings,'akhand')} ਦਿਨ ਅਤੇ ਸਹਿਜ ਪਾਠ ${G.leadDays(S.settings,'sehaj')} ਦਿਨ ਪਹਿਲਾਂ ਬੁੱਕ ਹੁੰਦਾ ਹੈ, ਛੇ ਮਹੀਨੇ ਅੱਗੇ ਤੱਕ ਜੀ।`;$('ruleBanner').innerHTML=ruleText();$('ruleBanner').hidden=!ruleText();$('gname').textContent=gname();document.title='ਪਾਠ ਬੁਕਿੰਗ · '+gname();renderCal();renderSide();renderFooter()}
 
   $('infoBox').addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.k)S.infoOpen[d.dataset.k]=d.open},true);
   $('infoBtn').onclick=()=>{S.infoOpen.inc=true;openInfo('inc')};

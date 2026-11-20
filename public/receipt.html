@@ -26,7 +26,10 @@
   .sheet .foot{margin-top:14px;font-size:12px;color:#5B6480}
   .sheet .stamp{display:inline-block;border:2px solid #1F7A4D;color:#1F7A4D;border-radius:8px;padding:2px 10px;font-weight:700;transform:rotate(-3deg)}
   .tools{max-width:640px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap}
-  @media print{ .tools,header{display:none!important} body{background:#fff} .sheet{border:0;margin:0;max-width:none} }
+  .allpage{margin-bottom:24px}
+  .voidmark{border:3px solid #B3261E;color:#B3261E;border-radius:10px;padding:8px 12px;margin:10px 0;text-align:center;transform:rotate(-1.5deg)}
+  .voidmark b{font-size:22px;letter-spacing:.06em}
+  @media print{ .tools,header{display:none!important} body{background:#fff} .sheet{border:0;margin:0;max-width:none} .allpage{break-after:page;page-break-after:always} .allpage:last-child{break-after:auto} }
 </style>
 </head>
 <body>
@@ -40,24 +43,24 @@
 <script>
 (function(){
   const G=GPB,API=GPB_API,$=id=>document.getElementById(id),M$=G.money;
-  const q=new URLSearchParams(location.search),ref=(q.get('ref')||'').toUpperCase(),sn=parseInt(q.get('s')||'0',10),n=sn||parseInt(q.get('n')||'0',10),SEVA=!!sn;
-  let settings=null,bk=null;
+  const q=new URLSearchParams(location.search),ALL=q.get('all')==='1';
+  const ref=(q.get('ref')||'').toUpperCase(),sn=parseInt(q.get('s')||'0',10),fn=parseInt(q.get('f')||'0',10),n=sn||fn||parseInt(q.get('n')||'0',10),SEVA=!!sn,REFUND=!!fn;
+  let settings=null;
   $('printBtn').onclick=()=>window.print();
-  function render(){
-    if(!settings||bk===null)return;
-    const sh=$('sheet');
-    if(!bk||!bk.l){sh.innerHTML='<p>No receipt found. Check the link, or ask at the gurdwara office.</p>';return}
-    const l=bk.l,list=(SEVA?l.sevaReceipts:l.receipts)||[],r=list[n-1];
-    if(!r){sh.innerHTML='<p>This receipt number was not found for this booking.</p>';return}
-    const t=G.typeOf(l.type),start=(bk.data&&bk.data.start)||l.start;
-    if(SEVA)return renderSeva(sh,l,list,r,t,start);
-    // Amounts after this receipt.
-    let on=0,cash=0;list.slice(0,n).forEach(x=>{if(x.method==='UPI')on+=x.amount;else cash+=x.amount});
-    const a=G.account({...l,paidOnline:on,paidCash:cash,checking:false,closed:''});
-    document.title='Receipt '+r.no;
-    sh.innerHTML=`<div class="top"><div class="om">ੴ</div><div><h1>${G.esc(settings.name)}</h1>
+  const mode=r=>`${G.esc(({Cash:'ਨਕਦ (Cash)',Cheque:'ਚੈੱਕ (Cheque)','Bank transfer':'ਬੈਂਕ ਟ੍ਰਾਂਸਫ਼ਰ','UPI at counter':'UPI (ਦਫ਼ਤਰ ਵਿੱਚ)'})[r.method]||r.method)}${r.utr?` · UTR ${G.esc(r.utr)}`:''}`;
+  const prevList=(ref,list,n,q)=>list.slice(0,n-1).map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}">${G.esc(x.no)}</a> · ${M$(x.amount)} · ${G.fmtDateTime(x.date)}`).join('<br>');
+  const head=(title,no)=>`<div class="top"><div class="om">ੴ</div><div><h1>${G.esc(settings.name)}</h1>
       <div class="addr">${G.esc(settings.address||'')}${settings.phone?` · ${G.esc(settings.phone)}`:''}</div></div></div>
-      <div class="title"><b>ਰਸੀਦ · Bheta Receipt</b><span>ਨੰਬਰ / No. <b>${G.esc(r.no)}</b></span></div>
+      <div class="title"><b>${title}</b><span>ਨੰਬਰ / No. <b>${G.esc(no)}</b></span></div>`;
+  // Big VOID mark on a cancelled receipt.
+  const voidMark=r=>r.void?`<div class="voidmark"><b>ਰੱਦ ਰਸੀਦ · VOID</b><div>${G.esc(r.void.reason)}${r.void.note?' · '+G.esc(r.void.note):''} · ${G.fmtDateTime(r.void.date)}</div></div>`:'';
+  const foot=`<div class="foot">ਇਹ ਕੰਪਿਊਟਰ ਰਾਹੀਂ ਬਣੀ ਰਸੀਦ ਹੈ, ਇਸ ਉੱਤੇ ਦਸਤਖ਼ਤ ਦੀ ਲੋੜ ਨਹੀਂ। <span class="en">Computer-generated receipt; no signature needed.</span> ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।</div>`;
+  // Path bheta receipt n (1-based) of booking ref.
+  function pathHtml(ref,l,n,start){
+    const list=l.receipts||[],r=list[n-1],t=G.typeOf(l.type);
+    let on=0,cash=0;list.slice(0,n).forEach(x=>{if(x.void)return;if(x.method==='UPI')on+=x.amount;else cash+=x.amount});
+    const a=G.account({...l,paidOnline:on,paidCash:cash,checking:false,closed:''});
+    return `${head('ਰਸੀਦ · Bheta Receipt',r.no)}${voidMark(r)}
       <table>
         <tr><td>ਮਿਤੀ<br><span class="en">Date</span></td><td>${G.fmtDateTime(r.date)}</td></tr>
         <tr><td>ਧੰਨਵਾਦ ਸਹਿਤ ਪ੍ਰਾਪਤ<br><span class="en">Received with thanks from</span></td><td><b>${G.esc(l.name)} ਪਰਿਵਾਰ</b></td></tr>
@@ -65,24 +68,17 @@
         <tr><td>ਬੁਕਿੰਗ ਨੰਬਰ<br><span class="en">Booking reference</span></td><td>${G.esc(ref)}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
         <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>
-        ${n>1?`<tr><td>ਇਸ ਬੁਕਿੰਗ ਦੀਆਂ ਪਿਛਲੀਆਂ ਰਸੀਦਾਂ<br><span class="en">Previous receipts</span></td><td>${prevList(list,n,'n')}</td></tr>`:''}
+        ${n>1?`<tr><td>ਇਸ ਬੁਕਿੰਗ ਦੀਆਂ ਪਿਛਲੀਆਂ ਰਸੀਦਾਂ<br><span class="en">Previous receipts</span></td><td>${prevList(ref,list,n,'n')}</td></tr>`:''}
         <tr><td>ਕੁੱਲ ਭੇਟਾ<br><span class="en">Total bheta</span></td><td>${M$(a.total)}${a.disc&&!a.cash?` (ਪੂਰੀ ਆਨਲਾਈਨ ਭੇਜਣ ਤੇ ${M$(a.fullOnline)})`:''}</td></tr>
         <tr><td>ਹੁਣ ਤੱਕ ਪ੍ਰਾਪਤ<br><span class="en">Paid so far</span></td><td>${M$(a.paid)}</td></tr>
         <tr><td>ਬਾਕੀ<br><span class="en">Balance</span></td><td>${a.due?M$(a.due):'<span class="stamp">PAID IN FULL · ਪੂਰੀ ਭੇਟਾ ਪ੍ਰਾਪਤ</span>'}</td></tr>
       </table>
-      <div class="foot" style="white-space:pre-line;margin-bottom:8px">${G.esc(G.policyOf(settings))}</div>
-      <div class="foot">ਇਹ ਕੰਪਿਊਟਰ ਰਾਹੀਂ ਬਣੀ ਰਸੀਦ ਹੈ, ਇਸ ਉੱਤੇ ਦਸਤਖ਼ਤ ਦੀ ਲੋੜ ਨਹੀਂ। <span class="en">Computer-generated receipt; no signature needed.</span> ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।</div>`;
+      <div class="foot" style="white-space:pre-line;margin-bottom:8px">${G.esc(G.policyOf(settings))}</div>${foot}`;
   }
-  const mode=r=>`${G.esc(({Cash:'ਨਕਦ (Cash)',Cheque:'ਚੈੱਕ (Cheque)','Bank transfer':'ਬੈਂਕ ਟ੍ਰਾਂਸਫ਼ਰ','UPI at counter':'UPI (ਦਫ਼ਤਰ ਵਿੱਚ)'})[r.method]||r.method)}${r.utr?` · UTR ${G.esc(r.utr)}`:''}`;
-  const prevList=(list,n,q)=>list.slice(0,n-1).map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}">${G.esc(x.no)}</a> · ${M$(x.amount)} · ${G.fmtDateTime(x.date)}`).join('<br>');
-  const head=title=>`<div class="top"><div class="om">ੴ</div><div><h1>${G.esc(settings.name)}</h1>
-      <div class="addr">${G.esc(settings.address||'')}${settings.phone?` · ${G.esc(settings.phone)}`:''}</div></div></div>
-      <div class="title"><b>${title}</b>`;
-  // Seva bheta receipt: its own number series, no path amounts or refund policy.
-  function renderSeva(sh,l,list,r,t,start){
-    const sofar=list.slice(0,n).reduce((s,x)=>s+(Number(x.amount)||0),0);
-    document.title='Seva receipt '+r.no;
-    sh.innerHTML=`${head('🙏 ਸੇਵਾ ਭੇਟਾ ਰਸੀਦ · Seva Bheta Receipt')}<span>ਨੰਬਰ / No. <b>${G.esc(r.no)}</b></span></div>
+  // Seva bheta receipt n: its own number series, no path amounts or refund policy.
+  function sevaHtml(ref,l,n,start){
+    const list=l.sevaReceipts||[],r=list[n-1],t=G.typeOf(l.type),sofar=list.slice(0,n).reduce((s,x)=>s+(Number(x.amount)||0),0);
+    return `${head('🙏 ਸੇਵਾ ਭੇਟਾ ਰਸੀਦ · Seva Bheta Receipt',r.no)}${voidMark(r)}
       <table>
         <tr><td>ਮਿਤੀ<br><span class="en">Date</span></td><td>${G.fmtDateTime(r.date)}</td></tr>
         <tr><td>ਧੰਨਵਾਦ ਸਹਿਤ ਪ੍ਰਾਪਤ<br><span class="en">Received with thanks from</span></td><td><b>${G.esc(l.name)} ਪਰਿਵਾਰ</b></td></tr>
@@ -90,16 +86,60 @@
         <tr><td>ਪਾਠ ਦੀ ਬੁਕਿੰਗ ਨਾਲ<br><span class="en">With path booking</span></td><td>${G.esc(ref)} · ${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(start)}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
         <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>
-        ${n>1?`<tr><td>ਪਿਛਲੀਆਂ ਸੇਵਾ ਰਸੀਦਾਂ<br><span class="en">Previous seva receipts</span></td><td>${prevList(list,n,'s')}</td></tr>
+        ${n>1?`<tr><td>ਪਿਛਲੀਆਂ ਸੇਵਾ ਰਸੀਦਾਂ<br><span class="en">Previous seva receipts</span></td><td>${prevList(ref,list,n,'s')}</td></tr>
         <tr><td>ਕੁੱਲ ਸੇਵਾ ਭੇਟਾ<br><span class="en">Total seva bheta</span></td><td>${M$(sofar)}</td></tr>`:''}
       </table>
-      <div class="foot" style="margin-bottom:8px">ਆਪ ਜੀ ਦੀ ਸੇਵਾ ਲਈ ਬਹੁਤ ਧੰਨਵਾਦ ਜੀ। ਇਹ ਭੇਟਾ ਪਾਠ ਦੀ ਭੇਟਾ ਤੋਂ ਵੱਖਰੀ ਹੈ। <span class="en">With gratitude for your seva. This is separate from the path bheta.</span></div>
-      <div class="foot">ਇਹ ਕੰਪਿਊਟਰ ਰਾਹੀਂ ਬਣੀ ਰਸੀਦ ਹੈ, ਇਸ ਉੱਤੇ ਦਸਤਖ਼ਤ ਦੀ ਲੋੜ ਨਹੀਂ। <span class="en">Computer-generated receipt; no signature needed.</span> ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।</div>`;
+      <div class="foot" style="margin-bottom:8px">ਆਪ ਜੀ ਦੀ ਸੇਵਾ ਲਈ ਬਹੁਤ ਧੰਨਵਾਦ ਜੀ। ਇਹ ਭੇਟਾ ਪਾਠ ਦੀ ਭੇਟਾ ਤੋਂ ਵੱਖਰੀ ਹੈ। <span class="en">With gratitude for your seva. This is separate from the path bheta.</span></div>${foot}`;
+  }
+  // Refund voucher n: money given back to the devotee.
+  function refundHtml(ref,l,n,start){
+    const r=(l.refunds||[])[n-1],t=G.typeOf(l.type);
+    return `${head('ਭੇਟਾ ਵਾਪਸੀ ਵਾਊਚਰ · Refund Voucher',r.no)}
+      <table>
+        <tr><td>ਮਿਤੀ<br><span class="en">Date</span></td><td>${G.fmtDateTime(r.date)}</td></tr>
+        <tr><td>ਵਾਪਸ ਕੀਤੀ<br><span class="en">Paid back to</span></td><td><b>${G.esc(l.name)} ਪਰਿਵਾਰ</b></td></tr>
+        <tr><td>ਬੁਕਿੰਗ<br><span class="en">Booking</span></td><td>${G.esc(ref)} · ${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(start)}</td></tr>
+        <tr><td>ਰਕਮ<br><span class="en">Amount refunded</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
+        <tr><td>ਢੰਗ<br><span class="en">Paid back by</span></td><td>${mode(r)}</td></tr>
+        <tr><td>ਕਾਰਨ<br><span class="en">Reason</span></td><td>${G.esc(r.reason)}${r.note?' · '+G.esc(r.note):''}</td></tr>
+      </table>
+      <div class="foot" style="margin:18px 0 8px">ਪ੍ਰਾਪਤ ਕਰਤਾ ਦੇ ਦਸਤਖ਼ਤ / Received by: ____________________ &nbsp; ਕਮੇਟੀ / Committee: ____________________</div>${foot}`;
+  }
+  const msg=t=>{$('sheet').innerHTML=`<p>${t}</p>`};
+
+  if(ALL){
+    // Committee: every receipt in a period, one per printed page.
+    const from=q.get('from')||'0000',to=q.get('to')||'9999',type=q.get('type')||'all';
+    document.title=`Receipts ${from} to ${to}`;msg('Loading receipts… (sign in on the committee page first)');
+    let data=null;
+    const draw=()=>{if(!settings||!data)return;const items=[];
+      for(const [ref,l] of Object.entries(data.lookups||{})){
+        const push=(arr,kind)=>(arr||[]).forEach((r,i)=>{const day=G.iso(new Date(r.date));if(day>=from&&day<=to)items.push({ref,l,kind,n:i+1,no:r.no})});
+        if(type!=='seva')push(l.receipts,'path');if(type!=='path')push(l.sevaReceipts,'seva');if(type==='all')push(l.refunds,'refund')}
+      items.sort((a,b)=>a.kind!==b.kind?(a.kind<b.kind?-1:1):G.receiptSerial(a.no)-G.receiptSerial(b.no));
+      if(!items.length)return msg('No receipts in this period.');
+      $('sheet').outerHTML=items.map(x=>`<div class="sheet allpage">${x.kind==='seva'?sevaHtml(x.ref,x.l,x.n,x.l.start):x.kind==='refund'?refundHtml(x.ref,x.l,x.n,x.l.start):pathHtml(x.ref,x.l,x.n,x.l.start)}</div>`).join('');
+      $('printBtn').textContent=`ਸਾਰੀਆਂ ${items.length} ਰਸੀਦਾਂ ਪ੍ਰਿੰਟ / PDF ਸੇਵ ਕਰੋ`};
+    API.watchSettings(s=>{settings=s;draw()});
+    API.onAuth((u,admin)=>{if(!u||!admin)return msg('Only the committee can open all receipts. Sign in on the committee page in this browser, then open this again.');
+      let once=false;API.watchAdmin(d=>{if(once)return;once=true;data=d;draw()})});
+    return;
+  }
+
+  let bk=null;
+  function render(){
+    if(!settings||bk===null)return;
+    if(!bk||!bk.l)return msg('No receipt found. Check the link, or ask at the gurdwara office.');
+    const l=bk.l,list=(SEVA?l.sevaReceipts:REFUND?l.refunds:l.receipts)||[],r=list[n-1];
+    if(!r)return msg('This receipt number was not found for this booking.');
+    const start=(bk.data&&bk.data.start)||l.start;
+    document.title=(SEVA?'Seva receipt ':REFUND?'Refund voucher ':'Receipt ')+r.no;
+    $('sheet').innerHTML=SEVA?sevaHtml(ref,l,n,start):REFUND?refundHtml(ref,l,n,start):pathHtml(ref,l,n,start);
   }
   API.watchSettings(s=>{settings=s;render()});
-  if(!ref||!n){bk=undefined;$('sheet').innerHTML='<p>This receipt link is incomplete.</p>';return}
-  API.findBooking(ref).then(b=>{bk=b||undefined;if(!b){$('sheet').innerHTML='<p>No receipt found for this reference.</p>';return}render()})
-    .catch(()=>{$('sheet').innerHTML='<p>Could not load the receipt. Check your internet connection and reload.</p>'});
+  if(!ref||!n){bk=undefined;return msg('This receipt link is incomplete.')}
+  API.findBooking(ref).then(b=>{bk=b||undefined;if(!b)return msg('No receipt found for this reference.');render()})
+    .catch(()=>msg('Could not load the receipt. Check your internet connection and reload.'));
 })();
 </script>
 </body>
