@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Path Booking QR Poster</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@500;700;800&family=Mukta+Mahee:wght@400;500;700&display=swap">
+<style>
+  :root{--navy:#1B2A5C;--kesri:#E3870E;--ink:#16213E;--muted:#5B6480;--line:#DDE1EC;
+    --display:"Baloo Paaji 2","Mukta Mahee",system-ui,sans-serif;--body:"Mukta Mahee",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:#EEF0F5;color:var(--ink);font-family:var(--body)}
+  .tools{max-width:210mm;margin:16px auto 0;display:flex;gap:10px;flex-wrap:wrap;padding:0 16px}
+  .btn{font:inherit;font-weight:700;border-radius:10px;padding:9px 16px;border:0;cursor:pointer;background:var(--kesri);color:#2B1700;text-decoration:none}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:500}
+  .sheet{width:210mm;min-height:297mm;max-width:100%;margin:16px auto;background:#fff;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+  .band{background:var(--navy);color:#fff;padding:14mm 14mm 10mm;text-align:center}
+  .om{font-family:var(--display);font-size:56px;line-height:1;color:var(--kesri)}
+  .band h1{font-family:var(--display);font-size:30px;line-height:1.15;margin:6px 0 0;text-wrap:balance}
+  .band p{margin:6px 0 0;font-size:16px;opacity:.85}
+  .main{flex:1;padding:10mm 14mm;display:grid;gap:8mm;justify-items:center;text-align:center}
+  .call{font-family:var(--display);font-size:34px;line-height:1.15;margin:0}
+  .call small{display:block;font-family:var(--body);font-size:18px;color:var(--muted);font-weight:500}
+  .qrbox{border:6px solid var(--kesri);border-radius:18px;padding:14px;background:#fff}
+  #qr canvas,#qr img{display:block;width:70mm!important;height:70mm!important}
+  .url{font-size:15px;color:var(--muted);word-break:break-all}
+  .steps{display:grid;grid-template-columns:1fr 1fr;gap:6mm;width:100%;text-align:left}
+  .step{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .step h3{margin:0 0 4px;font-family:var(--display);font-size:18px}
+  .step ol{margin:0;padding-left:20px;font-size:14px;line-height:1.5}
+  .paths{font-size:15px;color:var(--ink)}
+  .foot{padding:6mm 14mm 10mm;text-align:center;font-size:14px;color:var(--muted);border-top:1px solid var(--line)}
+  @media (max-width:640px){.steps{grid-template-columns:1fr}}
+  @media print{ @page{size:A4;margin:0} body{background:#fff} .tools{display:none} .sheet{margin:0;box-shadow:none;width:210mm;height:297mm} }
+</style>
+</head>
+<body>
+<div class="tools"><button class="btn" id="printBtn" type="button">Print poster</button><a class="btn ghost" href="admin.html">Committee page</a></div>
+<div class="sheet">
+  <div class="band">
+    <div class="om">ੴ</div>
+    <h1 id="gname">Gurdwara Sahib</h1>
+    <p id="addr"></p>
+  </div>
+  <div class="main">
+    <p class="call">ਪਾਠ ਦੀ ਬੁਕਿੰਗ ਹੁਣ ਮੋਬਾਈਲ 'ਤੇ<small>Book Akhand Path Sahib or Sehaj Path on your phone · Sukhmani Sahib at home: Granthi Singhs' numbers on the site</small></p>
+    <div class="qrbox"><div id="qr"></div></div>
+    <div class="url" id="url"></div>
+    <p class="paths">ਮੋਬਾਈਲ ਦਾ ਕੈਮਰਾ ਖੋਲ੍ਹ ਕੇ QR ਕੋਡ ਸਕੈਨ ਕਰੋ · Open your phone camera and scan the QR code</p>
+    <div class="steps">
+      <div class="step"><h3>Android ਫ਼ੋਨ</h3><ol>
+        <li>ਕੈਮਰੇ ਨਾਲ QR ਸਕੈਨ ਕਰੋ ਅਤੇ ਲਿੰਕ ਖੋਲ੍ਹੋ<br><span style="color:var(--muted)">Scan the QR and open the link</span></li>
+        <li><b>Install app</b> ਬਟਨ ਦਬਾਓ<br><span style="color:var(--muted)">Tap the Install app button</span></li>
+        <li>ਜਾਂ Chrome ਵਿੱਚ ⋮ → <b>Add to Home screen</b><br><span style="color:var(--muted)">Or Chrome menu ⋮ → Add to Home screen</span></li></ol></div>
+      <div class="step"><h3>iPhone</h3><ol>
+        <li>ਕੈਮਰੇ ਨਾਲ QR ਸਕੈਨ ਕਰੋ, Safari ਵਿੱਚ ਖੋਲ੍ਹੋ<br><span style="color:var(--muted)">Scan the QR, open it in Safari</span></li>
+        <li><b>Share</b> ⬆ ਦਬਾਓ<br><span style="color:var(--muted)">Tap the Share button</span></li>
+        <li><b>Add to Home Screen</b> ਚੁਣੋ<br><span style="color:var(--muted)">Choose Add to Home Screen</span></li></ol></div>
+    </div>
+  </div>
+  <div class="foot" id="foot">ਬੁਕਿੰਗ ਬਾਰੇ ਜਾਣਕਾਰੀ ਲਈ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ · For help, contact the gurdwara office</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const url=location.origin+'/';
+  $('url').textContent=url.replace(/\/$/,'');
+  $('printBtn').onclick=()=>window.print();
+  try{new QRCode($('qr'),{text:url,width:600,height:600,correctLevel:QRCode.CorrectLevel.H})}
+  catch(e){$('qr').textContent='QR could not load. Check your internet connection and reload.'}
+  GPB_API.watchSettings(s=>{
+    $('gname').textContent=s.name||'Gurdwara Sahib';
+    $('addr').textContent=s.address||'';
+    if(s.phone)$('foot').textContent=`ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ · Gurdwara office: ${s.phone}`;
+  });
+})();
+</script>
+</body>
+</html>

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Path Booking · Gurdwara Sahib</title>
-<meta name="description" content="Book Akhand Path, Sehaj Path or Sukhmani Sahib at the gurdwara online.">
+<title>ਪਾਠ ਬੁਕਿੰਗ · Gurdwara Sahib</title>
+<meta name="description" content="Book Akhand Path Sahib or Sehaj Path bhog at the gurdwara online; contact the Granthi Singhs for Sukhmani Sahib at home.">
 <meta name="theme-color" content="#1B2A5C">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -18,13 +18,16 @@
   <div class="mark" aria-hidden="true">ੴ</div>
   <div class="hd">
     <h1 id="gname">Gurdwara Sahib</h1>
-    <p>ਪਾਠ ਬੁਕਿੰਗ · Book Akhand Path, Sehaj Path or Sukhmani Sahib</p>
+    <p>ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ ਅਤੇ ਸਹਿਜ ਪਾਠ ਦੀ ਬੁਕਿੰਗ <span class="en">· Path booking</span></p>
   </div>
-  <button class="hdlink" id="manageBtn" type="button">My booking</button>
+  <button class="hdlink" id="installBtn" type="button" hidden>ਐਪ ਇੰਸਟਾਲ ਕਰੋ</button>
+  <button class="hdlink" id="infoBtn" type="button">ਜਾਣਕਾਰੀ</button>
+  <button class="hdlink" id="manageBtn" type="button">ਮੇਰੀ ਬੁਕਿੰਗ</button>
 </div></header>
+<div class="demo" id="iosTip" hidden><div class="wrap">ਇਸ ਨੂੰ ਐਪ ਵਾਂਗ ਰੱਖਣ ਲਈ: Safari ਵਿੱਚ <b>Share ⬆</b> → <b>Add to Home Screen</b> · To keep this as an app, tap Share, then Add to Home Screen. <button class="linkbtn" id="iosTipClose" type="button">Close</button></div></div>
 <div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: bookings are saved only on this device. Fill in firebase-config.js to go live.</div></div>
 
-<section class="seva" aria-label="Akhand Path in progress: Pathi Singh reading Sri Guru Granth Sahib Ji, a Singh doing chaur sahib seva, Singhs in full bana standing in attendance and the sangat seated">
+<section class="seva" aria-label="ਅਖੰਡ ਪਾਠ ਚੱਲ ਰਿਹਾ ਹੈ: Pathi Singh reading Sri Guru Granth Sahib Ji, a Singh doing chaur sahib seva, Singhs in full bana standing in attendance and the sangat seated">
   <div class="wrap seva-in">
     <svg class="seva-art" viewBox="0 0 600 270" role="img" aria-hidden="true">
 <defs>
@@ -239,28 +242,30 @@
 </svg>
     <div class="seva-txt">
       <div class="seva-pa">ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ · ਸੇਵਾ</div>
-      <div class="hint">Pathi Singh reading Sri Guru Granth Sahib Ji. Amritdhari Singhs in full bana do chaur sahib seva and stand in attendance, with the sangat seated in the darbar.</div>
-      <button class="hdlink seva-btn" type="button" id="sevaToggle" aria-pressed="false">Pause</button>
+      <div class="hint">ਪਾਠੀ ਸਿੰਘ ਸ੍ਰੀ ਗੁਰੂ ਗ੍ਰੰਥ ਸਾਹਿਬ ਜੀ ਦਾ ਪਾਠ ਕਰ ਰਹੇ ਹਨ, ਪੂਰੇ ਬਾਣੇ ਵਿੱਚ ਸਿੰਘ ਚੌਰ ਸਾਹਿਬ ਦੀ ਸੇਵਾ ਕਰ ਰਹੇ ਹਨ ਅਤੇ ਸੰਗਤ ਦਰਬਾਰ ਵਿੱਚ ਹਾਜ਼ਰ ਹੈ।</div>
+      <button class="hdlink seva-btn" type="button" id="sevaToggle" aria-pressed="false">ਰੋਕੋ</button>
     </div>
   </div>
 </section>
 <main><div class="wrap">
+  <div class="rule-banner" id="ruleBanner" style="grid-column:1/-1"></div>
   <div class="panel">
     <div class="cal-head">
-      <button class="navbtn" id="prev" aria-label="Previous month">‹</button>
+      <button class="navbtn" id="prev" aria-label="ਪਿਛਲਾ ਮਹੀਨਾ">‹</button>
       <h2 id="monthLabel">Month</h2>
-      <button class="navbtn" id="next" aria-label="Next month">›</button>
+      <button class="navbtn" id="next" aria-label="ਅਗਲਾ ਮਹੀਨਾ">›</button>
     </div>
     <div class="grid" id="dows"></div>
     <div class="grid" id="days"></div>
     <div class="legend">
-      <span><i></i>Open slot</span>
-      <span><i class="off"></i>Booked</span>
-      <span>Book from tomorrow up to six months ahead.</span>
+      <span><i></i>ਥਾਂ ਖਾਲੀ</span>
+      <span><i class="off"></i>ਬੁੱਕ ਹੋ ਚੁੱਕਾ</span>
+      <span>ਕੱਲ੍ਹ ਤੋਂ ਛੇ ਮਹੀਨੇ ਅੱਗੇ ਤੱਕ ਬੁਕਿੰਗ ਹੋ ਸਕਦੀ ਹੈ।</span>
     </div>
-    <div id="status" class="note" style="margin-top:12px">Loading bookings…</div>
+    <div id="status" class="note" style="margin-top:12px">ਬੁਕਿੰਗਾਂ ਲੋਡ ਹੋ ਰਹੀਆਂ ਹਨ…</div>
   </div>
   <div class="panel" id="side"></div>
+  <section class="panel infobox" id="infoBox" style="grid-column:1/-1" aria-labelledby="infoTitle"></section>
 </div></main>
 
 <footer><div class="wrap" id="contactInfo"></div></footer>
@@ -269,10 +274,12 @@
 <script src="firebase-config.js"></script>
 <script src="js/common.js"></script>
 <script src="js/data.js"></script>
+<script src="js/translit.js"></script>
+<script src="js/utr-scan.js"></script>
 <script>
 (function(){
   const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
-  const S={slots:{},settings:{name:'Gurdwara Sahib',phone:'',address:'',closed:[],upi:'',payee:'',fees:{},onlineDiscount:500},view:null,sel:G.first,form:null,done:null,loaded:false,mg:null,lk:{},watching:{}};
+  const S={slots:{},settings:{name:'Gurdwara Sahib',phone:'',address:'',closed:[],upi:'',payee:'',fees:{},onlineDiscountPct:10,holdHours:48,policy:''},view:null,sel:G.first,form:null,done:null,loaded:false,mg:null,lk:{},watching:{}};
   const f=G.parse(G.first); S.view=new Date(f.getFullYear(),f.getMonth(),1);
   $('demoBar').hidden=!API.demo;
   const siteUrl=()=>location.origin+location.pathname.replace(/index\.html$/,'');
@@ -292,7 +299,7 @@
   function renderCal(){
     const y=S.view.getFullYear(),m=S.view.getMonth(),slots=viewSlots();
     const only=S.mg&&S.mg.stage==='pick'&&S.mg.b.data?[G.typeOf(S.mg.b.data.type)]:G.TYPES;
-    $('monthLabel').textContent=S.view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+    $('monthLabel').textContent=G.monthYear(S.view);
     const a=G.parse(G.first),b=G.parse(G.last);
     $('prev').disabled=y<a.getFullYear()||(y===a.getFullYear()&&m<=a.getMonth());
     $('next').disabled=y>b.getFullYear()||(y===b.getFullYear()&&m>=b.getMonth());
@@ -301,82 +308,127 @@
     for(let d=1;d<=n;d++){
       const ds=G.iso(new Date(y,m,d)),out=ds<G.first||ds>G.last,closed=S.settings.closed.includes(ds);
       const pips=only.map(t=>`<span class="pip ${G.isFree(t,ds,slots,S.settings)?'':'off'}"></span>`).join('');
-      h+=`<button class="day ${ds===S.sel?'sel':''} ${ds===G.today?'today':''} ${closed?'closed':''}" data-d="${ds}" ${out?'disabled':''} aria-label="${G.fmtLong(ds)}${closed?', closed':''}"><span class="n">${d}</span>${out||closed?'':`<span class="pips">${pips}</span>`}</button>`;
+      h+=`<button class="day ${ds===S.sel?'sel':''} ${ds===G.today?'today':''} ${closed?'closed':''}" data-d="${ds}" ${out?'disabled':''} aria-label="${G.fmtLong(ds)}${closed?', ਬੰਦ':''}"><span class="n">${d}</span>${out||closed?'':`<span class="pips">${pips}</span>`}</button>`;
     }
     $('days').innerHTML=h;
   }
 
   // ---------- Bheta (ਭੇਟਾ) ----------
-  // Price box shown before booking: total, 20% advance, all-online price.
+  // Price box shown before booking: total, recommended 20% advance, all-online price (10% off).
   function priceBox(type){
     const total=G.feeOf(S.settings,type);if(!total)return'';
-    const disc=Math.min(G.discountOf(S.settings),total),adv=G.advanceOf(total);
-    return `<div class="price"><div class="pr"><span>Bheta for this path</span><b>${M$(total)}</b></div>
-      <div class="pr"><span>Advance to pay online now (at least ${G.ADVANCE_PCT}%)</span><b>${M$(adv)}</b></div>
-      ${disc?`<div class="pr save"><span>Pay the full amount online and save ${M$(disc)}</span><b>${M$(total-disc)}</b></div>`:''}
-      <div class="hint">The balance can be paid online or at the gurdwara before the bhog.</div></div>`;
+    const disc=G.discountOf(S.settings,total),adv=G.advanceOf(total);
+    return `<div class="price"><div class="pr"><span>ਇਸ ਪਾਠ ਦੀ ਭੇਟਾ</span><b>${M$(total)}</b></div>
+      <div class="pr"><span>48 ਘੰਟਿਆਂ ਵਿੱਚ ਜ਼ਰੂਰੀ ਅਗਾਊਂ ਭੇਟਾ (${G.ADVANCE_PCT}%)</span><b>${M$(adv)}</b></div>
+      ${disc?`<div class="pr save"><span>ਪੂਰੀ ਭੇਟਾ ਆਨਲਾਈਨ ਭੇਜੋ ਤਾਂ ${G.discountPct(S.settings)}% ਬਚਤ (${M$(disc)})</span><b>${M$(total-disc)}</b></div>`:''}
+      <div class="hint">ਬਾਕੀ ਭੇਟਾ ਆਨਲਾਈਨ ਜਾਂ ਭੋਗ ਤੋਂ ਪਹਿਲਾਂ ਗੁਰਦੁਆਰੇ ਜਮ੍ਹਾਂ ਕਰਾਈ ਜਾ ਸਕਦੀ ਹੈ ਜੀ।</div>
+      <div class="hint" style="margin-top:6px"><b>ਭੇਟਾ ਵਿੱਚ ਸ਼ਾਮਲ:</b> ${G.infoOf(S.settings).includes.map(x=>G.esc(x.split(' / ')[0])).join(' · ')}. <button type="button" class="linkbtn" data-info="big">ਵੱਡਾ ਸਮਾਗਮ?</button></div></div>${holdNote()}`;
   }
+  // Unpaid bookings are held for a set time, then the date opens for other sangat.
+  function ruleText(){const h=G.holdHours(S.settings);
+    return h?`<b>ਜ਼ਰੂਰੀ ਸੂਚਨਾ ਜੀ:</b> ਬੁਕਿੰਗ ਪੱਕੀ ਰੱਖਣ ਲਈ <b>${h} ਘੰਟਿਆਂ ਦੇ ਅੰਦਰ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਭੇਟਾ</b> (ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰੇ) ਜ਼ਰੂਰੀ ਹੈ। ਨਹੀਂ ਤਾਂ ਬੁਕਿੰਗ <b>ਆਪਣੇ ਆਪ ਰੱਦ</b> ਹੋ ਜਾਵੇਗੀ ਅਤੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰਨੀ ਪਵੇਗੀ। ਮਿਤੀ ${G.CHANGE_HOURS} ਘੰਟਿਆਂ ਤੱਕ "ਮੇਰੀ ਬੁਕਿੰਗ" ਵਿੱਚ ਬਦਲੀ ਜਾ ਸਕਦੀ ਹੈ।
+      <div class="en">Important: an advance of at least ${G.ADVANCE_PCT}% (online or at the gurdwara) is required within ${h} hours of booking, or the booking is cancelled automatically and you will need to book again. The date can be changed under "My booking" for ${G.CHANGE_HOURS} hours.</div>`:''}
+  function holdNote(){const r=ruleText();return r?`<div class="note warnnote" style="margin-top:8px">${r}</div>`:''}
+  function payByNote(l,bms){const h=G.holdHours(S.settings),a=G.account(l);
+    if(!h||!bms||a.state!=='due'||l.checking)return'';
+    return `<div class="note warnnote" style="margin-top:8px">ਕਿਰਪਾ ਕਰਕੇ <b>${G.fmtTime(bms+h*3600e3)}</b> ਤੱਕ ਘੱਟੋ-ਘੱਟ <b>${M$(a.advance)}</b> ਅਗਾਊਂ ਭੇਟਾ ਭੇਜੋ ਜੀ (ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰੇ)। ਨਹੀਂ ਤਾਂ ਇਹ ਬੁਕਿੰਗ ਆਪਣੇ ਆਪ ਰੱਦ ਹੋ ਜਾਵੇਗੀ ਅਤੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰਨੀ ਪਵੇਗੀ। <span class="en">Kindly pay an advance of at least ${M$(a.advance)} before this time, or the booking will be cancelled and you will need to book again.</span></div>`;
+  }
+  const policyBox=()=>`<div class="policy">${G.esc(G.policyOf(S.settings))}</div>`;
   // Account summary for a booking.
   function accountBox(l){
-    const a=G.account(l);if(!a.total)return `<div class="note">No bheta amount has been set for this path. Please ask at the gurdwara office.</div>`;
+    const a=G.account(l);if(!a.total)return `<div class="note">ਇਸ ਪਾਠ ਦੀ ਭੇਟਾ ਤੈਅ ਨਹੀਂ ਹੈ। ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਤੋਂ ਪੁੱਛੋ ਜੀ।</div>`;
     return `<div class="price">
-      <div class="pr"><span>Bheta</span><b>${M$(a.total)}</b></div>
-      ${a.disc&&!a.cash?`<div class="pr save"><span>Online discount (whole amount paid online)</span><b>− ${M$(a.disc)}</b></div>`:''}
-      <div class="pr"><span>Paid and confirmed${a.online&&a.cash?` (online ${M$(a.online)}, at gurdwara ${M$(a.cash)})`:''}</span><b>${M$(a.paid)}</b></div>
-      <div class="pr total"><span>Balance</span><b>${M$(a.due)}</b></div></div>`;
+      <div class="pr"><span>ਭੇਟਾ</span><b>${M$(a.total)}</b></div>
+      ${a.disc&&!a.cash?`<div class="pr save"><span>ਆਨਲਾਈਨ ਛੋਟ (ਪੂਰੀ ਭੇਟਾ ਆਨਲਾਈਨ)</span><b>− ${M$(a.disc)}</b></div>`:''}
+      <div class="pr"><span>ਪ੍ਰਾਪਤ ਭੇਟਾ${a.online&&a.cash?` (ਆਨਲਾਈਨ ${M$(a.online)}, ਗੁਰਦੁਆਰੇ ${M$(a.cash)})`:''}</span><b>${M$(a.paid)}</b></div>
+      <div class="pr total"><span>ਬਾਕੀ</span><b>${M$(a.due)}</b></div>
+      ${G.sevaOf(l)?`<div class="pr save"><span>🙏 ਸੇਵਾ ਭੇਟਾ ਪ੍ਰਾਪਤ (ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ)</span><b>${M$(G.sevaOf(l))}</b></div>`:''}</div>`;
   }
-  const legend=()=>`<div class="bhlegend"><div class="hint" style="margin-bottom:4px">What the status means</div>
+  const legend=()=>`<div class="bhlegend"><div class="hint" style="margin-bottom:4px">ਸਥਿਤੀ ਦਾ ਮਤਲਬ</div>
     ${['due','checking','partial','paid'].map(k=>`<div>${G.chip(k)}</div>`).join('')}</div>`;
   function receiptsBox(ref,l){
-    const r=(l&&l.receipts)||[];if(!r.length)return'';
-    return `<div class="stepno" style="margin-top:6px">Receipts · ਰਸੀਦਾਂ</div><div class="rlist">${r.map((x,i)=>`<a class="rcpt" href="receipt.html?ref=${encodeURIComponent(ref)}&n=${i+1}" target="_blank" rel="noopener"><span>${G.esc(x.no)}</span><span>${M$(x.amount)} · ${G.esc(x.method)}</span></a>`).join('')}</div>`;
+    const r=(l&&l.receipts)||[],s=(l&&l.sevaReceipts)||[];if(!r.length&&!s.length)return'';
+    const list=(arr,q)=>arr.map((x,i)=>`<a class="rcpt" href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}" target="_blank" rel="noopener"><span>${G.esc(x.no)}</span><span>${M$(x.amount)} · ${G.esc(x.method)}</span></a>`).join('');
+    return (r.length?`<div class="stepno" style="margin-top:6px">ਪਾਠ ਦੀ ਭੇਟਾ ਦੀਆਂ ਰਸੀਦਾਂ</div><div class="rlist">${list(r,'n')}</div>`:'')+
+      (s.length?`<div class="stepno" style="margin-top:6px">🙏 ਸੇਵਾ ਭੇਟਾ ਦੀਆਂ ਰਸੀਦਾਂ</div><div class="rlist">${list(s,'s')}</div>`:'');
   }
+  // Optional seva bheta for Gurdwara Sahib, added on top of the path bheta in the same UPI payment.
+  const sevaPick=(def)=>`<div class="sevabox"><div class="stepno" style="margin:0">🙏 ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ <span class="en">Seva bheta (optional)</span></div>
+      <div class="hint">ਪਾਠ ਦੀ ਭੇਟਾ ਤੋਂ ਇਲਾਵਾ, ਇੱਛਾ ਅਨੁਸਾਰ ਜੀ। ਇਸ ਦੀ ਰਸੀਦ ਵੱਖਰੀ ਬਣੇਗੀ। <span class="en">Any amount you wish; it gets its own separate receipt.</span></div>
+      <div class="row" style="margin-top:6px">${def?'':`<button type="button" class="btn ghost sevapick" data-v="0">ਨਹੀਂ</button>`}${G.SEVA_PICKS.map(v=>`<button type="button" class="btn ghost sevapick" data-v="${v}">${M$(v)}</button>`).join('')}</div>
+      <label style="margin-top:6px">ਸੇਵਾ ਭੇਟਾ (₹)<input class="seva" type="number" min="0" max="100000" step="1" inputmode="numeric" value="${def||0}"></label></div>`;
   function payBlock(ref,l){
     const a=G.account(l);
-    if(['paid','free','noshow','cancelled'].includes(a.state))return'';
-    if(l.checking)return `<div class="note" style="margin-top:8px">Thank you. The committee is checking your payment. This page updates as soon as they confirm it, and your receipt appears below.</div>`;
-    if(!S.settings.upi)return `<div class="note" style="margin-top:8px">Online payment is not set up yet. Please pay ${M$(a.due)} at the gurdwara office${S.settings.phone?` (${G.esc(S.settings.phone)})`:''} and mention reference <b>${G.esc(ref)}</b>.</div>`;
-    const first=!a.online, min=first?a.advance:1, def=first?a.advance:a.due;
+    if(['free','noshow','cancelled','expired'].includes(a.state))return'';
+    if(a.state==='paid'&&!l.checking)return S.settings.upi?sevaOnlyBlock(ref):'';
+    if(l.checking)return `<div class="note" style="margin-top:8px">ਧੰਨਵਾਦ ਜੀ। ਕਮੇਟੀ ਆਪ ਜੀ ਦੀ ਭੇਟਾ ਦੀ ਜਾਂਚ ਕਰ ਰਹੀ ਹੈ। ਪੁਸ਼ਟੀ ਹੁੰਦੇ ਹੀ ਇਹ ਪੰਨਾ ਅੱਪਡੇਟ ਹੋਵੇਗਾ ਅਤੇ ਰਸੀਦ ਹੇਠਾਂ ਦਿਸੇਗੀ।</div>`;
+    if(!S.settings.upi)return `<div class="note" style="margin-top:8px">ਆਨਲਾਈਨ ਭੁਗਤਾਨ ਅਜੇ ਚਾਲੂ ਨਹੀਂ। ਕਿਰਪਾ ਕਰਕੇ ${M$(a.due)} ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਵਿੱਚ ਜਮ੍ਹਾਂ ਕਰਾਓ${S.settings.phone?` (${G.esc(S.settings.phone)})`:''} ਅਤੇ ਬੁਕਿੰਗ ਨੰਬਰ ਦੱਸੋ: <b>${G.esc(ref)}</b>.</div>`;
+    const first=!a.paid, min=first?Math.min(a.advance,a.due):1, def=a.due;
     const opts=[];
-    if(first&&a.advance<a.fullOnline)opts.push([a.advance,`Advance ${M$(a.advance)} (${G.ADVANCE_PCT}%)`]);
-    if(!a.cash)opts.push([a.due,`${first?'Full amount':'Balance'} ${M$(a.due)}${a.disc?` (saves ${M$(a.disc)})`:''}`]);
-    else opts.push([a.due,`Balance ${M$(a.due)}`]);
+    if(first&&a.advance<a.fullOnline)opts.push([a.advance,`ਅਗਾਊਂ ${M$(a.advance)} (${G.ADVANCE_PCT}%)`]);
+    if(!a.cash)opts.push([a.due,`${first?'ਪੂਰੀ ਭੇਟਾ':'ਬਾਕੀ'} ${M$(a.due)}${a.disc?` (${M$(a.disc)} ਬਚਤ)`:''}`]);
+    if(first&&a.advance<a.fullOnline)opts.reverse();
+    else opts.push([a.due,`ਬਾਕੀ ${M$(a.due)}`]);
     return `<div class="paybox" data-ref="${G.esc(ref)}" style="margin-top:8px">
-      <div class="hint">${first?`Pay at least <b>${M$(a.advance)}</b> now to confirm your booking.`:'Pay the balance online, or at the gurdwara before the bhog.'} Use Google Pay, Paytm, PhonePe, BHIM or your bank's UPI app.</div>
+      <div class="hint">${first?`ਪੂਰੀ ਭੇਟਾ ਆਨਲਾਈਨ ਭੇਜਣ ਤੇ <b>${M$(a.disc)}</b> ਦੀ ਬਚਤ ਜੀ। ਜਾਂ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ (<b>${M$(a.advance)}</b>) ਭੇਜੋ ਜੀ; ਬਾਕੀ ਭੋਗ ਤੋਂ ਪਹਿਲਾਂ ਗੁਰਦੁਆਰੇ ਵੀ ਦਿੱਤੀ ਜਾ ਸਕਦੀ ਹੈ।`:'ਬਾਕੀ ਭੇਟਾ ਆਨਲਾਈਨ ਭੇਜੋ, ਜਾਂ ਭੋਗ ਤੋਂ ਪਹਿਲਾਂ ਗੁਰਦੁਆਰੇ ਜਮ੍ਹਾਂ ਕਰਾਓ ਜੀ।'} Google Pay, Paytm, PhonePe, BHIM ਜਾਂ ਬੈਂਕ ਦੀ UPI ਐਪ ਵਰਤੋ ਜੀ।</div>
       <div class="row" style="margin-top:6px">${opts.map(([v,t])=>`<button type="button" class="btn ghost amtpick" data-v="${v}">${t}</button>`).join('')}</div>
-      <label style="margin-top:6px">Amount to pay (₹)<input class="amt" type="number" min="${min}" max="${a.due}" step="1" inputmode="numeric" value="${def}"></label>
-      <div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">Pay by UPI</a></div>
-      <div class="hint" style="margin-top:6px">On a computer, scan this code with your phone's UPI app. UPI ID: <b>${G.esc(S.settings.upi)}</b></div>
+      <label style="margin-top:6px">ਪਾਠ ਦੀ ਭੇਟਾ, ਭੇਜਣ ਵਾਲੀ ਰਕਮ (₹)<input class="amt" type="number" min="${min}" max="${a.due}" step="1" inputmode="numeric" value="${def}"></label>
+      ${sevaPick(0)}
+      <div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">UPI ਨਾਲ ਭੇਜੋ</a></div>${payTail(ref,min,a.due)}`;
+  }
+  function sevaOnlyBlock(ref){
+    return `<details class="sevaonly" data-ref="${G.esc(ref)}" style="margin-top:10px" ${S.sevaOpen&&S.sevaOpen[ref]?'open':''}><summary>🙏 ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ ਭੇਜੋ ਜੀ <span class="en">Send seva bheta</span></summary>
+      <div class="paybox" data-ref="${G.esc(ref)}" style="margin-top:8px"><input class="amt" type="hidden" value="0">${sevaPick(G.SEVA_PICKS[0])}
+      <div class="row" style="margin-top:8px"><a class="btn upibtn" href="#">UPI ਨਾਲ ਭੇਜੋ</a></div>${payTail(ref,0,0)}</details>`;
+  }
+  function payTail(ref,min,max){
+    return `
+      <div class="hint" style="margin-top:6px">ਕੰਪਿਊਟਰ ਤੇ ਹੋ ਤਾਂ ਫ਼ੋਨ ਦੀ UPI ਐਪ ਨਾਲ ਇਹ ਕੋਡ ਸਕੈਨ ਕਰੋ ਜੀ। UPI ID: <b>${G.esc(S.settings.upi)}</b></div>
       <div class="qr" style="margin-top:8px;background:#fff;padding:8px;display:inline-block;border-radius:8px"></div>
-      <form class="payForm" data-ref="${G.esc(ref)}" data-min="${min}" data-max="${a.due}" novalidate style="margin-top:8px">
-        <label>After paying, enter the UPI transaction ID (UTR, usually 12 digits)<input name="utr" maxlength="30" inputmode="numeric" autocomplete="off"></label>
+      <form class="payForm" data-ref="${G.esc(ref)}" data-min="${min}" data-max="${max}" novalidate style="margin-top:8px">
+        <div class="row" style="margin-bottom:6px"><label class="btn ghost" style="cursor:pointer">📷 ਸਕ੍ਰੀਨਸ਼ਾਟ ਤੋਂ UTR ਭਰੋ<input type="file" accept="image/*" class="utrfile" hidden></label></div>
+        <div class="hint utrmsg">ਭੁਗਤਾਨ ਤੋਂ ਬਾਅਦ "Payment successful" ਵਾਲੇ ਪੰਨੇ ਦਾ ਸਕ੍ਰੀਨਸ਼ਾਟ ਲਓ ਅਤੇ ਇੱਥੇ ਚੁਣੋ, ਜਾਂ ਨੰਬਰ ਹੱਥ ਨਾਲ ਭਰੋ ਜੀ। <span class="en">Pick your payment screenshot, or type the number.</span></div>
+        <label>ਭੁਗਤਾਨ ਤੋਂ ਬਾਅਦ UPI ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਨੰਬਰ (UTR, ਆਮ ਤੌਰ ਤੇ 12 ਅੰਕ) ਭਰੋ<input name="utr" maxlength="30" inputmode="numeric" autocomplete="off"></label>
         <div class="payErr"></div>
-        <div class="row"><button class="btn ghost" type="submit">I have paid</button></div>
+        <div class="row"><button class="btn ghost" type="submit">ਭੇਟਾ ਭੇਜ ਦਿੱਤੀ</button></div>
       </form></div>`;
   }
   // Keep the UPI link and QR in step with the amount box.
   function wirePay(){
+    document.querySelectorAll('#side details.sevaonly').forEach(d=>d.addEventListener('toggle',()=>{S.sevaOpen=S.sevaOpen||{};S.sevaOpen[d.dataset.ref]=d.open}));
     document.querySelectorAll('#side .paybox').forEach(pb=>{
-      const ref=pb.dataset.ref,inp=pb.querySelector('.amt'),btn=pb.querySelector('.upibtn'),qr=pb.querySelector('.qr');
-      const upd=()=>{const v=Math.round(Number(inp.value)||0);const link=G.upiLink(S.settings,v,ref);btn.href=link;btn.textContent=`Pay ${M$(v)} by UPI`;
+      const ref=pb.dataset.ref,inp=pb.querySelector('.amt'),sv=pb.querySelector('.seva'),btn=pb.querySelector('.upibtn'),qr=pb.querySelector('.qr');
+      const upd=()=>{const s=Math.max(0,Math.round(Number(sv&&sv.value)||0)),v=Math.round(Number(inp.value)||0)+s;const link=G.upiLink(S.settings,v,ref);btn.href=link;
+        btn.textContent=s&&v>s?`${M$(v)} UPI ਨਾਲ ਭੇਜੋ (ਸੇਵਾ ${M$(s)} ਸਮੇਤ)`:`${M$(v)} UPI ਨਾਲ ਭੇਜੋ`;
+        pb.querySelectorAll('.sevapick').forEach(b=>b.classList.toggle('on',Number(b.dataset.v)===s));
         qr.innerHTML='';if(typeof QRCode!=='undefined'&&v>0){try{new QRCode(qr,{text:link,width:150,height:150,correctLevel:QRCode.CorrectLevel.M})}catch(e){}}};
-      inp.addEventListener('input',upd);
+      inp.addEventListener('input',upd);if(sv)sv.addEventListener('input',upd);
+      pb.querySelectorAll('.sevapick').forEach(b=>b.addEventListener('click',()=>{sv.value=b.dataset.v;upd()}));
+      // UTR from a payment screenshot (optional; read on the phone itself).
+      const fi=pb.querySelector('.utrfile'),msg=pb.querySelector('.utrmsg'),utrIn=pb.querySelector('input[name=utr]');
+      if(fi&&window.GPB_UTR)fi.addEventListener('change',async()=>{const f=fi.files&&fi.files[0];if(!f)return;
+        msg.textContent='ਸਕ੍ਰੀਨਸ਼ਾਟ ਪੜ੍ਹ ਰਹੇ ਹਾਂ… (ਪਹਿਲੀ ਵਾਰ ਕੁਝ ਸਕਿੰਟ ਲੱਗ ਸਕਦੇ ਹਨ)';
+        try{const n=await GPB_UTR.read(f,p=>{msg.textContent=`ਸਕ੍ਰੀਨਸ਼ਾਟ ਪੜ੍ਹ ਰਹੇ ਹਾਂ… ${p}%`});
+          if(n){utrIn.value=n;msg.innerHTML=`UTR ਮਿਲ ਗਿਆ: <b>${n}</b>। ਕਿਰਪਾ ਕਰਕੇ ਸਕ੍ਰੀਨਸ਼ਾਟ ਨਾਲ ਮਿਲਾ ਕੇ ਦੇਖੋ, ਫਿਰ "ਭੇਟਾ ਭੇਜ ਦਿੱਤੀ" ਦਬਾਓ ਜੀ।`}
+          else msg.textContent='ਸਕ੍ਰੀਨਸ਼ਾਟ ਵਿੱਚ 12 ਅੰਕਾਂ ਦਾ UTR ਨਹੀਂ ਮਿਲਿਆ। ਸਾਫ਼ ਸਕ੍ਰੀਨਸ਼ਾਟ ਚੁਣੋ ਜਾਂ ਨੰਬਰ ਹੱਥ ਨਾਲ ਭਰੋ ਜੀ।'}
+        catch(e){msg.textContent='ਸਕ੍ਰੀਨਸ਼ਾਟ ਪੜ੍ਹਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ (ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰੋ)। ਨੰਬਰ ਹੱਥ ਨਾਲ ਭਰੋ ਜੀ।'}
+        fi.value=''});
       pb.querySelectorAll('.amtpick').forEach(b=>b.addEventListener('click',()=>{inp.value=b.dataset.v;upd()}));
       upd();
     });
   }
-  function bhetaSection(ref,l){
-    if(!l)return `<div class="step"><div class="stepno">ਭੇਟਾ Bheta</div><div class="hint">Loading…</div></div>`;
+  function bhetaSection(ref,l,bms){
+    if(!l)return `<div class="step"><div class="stepno">ਭੇਟਾ</div><div class="hint">ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ…</div></div>`;
     const a=G.account(l);
-    return `<div class="step"><div class="stepno">ਭੇਟਾ Bheta</div><div>${G.chip(a.state)}</div>${accountBox(l)}${payBlock(ref,l)}${receiptsBox(ref,l)}${legend()}</div>`;
+    return `<div class="step"><div class="stepno">ਭੇਟਾ</div><div>${G.chip(a.state)}</div>${accountBox(l)}${payByNote(l,bms)}${payBlock(ref,l)}${receiptsBox(ref,l)}${legend()}${policyBox()}</div>`;
   }
 
   function shareBox(o){
     const msg=G.confirmText({...o,gname:gname(),url:siteUrl(),phone:S.settings.phone});
     return `<div class="row" style="margin-top:10px">
-      <a class="btn" href="${G.waLink(o.custPhone,msg)}" target="_blank" rel="noopener">Send to my WhatsApp</a>
-      <button class="btn ghost" type="button" data-copy="${G.esc(msg)}">Copy details</button></div>
-      <div class="hint" style="margin-top:6px">WhatsApp opens with the message ready. Tap send to keep it in your chat.</div>`;
+      <a class="btn" href="${G.waLink(o.custPhone,msg)}" target="_blank" rel="noopener">ਆਪਣੇ WhatsApp ਤੇ ਭੇਜੋ</a>
+      <button class="btn ghost" type="button" data-copy="${G.esc(msg)}">ਵੇਰਵਾ ਕਾਪੀ ਕਰੋ</button></div>
+      <div class="hint" style="margin-top:6px">WhatsApp ਵਿੱਚ ਸੁਨੇਹਾ ਤਿਆਰ ਖੁੱਲ੍ਹੇਗਾ। ਸੰਭਾਲਣ ਲਈ Send ਦਬਾਓ ਜੀ।</div>`;
   }
 
   function renderSide(){
@@ -385,104 +437,157 @@
   }
   function renderDay(){
     const d=S.sel,closed=S.settings.closed.includes(d);
-    let h=`<p class="day-title">${G.fmtLong(d)}</p><p class="sub">${closed?'The gurdwara is not taking bookings on this date.':'Choose a path to book for this date.'}</p>`;
+    let h=`<p class="day-title">${G.fmtLong(d)}</p><p class="sub">${closed?'ਇਸ ਮਿਤੀ ਨੂੰ ਬੁਕਿੰਗ ਬੰਦ ਹੈ।':'ਇਸ ਮਿਤੀ ਲਈ ਪਾਠ ਚੁਣੋ ਜੀ।'}</p>`;
     h+='<div class="slots">';
     for(const t of G.TYPES){
       const left=G.freeSeats(t,d,S.slots,S.settings).length,free=left>0,cap=G.capOf(S.settings,t.key),booked=G.bookingsOn(t,d,S.slots);
       const full=booked.length>=cap,fee=G.feeOf(S.settings,t.key);
-      let right=free?`<button class="btn" data-book="${t.key}" ${S.loaded?'':'disabled'}>Book</button>`
-        :booked.length&&full?`<span class="tag">${booked.every(b=>b.part===1)?'Akhand Path in progress':'Fully booked'}</span>`
-        :`<span class="tag">${closed?'Closed':'Not available'}</span>`;
-      const places=cap>1&&!closed&&d>=G.first?`<div class="when"><b>${left} of ${cap} places left</b></div>`:'';
-      const names=booked.length?`<div class="hint">Booked: ${booked.map(b=>`${G.esc(b.name)} parivar${b.part===1?' (Akhand Path, day 2)':b.occasion?' · '+G.esc(b.occasion):''}`).join('; ')}</div>`:'';
-      const info=`<div class="when">${G.esc(t.when(d))}${fee?` · Bheta ${M$(fee)}`:''}</div>${places}${names}`;
-      const why=!free&&!full&&!closed&&t.days>1&&d>=G.first&&d<=G.last?`<div class="hint">No place is free on both days of the 48-hour path, or the next day is closed.</div>`:'';
+      let right=free?`<button class="btn" data-book="${t.key}" ${S.loaded?'':'disabled'}>ਬੁੱਕ ਕਰੋ</button>`
+        :booked.length&&full?`<span class="tag">${booked.every(b=>b.part===1)?'ਅਖੰਡ ਪਾਠ ਚੱਲ ਰਿਹਾ ਹੈ':'ਪੂਰੀ ਬੁੱਕ'}</span>`
+        :`<span class="tag">${closed?'ਬੰਦ':'ਉਪਲਬਧ ਨਹੀਂ'}</span>`;
+      const places=cap>1&&!closed&&d>=G.first?`<div class="when"><b>${cap} ਵਿੱਚੋਂ ${left} ਥਾਂ ਖਾਲੀ</b></div>`:'';
+      const names=booked.length?`<div class="hint">ਬੁਕਿੰਗ: ${booked.map(b=>`${G.esc(b.name)} ਪਰਿਵਾਰ${b.part===1?' (ਅਖੰਡ ਪਾਠ, ਦੂਜਾ ਦਿਨ)':b.occasion?' · '+G.esc(b.occasion):''}`).join('; ')}</div>`:'';
+      const info=`<div class="when">${G.esc(t.when(d))}${fee?` · ਭੇਟਾ ${M$(fee)}`:''}</div>${places}${names}`;
+      const why=!free&&!full&&!closed&&t.days>1&&d>=G.first&&d<=G.last?`<div class="hint">48 ਘੰਟਿਆਂ ਦੇ ਪਾਠ ਲਈ ਦੋਵੇਂ ਦਿਨ ਥਾਂ ਖਾਲੀ ਨਹੀਂ, ਜਾਂ ਅਗਲੇ ਦਿਨ ਬੁਕਿੰਗ ਬੰਦ ਹੈ।</div>`:'';
       h+=`<div class="slot ${free?'free':''}"><div class="txt"><div class="pa">${t.pa}</div><div class="en">${t.en}</div>${info}${why}</div>${right}</div>`;
     }
-    $('side').innerHTML=h+'</div>';
+    h+=`</div><button type="button" class="sukhlink" data-info="sukh">🏠 <span><b>ਸੁਖਮਨੀ ਸਾਹਿਬ ਘਰ ਵਿੱਚ?</b> ਗ੍ਰੰਥੀ ਸਿੰਘ ਸਾਹਿਬਾਨ ਨਾਲ ਸਿੱਧਾ ਸੰਪਰਕ ਕਰੋ ਜੀ <span class="en">Sukhmani Sahib at home: contact the Granthi Singhs</span></span></button>`;
+    $('side').innerHTML=h;
   }
+  // ---------- Information for the sangat (tap a card to open it) ----------
+  S.infoOpen=S.infoOpen||{};
+  const para=t=>G.esc(t).split('\n').map((x,i)=>i?`<span class="en" style="display:block;margin-top:6px">${x}</span>`:x).join('');
+  function renderInfo(){
+    const I=G.infoOf(S.settings),s=S.settings,op=k=>S.infoOpen[k]?'open':'';
+    const fees=G.TYPES.map(t=>{const f=G.feeOf(s,t.key);return f?`<li><b>${t.pa}</b> <span class="en">${t.en}</span>: ${M$(f)} <span class="hint">(ਪੂਰੀ ਆਨਲਾਈਨ ${M$(Math.max(0,f-G.discountOf(s,f)))})</span></li>`:''}).join('');
+    const office=s.phone?`<div class="contact"><span>ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ / Gurdwara office: <b class="sel">${G.esc(s.phone)}</b></span><a class="btn ghost" href="tel:${G.esc(s.phone.replace(/[^0-9+]/g,''))}">📞 ਕਾਲ ਕਰੋ</a></div>`:'';
+    const gr=I.granthis.length?`<div class="granthis">${I.granthis.map(g=>{const tel=g.phone.replace(/[^0-9+]/g,'');
+      return `<div class="granthi"><div><b>${G.esc(g.name)}</b>${g.note?`<div class="hint">${G.esc(g.note)}</div>`:''}<div class="sel">${G.esc(g.phone)}</div></div>
+        <div class="row"><a class="btn" href="tel:${G.esc(tel)}">📞 ਕਾਲ ਕਰੋ</a><a class="btn ghost" href="${G.waLink(g.phone,'ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ। ਗ੍ਰੰਥੀ ਸਿੰਘ ਜੀ, ਘਰ ਵਿੱਚ ਸ੍ਰੀ ਸੁਖਮਨੀ ਸਾਹਿਬ ਦੇ ਪਾਠ ਬਾਰੇ ਗੱਲ ਕਰਨੀ ਸੀ ਜੀ।')}" target="_blank" rel="noopener">WhatsApp</a></div></div>`}).join('')}</div>`
+      :`<div class="note">ਗ੍ਰੰਥੀ ਸਿੰਘ ਸਾਹਿਬਾਨ ਦੇ ਨੰਬਰ ਜਲਦੀ ਇੱਥੇ ਦਿੱਤੇ ਜਾਣਗੇ ਜੀ। ਤਦ ਤੱਕ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ।</div>${office}`;
+    $('infoBox').innerHTML=`<h2 id="infoTitle" class="infotitle">ਜਾਣਕਾਰੀ <span class="en">Information for the sangat</span></h2>
+      <details data-k="inc" ${op('inc')}><summary>📿 ਪਾਠ ਦੀ ਭੇਟਾ ਵਿੱਚ ਕੀ ਸ਼ਾਮਲ ਹੈ? <span class="en">What the path bheta includes</span></summary>
+        <ul class="incl">${I.includes.map(x=>`<li>✓ ${G.esc(x)}</li>`).join('')}</ul>${fees?`<ul class="fees">${fees}</ul>`:''}</details>
+      <details data-k="big" ${op('big')}><summary>🍲 ਵੱਡਾ ਸਮਾਗਮ ਜਾਂ ਵਾਧੂ ਪ੍ਰਬੰਧ <span class="en">Bigger programme or extra arrangements</span></summary>
+        <p>${para(I.bigEvent)}</p>${office}</details>
+      <details data-k="sukh" id="info-sukh" ${op('sukh')}><summary>🏠 ਸ੍ਰੀ ਸੁਖਮਨੀ ਸਾਹਿਬ, ਘਰ ਵਿੱਚ <span class="en">Sukhmani Sahib at your home</span></summary>
+        <p>${para(I.sukhmaniNote)}</p>${gr}</details>
+      <details data-k="rules" ${op('rules')}><summary>📜 ਬੁਕਿੰਗ ਅਤੇ ਭੇਟਾ ਦੇ ਨਿਯਮ <span class="en">Booking and bheta rules</span></summary>
+        ${ruleText()?`<p>${ruleText()}</p>`:''}<p style="white-space:pre-line">${G.esc(G.policyOf(s))}</p></details>`;
+  }
+  const openInfo=k=>{S.infoOpen[k]=true;renderInfo();const el=document.querySelector(`#infoBox details[data-k="${k}"]`)||$('infoBox');el.scrollIntoView({behavior:'smooth',block:'start'})};
 
   // After booking: Step 1 done, Step 2 is the bheta.
   function renderDone(){
     const D=S.done,t=G.typeOf(D.type),l=S.lk[D.ref];
-    $('side').innerHTML=`<div class="step done"><div class="stepno">Step 1 of 2 · Booking saved ✓</div>
-        <div><b>${G.esc(t.en)}</b> on ${G.fmtLong(D.date)} for ${G.esc(D.name)} parivar.</div>
-        <div style="margin-top:6px">Your booking reference</div><div class="ref">${G.esc(D.ref)}</div>
-        <div class="hint">Keep this reference. Use "My booking" at the top to see your bheta status and receipts, or to change the date until <b>${G.fmtTime(D.deadline)}</b>.</div>
+    $('side').innerHTML=`<div class="step done"><div class="stepno">ਕਦਮ 1/2 · ਬੁਕਿੰਗ ਹੋ ਗਈ ✓</div>
+        <div><b>${t.pa}</b> · ${G.fmtLong(D.date)} · ${G.esc(D.name)} ਪਰਿਵਾਰ</div>
+        <div style="margin-top:6px">ਆਪ ਜੀ ਦਾ ਬੁਕਿੰਗ ਨੰਬਰ</div><div class="ref">${G.esc(D.ref)}</div>
+        <div class="hint">ਇਹ ਨੰਬਰ ਸੰਭਾਲ ਕੇ ਰੱਖੋ ਜੀ। ਉੱਪਰ "ਮੇਰੀ ਬੁਕਿੰਗ" ਦਬਾ ਕੇ ਭੇਟਾ ਦੀ ਸਥਿਤੀ ਅਤੇ ਰਸੀਦਾਂ ਦੇਖੋ, ਜਾਂ ਮਿਤੀ ਬਦਲੋ ਜੀ। ਮਿਤੀ ਬਦਲਣ ਦਾ ਸਮਾਂ: <b>${G.fmtTime(D.deadline)}</b>.</div>
         ${shareBox(D)}</div>
-      ${bhetaSection(D.ref,l).replace('<div class="stepno">ਭੇਟਾ Bheta</div>','<div class="stepno">Step 2 of 2 · ਭੇਟਾ Bheta</div>')}
-      <div class="row" style="margin-top:12px"><button class="btn ghost" type="button" id="doneClose">Back to calendar</button></div>`;
+      ${bhetaSection(D.ref,l,D.deadline-G.CHANGE_HOURS*3600e3).replace('<div class="stepno">ਭੇਟਾ</div>','<div class="stepno">ਕਦਮ 2/2 · ਭੇਟਾ</div>')}
+      <div class="row" style="margin-top:12px"><button class="btn ghost" type="button" id="doneClose">ਕੈਲੰਡਰ ਤੇ ਵਾਪਸ</button></div>`;
   }
 
   function renderForm(){
     const t=G.typeOf(S.form),d=S.sel;
-    $('side').innerHTML=`<p class="day-title">Book ${t.en}</p>
+    $('side').innerHTML=`<p class="day-title">${t.pa} ਦੀ ਬੁਕਿੰਗ</p>
     <div class="summary"><b>${t.pa}</b><div>${G.fmtLong(d)}</div><div class="hint">${G.esc(t.when(d))}</div></div>
     ${priceBox(t.key)}
     <form id="bookForm" novalidate>
-      <label for="f-name">Family name <span class="hint">Shown on the calendar, e.g. "Sra" shows as "Sra parivar"</span><input id="f-name" required maxlength="60" autocomplete="family-name"></label>
-      <label for="f-phone">WhatsApp / phone number <span class="hint">Only the gurdwara committee sees this. You'll need it to change the date.</span><input id="f-phone" required type="tel" inputmode="tel" maxlength="20" autocomplete="tel"></label>
-      <label for="f-occ">Occasion<select id="f-occ">${G.OCCASIONS.map(o=>`<option>${o}</option>`).join('')}</select></label>
-      <label for="f-note">Note for the granthi <span class="hint">Optional. Names for the ardas, langar plans</span><textarea id="f-note" maxlength="400"></textarea></label>
+      <label for="f-name">ਪਰਿਵਾਰ ਦਾ ਨਾਂ <span class="hint">ਕੈਲੰਡਰ ਤੇ ਦਿਸੇਗਾ, ਜਿਵੇਂ "ਸਰਾ" → "ਸਰਾ ਪਰਿਵਾਰ"। ਅੰਗਰੇਜ਼ੀ ਅੱਖਰਾਂ ਵਿੱਚ ਲਿਖੋ ਤਾਂ ਆਪੇ ਗੁਰਮੁਖੀ ਵਿੱਚ ਬਦਲ ਜਾਵੇਗਾ</span><input id="f-name" required maxlength="60" autocomplete="family-name"><span class="tl" id="tl-name" hidden></span></label>
+      <label for="f-phone">WhatsApp / ਫ਼ੋਨ ਨੰਬਰ <span class="hint">ਇਹ ਸਿਰਫ਼ ਕਮੇਟੀ ਦੇਖ ਸਕਦੀ ਹੈ। ਮਿਤੀ ਬਦਲਣ ਲਈ ਇਸ ਦੀ ਲੋੜ ਪਵੇਗੀ।</span><input id="f-phone" required type="tel" inputmode="tel" maxlength="20" autocomplete="tel"></label>
+      <label for="f-occ">ਮੌਕਾ<select id="f-occ">${G.OCCASIONS.map(o=>`<option>${o}</option>`).join('')}</select></label>
+      <label for="f-note">ਗ੍ਰੰਥੀ ਸਿੰਘ ਲਈ ਨੋਟ <span class="hint">ਲੋੜ ਹੋਵੇ ਤਾਂ। ਅਰਦਾਸ ਲਈ ਨਾਂ, ਲੰਗਰ ਬਾਰੇ</span><textarea id="f-note" maxlength="400"></textarea><span class="tl" id="tl-note" hidden></span></label>
+      <label class="row" style="gap:8px;font-weight:400;font-size:14px" for="f-keep"><input id="f-keep" type="checkbox" style="width:auto"> ਜਿਵੇਂ ਲਿਖਿਆ ਉਵੇਂ ਰੱਖੋ, ਗੁਰਮੁਖੀ ਵਿੱਚ ਨਾ ਬਦਲੋ <span class="en">(keep as typed)</span></label>
+      ${policyBox()}
+      ${G.holdHours(S.settings)&&G.feeOf(S.settings,t.key)?`<label class="row agree" for="f-agree"><input id="f-agree" type="checkbox" style="width:auto"> <span>ਮੈਂ ਸਮਝ ਲਿਆ ਹੈ ਜੀ: ${G.holdHours(S.settings)} ਘੰਟਿਆਂ ਵਿੱਚ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਭੇਟਾ ਨਾ ਭੇਜਣ ਤੇ ਬੁਕਿੰਗ ਆਪਣੇ ਆਪ ਰੱਦ ਹੋ ਜਾਵੇਗੀ। <span class="en">I understand the booking is cancelled if the advance is not paid in time.</span></span></label>`:''}
       <div id="formErr"></div>
-      <div class="row"><button class="btn" type="submit" id="submitBtn">${G.feeOf(S.settings,t.key)?'Confirm and go to payment':'Confirm booking'}</button><button class="btn ghost" type="button" id="back">Back</button></div>
+      <div class="row"><button class="btn" type="submit" id="submitBtn">${G.feeOf(S.settings,t.key)?'ਬੁਕਿੰਗ ਪੱਕੀ ਕਰੋ ਅਤੇ ਭੇਟਾ ਭੇਜੋ':'ਬੁਕਿੰਗ ਪੱਕੀ ਕਰੋ'}</button><button class="btn ghost" type="button" id="back">ਵਾਪਸ</button></div>
     </form>`;
     $('f-name').focus();
+    wireTranslit();
   }
+  // Roman -> Gurmukhi: shows what will be saved; Gurmukhi typing is left as it is.
+  const TL=window.GPB_TRANSLIT;
+  function wireTranslit(){
+    if(!TL)return;
+    for(const [inp,out] of [['f-name','tl-name'],['f-note','tl-note']]){
+      const el=$(inp),pv=$(out);let timer=null;
+      const show=async()=>{if(!$('f-keep')||!el.isConnected)return;const v=el.value;if($('f-keep').checked||!TL.hasLatin(v)){pv.hidden=true;return}
+        pv.hidden=false;pv.innerHTML=`ਗੁਰਮੁਖੀ ਵਿੱਚ: <b>${G.esc(TL.convert(v))}</b>`;
+        const better=await TL.suggest(v);if(el.isConnected&&$('f-keep')&&el.value===v&&!$('f-keep').checked){pv.innerHTML=`ਗੁਰਮੁਖੀ ਵਿੱਚ: <b>${G.esc(better)}</b>`;pv.dataset.src=v;pv.dataset.out=better}};
+      el.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(show,350)});
+    }
+    $('f-keep').addEventListener('change',()=>{['tl-name','tl-note'].forEach(id=>{$(id).hidden=$('f-keep').checked||!TL.hasLatin($(id==='tl-name'?'f-name':'f-note').value)})});
+  }
+  const gurmukhi=(id,v)=>{if(!TL||$('f-keep').checked||!TL.hasLatin(v))return v;const pv=$(id);return pv.dataset.src===v&&pv.dataset.out?pv.dataset.out:TL.convert(v)};
 
   function renderManage(){
     const M=S.mg,err=M.err?`<div class="note err">${G.esc(M.err)}</div>`:'';
     if(M.stage==='find'){
-      $('side').innerHTML=`<p class="day-title">My booking</p>
-      <p class="sub">See your bheta status and receipts, pay, or change the date. Enter the 6-letter reference you got when booking, and the phone number you gave.</p>
+      $('side').innerHTML=`<p class="day-title">ਮੇਰੀ ਬੁਕਿੰਗ</p>
+      <p class="sub">ਭੇਟਾ ਦੀ ਸਥਿਤੀ ਅਤੇ ਰਸੀਦਾਂ ਦੇਖੋ, ਭੇਟਾ ਭੇਜੋ ਜਾਂ ਮਿਤੀ ਬਦਲੋ ਜੀ। ਬੁਕਿੰਗ ਵੇਲੇ ਮਿਲਿਆ 6 ਅੱਖਰਾਂ ਦਾ ਬੁਕਿੰਗ ਨੰਬਰ ਅਤੇ ਆਪਣਾ ਫ਼ੋਨ ਨੰਬਰ ਭਰੋ ਜੀ।</p>
       <form id="findForm" novalidate>
-        <label for="m-ref">Booking reference<input id="m-ref" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em" value="${G.esc(M.ref||'')}"></label>
-        <label for="m-phone">Phone number<input id="m-phone" type="tel" inputmode="tel" maxlength="20" value="${G.esc(M.phone||'')}"></label>
+        <label for="m-ref">ਬੁਕਿੰਗ ਨੰਬਰ<input id="m-ref" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em" value="${G.esc(M.ref||'')}"></label>
+        <label for="m-phone">ਫ਼ੋਨ ਨੰਬਰ<input id="m-phone" type="tel" inputmode="tel" maxlength="20" value="${G.esc(M.phone||'')}"></label>
         ${err}
-        <div class="row"><button class="btn" type="submit" id="findBtn">Find my booking</button><button class="btn ghost" type="button" data-mg-close>Back to calendar</button></div>
+        <div class="row"><button class="btn" type="submit" id="findBtn">ਮੇਰੀ ਬੁਕਿੰਗ ਲੱਭੋ</button><button class="btn ghost" type="button" data-mg-close>ਕੈਲੰਡਰ ਤੇ ਵਾਪਸ</button></div>
       </form>`;
       return;
     }
     const l=M.b.l||S.lk[M.b.ref],v=M.b.data,t=G.typeOf((v&&v.type)||l.type);
     const start=(v&&v.start)||l.start;
-    const head=`<div class="summary"><b>${t?t.pa:''}</b><div>${t?t.en:''} · ${G.esc((v&&v.name)||l.name)} parivar</div><div>${v?'Booked for':'Was booked for'} <b>${G.fmtLong(start)}</b>${t&&t.days>1?` · bhog ${G.fmtLong(G.add(start,2))}`:''}</div><div class="hint">Reference ${G.esc(M.b.ref)}</div></div>`;
-    const close=`<div class="row" style="margin-top:12px"><button class="btn ghost" type="button" data-mg-close>Back to calendar</button></div>`;
+    const head=`<div class="summary"><b>${t?t.pa:''}</b><div>${t?t.en:''} · ${G.esc((v&&v.name)||l.name)} ਪਰਿਵਾਰ</div><div>${v?'ਬੁਕਿੰਗ ਦੀ ਮਿਤੀ':'ਬੁਕਿੰਗ ਸੀ'} <b>${G.fmtLong(start)}</b>${t&&t.days>1?` · ਭੋਗ ${G.fmtLong(G.add(start,2))}`:''}</div><div class="hint">ਬੁਕਿੰਗ ਨੰਬਰ ${G.esc(M.b.ref)}</div></div>`;
+    const close=`<div class="row" style="margin-top:12px"><button class="btn ghost" type="button" data-mg-close>ਕੈਲੰਡਰ ਤੇ ਵਾਪਸ</button></div>`;
     if(M.stage==='done'){
-      $('side').innerHTML=`<p class="day-title">Date changed</p>
-      <div class="note good"><div>${t?t.en:''} is now on <b>${G.fmtLong(M.newDate)}</b> for ${G.esc(v.name)} parivar.</div>
-      <div style="margin-top:6px">Your reference stays the same</div><div class="ref">${G.esc(M.b.ref)}</div>
+      $('side').innerHTML=`<p class="day-title">ਮਿਤੀ ਬਦਲ ਗਈ</p>
+      <div class="note good"><div>${t?t.pa:''} ਦੀ ਨਵੀਂ ਮਿਤੀ: <b>${G.fmtLong(M.newDate)}</b> · ${G.esc(v.name)} ਪਰਿਵਾਰ</div>
+      <div style="margin-top:6px">ਬੁਕਿੰਗ ਨੰਬਰ ਉਹੀ ਰਹੇਗਾ</div><div class="ref">${G.esc(M.b.ref)}</div>
       ${shareBox({type:v.type,date:M.newDate,name:v.name,ref:M.b.ref,custPhone:M.phone,moved:true,deadline:G.changeDeadline(v)})}</div>
-      ${bhetaSection(M.b.ref,l)}${close}`;
+      ${bhetaSection(M.b.ref,l,G.bookedMs(v))}${close}`;
       return;
     }
     let change='';
-    if(!v){change=`<div class="note">${l.closed==='noshow'?'This booking was closed as a no-show.':'This booking has been cancelled.'} ${S.settings.phone?`For questions, call the gurdwara on ${G.esc(S.settings.phone)}.`:''}</div>`}
+    if(!v){change=`<div class="note">${l.closed==='noshow'?'ਹਾਜ਼ਰ ਨਾ ਹੋਣ ਕਰਕੇ ਇਹ ਬੁਕਿੰਗ ਬੰਦ ਕੀਤੀ ਗਈ।':l.closed==='expired'?'ਸਮੇਂ ਸਿਰ ਅਗਾਊਂ ਭੇਟਾ ਨਾ ਆਉਣ ਕਰਕੇ ਇਹ ਬੁਕਿੰਗ ਆਪਣੇ ਆਪ ਰੱਦ ਹੋ ਗਈ ਹੈ ਜੀ, ਅਤੇ ਮਿਤੀ ਹੋਰ ਸੰਗਤ ਲਈ ਖੁੱਲ੍ਹ ਗਈ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਕੈਲੰਡਰ ਤੋਂ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰੋ ਜੀ। <span class="en">This booking was cancelled automatically because the advance was not received in time. Kindly book again from the calendar.</span>':'ਇਹ ਬੁਕਿੰਗ ਰੱਦ ਹੋ ਚੁੱਕੀ ਹੈ।'} ${S.settings.phone?`ਕਿਸੇ ਜਾਣਕਾਰੀ ਲਈ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਫ਼ੋਨ ਕਰੋ: ${G.esc(S.settings.phone)}.`:''}</div>`}
     else if(!G.canReschedule(v)){
-      change=`<div class="note">Online date changes are possible only within 24 hours of booking${G.bookedMs(v)?` (closed on ${G.fmtTime(G.changeDeadline(v))})`:''}. ${S.settings.phone?`To change the date, call the gurdwara on ${G.esc(S.settings.phone)}.`:'To change the date, contact the gurdwara committee.'}</div>`;
+      change=`<div class="note">ਮਿਤੀ ਆਨਲਾਈਨ ਸਿਰਫ਼ ਬੁਕਿੰਗ ਤੋਂ ${G.CHANGE_HOURS} ਘੰਟਿਆਂ ਅੰਦਰ ਬਦਲੀ ਜਾ ਸਕਦੀ ਹੈ${G.bookedMs(v)?` (ਬੰਦ ਹੋਇਆ: ${G.fmtTime(G.changeDeadline(v))})`:''}. ${S.settings.phone?`ਮਿਤੀ ਬਦਲਣ ਲਈ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਫ਼ੋਨ ਕਰੋ: ${G.esc(S.settings.phone)}.`:'ਮਿਤੀ ਬਦਲਣ ਲਈ ਗੁਰਦੁਆਰਾ ਕਮੇਟੀ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ।'}</div>`;
     }else{
       const d=S.sel,slots=viewSlots(),left=G.freeSeats(t,d,slots,S.settings).length,same=d===v.start;
-      const status=same?'<span class="tag">Current date</span>':left?`<button class="btn" id="moveBtn">Move to this date</button>`:`<span class="tag">${S.settings.closed.includes(d)?'Closed':'Not available'}</span>`;
-      change=`<div class="stepno">Change the date</div>
-        <p class="sub" style="margin:0 0 8px">Tap a date on the calendar. Orange dots show where this path is free. You can change until <b>${G.fmtTime(G.changeDeadline(v))}</b>.</p>
+      const status=same?'<span class="tag">ਮੌਜੂਦਾ ਮਿਤੀ</span>':left?`<button class="btn" id="moveBtn">ਇਸ ਮਿਤੀ ਤੇ ਬਦਲੋ</button>`:`<span class="tag">${S.settings.closed.includes(d)?'ਬੰਦ':'ਉਪਲਬਧ ਨਹੀਂ'}</span>`;
+      change=`<div class="stepno">ਮਿਤੀ ਬਦਲੋ</div>
+        <p class="sub" style="margin:0 0 8px">ਕੈਲੰਡਰ ਵਿੱਚ ਮਿਤੀ ਦਬਾਓ ਜੀ। ਸੰਤਰੀ ਬਿੰਦੀ ਦਾ ਮਤਲਬ ਇਸ ਪਾਠ ਲਈ ਥਾਂ ਖਾਲੀ ਹੈ। ਮਿਤੀ ਬਦਲਣ ਦਾ ਸਮਾਂ: <b>${G.fmtTime(G.changeDeadline(v))}</b>.</p>
         <div class="slot ${left&&!same?'free':''}"><div class="txt"><div class="pa">${G.fmtLong(d)}</div><div class="when">${G.esc(t.when(d))}</div></div>${status}</div>${err}`;
     }
-    $('side').innerHTML=`<p class="day-title">My booking</p>${head}${bhetaSection(M.b.ref,l)}<div class="step">${change}</div>${close}`;
+    $('side').innerHTML=`<p class="day-title">ਮੇਰੀ ਬੁਕਿੰਗ</p>${head}${bhetaSection(M.b.ref,l,v&&G.bookedMs(v))}<div class="step">${change}</div>${close}`;
   }
 
   function renderFooter(){
     const s=S.settings;
-    $('contactInfo').innerHTML=[s.address&&`<div>${G.esc(s.address)}</div>`,s.phone&&`<div>Gurdwara office: <b>${G.esc(s.phone)}</b></div>`,`<div><a href="admin.html" style="color:inherit">Committee login</a></div>`].filter(Boolean).join('');
+    $('contactInfo').innerHTML=[s.address&&`<div>${G.esc(s.address)}</div>`,s.phone&&`<div>ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ: <b>${G.esc(s.phone)}</b></div>`,`<div><a href="admin.html" style="color:inherit">ਕਮੇਟੀ ਲੌਗਇਨ</a></div>`].filter(Boolean).join('');
   }
-  function renderAll(){$('gname').textContent=gname();document.title='Path Booking · '+gname();renderCal();renderSide();renderFooter()}
+  function renderAll(){renderInfo();$('ruleBanner').innerHTML=ruleText();$('ruleBanner').hidden=!ruleText();$('gname').textContent=gname();document.title='ਪਾਠ ਬੁਕਿੰਗ · '+gname();renderCal();renderSide();renderFooter()}
 
+  $('infoBox').addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.k)S.infoOpen[d.dataset.k]=d.open},true);
+  $('infoBtn').onclick=()=>{S.infoOpen.inc=true;openInfo('inc')};
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-info]');if(b)openInfo(b.dataset.info)});
   $('side').addEventListener('focusout',()=>setTimeout(()=>{if(S.pending&&!typing()){S.pending=false;renderAll()}},0));
   // Seva animation: Pause/Play, and still for people who prefer reduced motion.
   const sevaSvg=document.querySelector('.seva-art');
   const setSeva=paused=>{document.querySelector('.seva').classList.toggle('paused',paused);try{paused?sevaSvg.pauseAnimations():sevaSvg.unpauseAnimations()}catch(e){}
-    $('sevaToggle').textContent=paused?'Play':'Pause';$('sevaToggle').setAttribute('aria-pressed',paused)};
+    $('sevaToggle').textContent=paused?'ਚਲਾਓ':'ਰੋਕੋ';$('sevaToggle').setAttribute('aria-pressed',paused)};
   $('sevaToggle').onclick=()=>setSeva(!document.querySelector('.seva').classList.contains('paused'));
   try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setSeva(true)}catch(e){}
-  $('dows').innerHTML=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('');
+  // Install as an app: one-tap button on Android (Chrome), a short tip on iPhone (Safari).
+  let installEvt=null;
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;if(!standalone)$('installBtn').hidden=false});
+  $('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;$('installBtn').hidden=true};
+  window.addEventListener('appinstalled',()=>{$('installBtn').hidden=true});
+  try{const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!standalone;let seen=false;try{seen=localStorage.getItem('gpb-ios-tip')==='1'}catch(e){}
+    if(ios&&!seen)$('iosTip').hidden=false;
+    $('iosTipClose').onclick=()=>{$('iosTip').hidden=true;try{localStorage.setItem('gpb-ios-tip','1')}catch(e){}}}catch(e){}
+  $('dows').innerHTML=['ਸੋਮ','ਮੰਗਲ','ਬੁੱਧ','ਵੀਰ','ਸ਼ੁੱਕਰ','ਸ਼ਨੀ','ਐਤ'].map(d=>`<div class="dow">${d}</div>`).join('');
   $('prev').onclick=()=>{S.view=new Date(S.view.getFullYear(),S.view.getMonth()-1,1);renderCal()};
   $('next').onclick=()=>{S.view=new Date(S.view.getFullYear(),S.view.getMonth()+1,1);renderCal()};
   $('days').onclick=e=>{const b=e.target.closest('.day');if(!b||b.disabled)return;S.sel=b.dataset.d;S.form=null;S.done=null;if(S.mg)S.mg.err='';renderCal();renderSide()};
@@ -490,16 +595,16 @@
 
   $('side').addEventListener('click',async e=>{
     const cp=e.target.closest('[data-copy]');
-    if(cp){const txt=cp.dataset.copy;try{await navigator.clipboard.writeText(txt);cp.textContent='Copied'}catch(x){cp.textContent='Copy failed'}return}
+    if(cp){const txt=cp.dataset.copy;try{await navigator.clipboard.writeText(txt);cp.textContent='ਕਾਪੀ ਹੋ ਗਿਆ'}catch(x){cp.textContent='ਕਾਪੀ ਨਹੀਂ ਹੋਇਆ'}return}
     if(e.target.closest('[data-mg-close]')){S.mg=null;renderAll();return}
     if(e.target.id==='doneClose'){S.done=null;renderAll();return}
     if(e.target.id==='moveBtn'){
-      const M=S.mg,btn=e.target;btn.disabled=true;btn.textContent='Moving…';
+      const M=S.mg,btn=e.target;btn.disabled=true;btn.textContent='ਬਦਲ ਰਹੇ ਹਾਂ…';
       try{await API.reschedule(M.b,M.phone,S.sel);M.newDate=S.sel;M.stage='done';M.err='';renderAll()}
-      catch(x){M.err=x.message==='late'?`Online changes are closed for this booking. Please call the gurdwara.`
-        :x.message==='nomatch'?'The phone number does not match this booking, or this date is no longer open. Check the number you gave when booking.'
-        :x.message==='taken'?'Someone took this date a moment ago. Choose another date.'
-        :'The change could not be saved. Check your internet connection and try again.';renderSide()}
+      catch(x){M.err=x.message==='late'?`ਇਸ ਬੁਕਿੰਗ ਲਈ ਆਨਲਾਈਨ ਬਦਲਾਅ ਬੰਦ ਹਨ। ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਫ਼ੋਨ ਕਰੋ ਜੀ।`
+        :x.message==='nomatch'?'ਫ਼ੋਨ ਨੰਬਰ ਇਸ ਬੁਕਿੰਗ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ, ਜਾਂ ਇਹ ਮਿਤੀ ਹੁਣ ਖਾਲੀ ਨਹੀਂ। ਬੁਕਿੰਗ ਵੇਲੇ ਦਿੱਤਾ ਨੰਬਰ ਚੈੱਕ ਕਰੋ ਜੀ।'
+        :x.message==='taken'?'ਇਹ ਮਿਤੀ ਹੁਣੇ ਕਿਸੇ ਹੋਰ ਨੇ ਲੈ ਲਈ। ਹੋਰ ਮਿਤੀ ਚੁਣੋ ਜੀ।'
+        :'ਬਦਲਾਅ ਸੇਵ ਨਹੀਂ ਹੋਇਆ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।';renderSide()}
       return}
     const b=e.target.closest('[data-book]');if(b){S.form=b.dataset.book;S.done=null;renderSide();return}
     if(e.target.id==='back'){S.form=null;renderSide()}
@@ -510,44 +615,48 @@
     if(e.target.classList.contains('payForm')){
       const fm=e.target,ref=fm.dataset.ref,pe=fm.querySelector('.payErr'),pb=fm.closest('.paybox');
       const utr=fm.utr.value.trim().replace(/\s+/g,''),amount=Math.round(Number(pb.querySelector('.amt').value)||0);
+      const sevEl=pb.querySelector('.seva'),seva=Math.round(Number(sevEl&&sevEl.value)||0);
+      if(seva<0||seva>100000){pe.innerHTML='<div class="note err">ਸੇਵਾ ਭੇਟਾ ਦੀ ਰਕਮ ਠੀਕ ਭਰੋ ਜੀ।</div>';return}
+      if(amount+seva<1){pe.innerHTML='<div class="note err">ਭੇਜੀ ਗਈ ਰਕਮ ਭਰੋ ਜੀ।</div>';return}
       const min=Number(fm.dataset.min),max=Number(fm.dataset.max);
-      if(amount<min){pe.innerHTML=`<div class="note err">The first payment must be at least ${M$(min)} (${G.ADVANCE_PCT}% advance). Change the amount above and pay that amount.</div>`;return}
-      if(amount>max){pe.innerHTML=`<div class="note err">The balance is only ${M$(max)}. Change the amount above.</div>`;return}
-      if(!/^[0-9A-Za-z]{6,30}$/.test(utr)){pe.innerHTML='<div class="note err">Enter the transaction ID shown in your UPI app after paying (usually 12 digits).</div>';return}
-      const btn=fm.querySelector('button');btn.disabled=true;btn.textContent='Saving…';
-      try{await API.reportPayment(ref,utr,amount)}
-      catch(x){btn.disabled=false;btn.textContent='I have paid';
-        pe.innerHTML=`<div class="note err">${x.message==='advance'?`The first payment must be at least the ${G.ADVANCE_PCT}% advance.`:'Could not save. Check your connection and try again.'}</div>`}
+      if(min&&amount<min){pe.innerHTML=`<div class="note err">ਪਹਿਲੀ ਭੇਟਾ ਘੱਟੋ-ਘੱਟ ${M$(min)} (${G.ADVANCE_PCT}% ਅਗਾਊਂ) ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ ਜੀ। ਉੱਪਰ ਰਕਮ ਬਦਲ ਕੇ ਉਹੀ ਭੇਜੋ ਜੀ।</div>`;return}
+      if(amount>max){pe.innerHTML=`<div class="note err">ਬਾਕੀ ਭੇਟਾ ਸਿਰਫ਼ ${M$(max)} ਹੈ। ਉੱਪਰ ਰਕਮ ਬਦਲੋ ਜੀ।</div>`;return}
+      if(!/^[0-9A-Za-z]{6,30}$/.test(utr)){pe.innerHTML='<div class="note err">ਭੁਗਤਾਨ ਤੋਂ ਬਾਅਦ UPI ਐਪ ਵਿੱਚ ਦਿਸਦਾ ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਨੰਬਰ (UTR, ਆਮ ਤੌਰ ਤੇ 12 ਅੰਕ) ਭਰੋ ਜੀ।</div>';return}
+      const btn=fm.querySelector('button');btn.disabled=true;btn.textContent='ਸੇਵ ਹੋ ਰਿਹਾ ਹੈ…';
+      try{await API.reportPayment(ref,utr,amount,seva)}
+      catch(x){btn.disabled=false;btn.textContent='ਭੇਟਾ ਭੇਜ ਦਿੱਤੀ';
+        pe.innerHTML=`<div class="note err">${x.message==='advance'?`ਪਹਿਲੀ ਭੇਟਾ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ ਜੀ।`:'ਸੇਵ ਨਹੀਂ ਹੋਇਆ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।'}</div>`}
       return}
     if(e.target.id==='findForm'){
       const ref=$('m-ref').value.trim().toUpperCase(),phone=$('m-phone').value.trim().replace(/\s+/g,' ');
       S.mg={stage:'find',ref,phone};
-      if(!/^[A-Z0-9]{6}$/.test(ref)){S.mg.err='The reference has 6 letters and numbers, for example K7MQ2D.';return renderSide()}
-      if(G.phoneKey(phone).length<7){S.mg.err='Enter the phone number you gave when booking.';return renderSide()}
-      $('findBtn').disabled=true;$('findBtn').textContent='Searching…';
+      if(!/^[A-Z0-9]{6}$/.test(ref)){S.mg.err='ਬੁਕਿੰਗ ਨੰਬਰ ਵਿੱਚ 6 ਅੱਖਰ/ਅੰਕ ਹੁੰਦੇ ਹਨ, ਜਿਵੇਂ K7MQ2D।';return renderSide()}
+      if(G.phoneKey(phone).length<7){S.mg.err='ਬੁਕਿੰਗ ਵੇਲੇ ਦਿੱਤਾ ਫ਼ੋਨ ਨੰਬਰ ਭਰੋ ਜੀ।';return renderSide()}
+      $('findBtn').disabled=true;$('findBtn').textContent='ਲੱਭ ਰਹੇ ਹਾਂ…';
       try{const bk=await API.findBooking(ref);
-        if(!bk){S.mg.err='No booking found with this reference. Check the letters, or call the gurdwara.';return renderSide()}
+        if(!bk){S.mg.err='ਇਸ ਨੰਬਰ ਦੀ ਕੋਈ ਬੁਕਿੰਗ ਨਹੀਂ ਮਿਲੀ। ਅੱਖਰ ਚੈੱਕ ਕਰੋ ਜਾਂ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਫ਼ੋਨ ਕਰੋ ਜੀ।';return renderSide()}
         S.mg={stage:'pick',b:bk,phone,ref};S.lk[ref]=bk.l;follow(ref);
         if(bk.data){S.sel=bk.data.start;const sd=G.parse(bk.data.start);S.view=new Date(sd.getFullYear(),sd.getMonth(),1)}
         renderAll()}
-      catch(x){S.mg.err='Could not search right now. Check your internet connection and try again.';renderSide()}
+      catch(x){S.mg.err='ਹੁਣੇ ਲੱਭ ਨਹੀਂ ਸਕੇ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।';renderSide()}
       return}
-    const name=$('f-name').value.trim().replace(/\s+/g,' '),phone=$('f-phone').value.trim().replace(/\s+/g,' '),occasion=$('f-occ').value,note=$('f-note').value.trim();
+    const name=gurmukhi('tl-name',$('f-name').value.trim().replace(/\s+/g,' ')),phone=$('f-phone').value.trim().replace(/\s+/g,' '),occasion=$('f-occ').value,note=gurmukhi('tl-note',$('f-note').value.trim());
     const err=m=>{$('formErr').innerHTML=`<div class="note err">${m}</div>`};
-    if(!name)return err('Enter the family name to show on the calendar.');
-    if(!/^[0-9+ \-]{7,20}$/.test(phone))return err('Enter a phone number using digits only, for example 98765 43210.');
-    const t=G.typeOf(S.form),d=S.sel,btn=$('submitBtn');btn.disabled=true;btn.textContent='Booking…';
+    if(!name)return err('ਕੈਲੰਡਰ ਤੇ ਦਿਖਾਉਣ ਲਈ ਪਰਿਵਾਰ ਦਾ ਨਾਂ ਭਰੋ ਜੀ।');
+    if($('f-agree')&&!$('f-agree').checked)return err('ਬੁਕਿੰਗ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਅਗਾਊਂ ਭੇਟਾ ਵਾਲੀ ਸ਼ਰਤ ਵਾਲਾ ਖਾਨਾ ਚੁਣੋ ਜੀ।');
+    if(!/^[0-9+ \-]{7,20}$/.test(phone))return err('ਸਿਰਫ਼ ਅੰਕਾਂ ਵਿੱਚ ਫ਼ੋਨ ਨੰਬਰ ਭਰੋ, ਜਿਵੇਂ 98765 43210।');
+    const t=G.typeOf(S.form),d=S.sel,btn=$('submitBtn');btn.disabled=true;btn.textContent='ਬੁੱਕ ਹੋ ਰਿਹਾ ਹੈ…';
     try{const ref=await API.book(t,d,{name,phone,occasion,note});S.form=null;API.notify(ref,'booked');
       S.done={ref,type:t.key,date:d,name,custPhone:phone,deadline:Date.now()+G.CHANGE_HOURS*3600e3};follow(ref);renderAll();$('side').scrollIntoView({behavior:'smooth',block:'start'})}
-    catch(x){btn.disabled=false;btn.textContent='Confirm booking';
-      err(x.message==='taken'?'Someone booked this slot a moment ago. Go back and choose another date or path.'
-        :x.message==='refused'?'This date is not open for booking any more, or the bheta amount was just changed. Go back and try again.'
-        :'The booking could not be saved. Check your internet connection and try again.')}
+    catch(x){btn.disabled=false;btn.textContent='ਬੁਕਿੰਗ ਪੱਕੀ ਕਰੋ';
+      err(x.message==='taken'?'ਇਹ ਥਾਂ ਹੁਣੇ ਕਿਸੇ ਹੋਰ ਨੇ ਬੁੱਕ ਕਰ ਲਈ। ਵਾਪਸ ਜਾ ਕੇ ਹੋਰ ਮਿਤੀ ਜਾਂ ਪਾਠ ਚੁਣੋ ਜੀ।'
+        :x.message==='refused'?'ਇਹ ਮਿਤੀ ਹੁਣ ਬੁਕਿੰਗ ਲਈ ਖੁੱਲ੍ਹੀ ਨਹੀਂ, ਜਾਂ ਭੇਟਾ ਹੁਣੇ ਬਦਲੀ ਗਈ ਹੈ। ਵਾਪਸ ਜਾ ਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।'
+        :'ਬੁਕਿੰਗ ਸੇਵ ਨਹੀਂ ਹੋਈ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।')}
   });
 
-  const timer=setTimeout(()=>{if(!S.loaded){$('status').className='note err';$('status').textContent='Cannot reach the booking system yet. Check your internet connection.'}},10000);
-  API.watchSlots((slots,fromCache)=>{S.slots=slots;if(!fromCache){S.loaded=true;clearTimeout(timer);$('status').className='note';$('status').textContent='Live availability. Booked slots update instantly.'}softRender()},
-    ()=>{clearTimeout(timer);$('status').className='note err';$('status').textContent='Bookings stopped updating. Reload the page.'});
+  const timer=setTimeout(()=>{if(!S.loaded){$('status').className='note err';$('status').textContent='ਬੁਕਿੰਗ ਸਿਸਟਮ ਨਾਲ ਜੁੜ ਨਹੀਂ ਸਕੇ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰੋ ਜੀ।'}},10000);
+  API.watchSlots((slots,fromCache)=>{S.slots=slots;if(!fromCache){S.loaded=true;clearTimeout(timer);$('status').className='note';$('status').textContent='ਲਾਈਵ ਜਾਣਕਾਰੀ: ਬੁਕਿੰਗ ਤੁਰੰਤ ਅੱਪਡੇਟ ਹੁੰਦੀ ਹੈ।'}softRender()},
+    ()=>{clearTimeout(timer);$('status').className='note err';$('status').textContent='ਬੁਕਿੰਗਾਂ ਅੱਪਡੇਟ ਹੋਣੀਆਂ ਰੁਕ ਗਈਆਂ ਹਨ। ਪੰਨਾ ਮੁੜ ਖੋਲ੍ਹੋ ਜੀ।'});
   API.watchSettings(s=>{S.settings=s;softRender()});
   renderAll();
 })();
