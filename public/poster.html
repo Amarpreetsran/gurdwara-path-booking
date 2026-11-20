@@ -21,6 +21,8 @@
   .om{font-family:var(--display);font-size:56px;line-height:1;color:var(--kesri)}
   .band h1{font-family:var(--display);font-size:30px;line-height:1.15;margin:6px 0 0;text-wrap:balance}
   .band p{margin:6px 0 0;font-size:16px;opacity:.85}
+  .band .dhan{font-family:var(--display);font-size:20px;color:#FFD27A;opacity:1}
+  .photo{display:block;width:100%;height:55mm;object-fit:cover;object-position:center 35%}
   .main{flex:1;padding:10mm 14mm;display:grid;gap:8mm;justify-items:center;text-align:center}
   .call{font-family:var(--display);font-size:34px;line-height:1.15;margin:0}
   .call small{display:block;font-family:var(--body);font-size:18px;color:var(--muted);font-weight:500}
@@ -42,9 +44,11 @@
 <div class="sheet">
   <div class="band">
     <div class="om">ੴ</div>
-    <h1 id="gname">Gurdwara Sahib</h1>
+    <p class="dhan">ਧੰਨ ਧੰਨ ਬਾਬਾ ਜਿਓਣ ਸਿੰਘ ਜੀ · ਧੰਨ ਧੰਨ ਬਾਬਾ ਨਿਹਾਲ ਸਿੰਘ ਜੀ</p>
+    <h1 id="gname">ਗੁਰਦੁਆਰਾ ਪਾਤਸ਼ਾਹੀ ਦਸਵੀਂ ਗੋਸਾਈਆਣਾ ਸਾਹਿਬ</h1>
     <p id="addr"></p>
   </div>
+  <img class="photo" src="img/gate.jpg" alt="Main gate of Gurdwara Sahib">
   <div class="main">
     <p class="call">ਪਾਠ ਦੀ ਬੁਕਿੰਗ ਹੁਣ ਮੋਬਾਈਲ 'ਤੇ<small>Book Akhand Path Sahib or Sehaj Path on your phone · Sukhmani Sahib at home: Granthi Singhs' numbers on the site</small></p>
     <div class="qrbox"><div id="qr"></div></div>
@@ -76,7 +80,6 @@
   try{new QRCode($('qr'),{text:url,width:600,height:600,correctLevel:QRCode.CorrectLevel.H})}
   catch(e){$('qr').textContent='QR could not load. Check your internet connection and reload.'}
   GPB_API.watchSettings(s=>{
-    $('gname').textContent=s.name||'Gurdwara Sahib';
     $('addr').textContent=s.address||'';
     if(s.phone)$('foot').textContent=`ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ · Gurdwara office: ${s.phone}`;
   });

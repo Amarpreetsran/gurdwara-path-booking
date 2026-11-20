@@ -136,7 +136,7 @@
   const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},open:{},cashOpen:{},voidOpen:{},refundOpen:{},cancelOpen:{},filter:'all',st:'upcoming',watching:false};
   $('demoBar').hidden=!API.demo;
   $('filter').innerHTML+=G.TYPES.map(t=>`<option value="${t.key}">${t.en}</option>`).join('');
-  const FILTERS=[['upcoming','Upcoming bookings'],['due','Advance due'],['checking','Payment being checked'],['partial','Part paid'],['paid','Fully paid'],['pastdue','Bhog done, balance pending'],['noshow','No-show'],['cancelled','Cancelled with payment'],['expired','Cancelled, advance not paid']];
+  const FILTERS=[['upcoming','Upcoming bookings'],['due','Advance due'],['checking','Payment being checked'],['partial','Part paid'],['paid','Fully paid'],['pastdue','Bhog done, balance pending'],['noshow','No-show'],['cancelled','Cancelled'],['expired','Cancelled, advance not paid']];
   $('stFilter').innerHTML=FILTERS.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
   $('closeDate').min=G.today;
   const M$=G.money;
@@ -147,7 +147,7 @@
     for(const [id,v] of Object.entries(S.slots)){if(v.part!==0)continue;
       const c=S.contacts[id],ref=c&&c.ref,l=ref&&S.lookups[ref];
       out.push({id,v,c,ref,l,start:v.start,type:v.type,name:v.name})}
-    for(const [ref,l] of Object.entries(S.lookups)){if(l.closed==='cancelled'||l.closed==='expired')out.push({id:null,v:null,c:null,ref,l,start:l.start,type:l.type,name:l.name})}
+    for(const [ref,l] of Object.entries(S.lookups)){if(l.closed==='cancelled'||l.closed==='expired')out.push({id:null,v:null,c:S.contacts[l.slot]||null,ref,l,start:l.start,type:l.type,name:l.name})}
     for(const b of out){const a=G.account(b.l||{total:0});b.a=a;
       b.st=a.state;if(!b.l)b.st='free';
       if(['due','partial','checking'].includes(a.state)&&G.bhogDate(b.type,b.start)<G.today)b.st='pastdue';
@@ -206,11 +206,11 @@
     const cancelForm=b.id&&S.cancelOpen[b.id]?`<form class="cancelForm" data-id="${b.id}"><div class="row">
         <label style="width:auto">Reason<select name="reason">${G.CANCEL_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
         <button class="btn danger" type="submit">Confirm cancel</button><button class="btn ghost" type="button" data-cancelclose="${b.id}">Keep booking</button></div>
-        <div class="hint">${l&&(a.paid>0||G.hasMoney(l))?'Money has been received, so the booking is kept as Cancelled with its receipts. Use Record refund if you give money back.':'No payment received: the booking and its details are deleted completely and the date opens again.'}</div></form>`:'';
+        <div class="hint">The date opens again straight away and the family gets a respectful WhatsApp with the reason. ${l&&(a.paid>0||G.hasMoney(l))?'Money has been received, so the booking stays as Cancelled with its receipts. Use Record refund if you give money back.':'No payment was received: afterwards you can remove it with Delete entry.'}</div></form>`:'';
     const c=b.c;
     const wa=c&&c.phone&&ref&&v?G.waLink(c.phone,G.confirmText({type:v.type,date:v.start,name:v.name,ref,gname:(S.settings&&S.settings.name)||'Gurdwara Sahib',url:location.origin+'/',phone:S.settings&&S.settings.phone})):'';
-    const details=b.id&&S.open[b.id]&&c?`<div class="meta">📞 <b>${G.esc(c.phone)}</b> · Ref ${G.esc(ref)}${c.note?'<br>'+G.esc(c.note):''}</div>${wa?`<a class="linkbtn" href="${wa}" target="_blank" rel="noopener">Send WhatsApp confirmation</a>`:''}`
-      :c?`<button class="linkbtn" data-show="${b.id}">Show phone</button>`:ref?`<div class="meta">Ref ${G.esc(ref)}</div>`:'';
+    const sk=b.id||ref,details=sk&&S.open[sk]&&c?`<div class="meta">📞 <b>${G.esc(c.phone)}</b> · Ref ${G.esc(ref)}${c.note?'<br>'+G.esc(c.note):''}</div>${wa?`<a class="linkbtn" href="${wa}" target="_blank" rel="noopener">Send WhatsApp confirmation</a>`:''}`
+      :c?`<button class="linkbtn" data-show="${sk}">Show phone</button>`:ref?`<div class="meta">Ref ${G.esc(ref)}</div>`:'';
     return `<div class="bitem"><div class="bdate">${G.fmtShort(b.start)}<small>${G.fmtDow(b.start)}</small></div>
       <div class="bmain"><div class="who">${t?t.en:G.esc(b.type)}</div>
       <div class="meta">${G.esc(b.name)} parivar${v?' · '+G.esc(v.occasion):''}${v&&(G.capOf(S.settings,v.type)>1||(v.seat||1)>1)?' · Place '+(v.seat||1):''}${t&&t.days>1?' · Bhog '+G.fmtShort(G.add(b.start,2)):''}</div>
@@ -317,7 +317,7 @@
     if(vf){vf.disabled=true;vf.textContent='Issuing receipt…';try{await API.verifyReport(vf.dataset.verify,still(vf.dataset.ref,vf.dataset.verify));API.notify(vf.dataset.ref,'payment')}catch(x){console.error(x);vf.textContent='Could not save. Retry';vf.disabled=false}return}
     const rj=e.target.closest('[data-reject]');
     if(rj){if(rj.dataset.armed!=='1'){rj.dataset.armed='1';rj.textContent='Tap again: payment not found in bank';return}
-      rj.disabled=true;try{await API.rejectReport(rj.dataset.reject,still(rj.dataset.ref,rj.dataset.reject))}catch(x){rj.textContent='Could not save. Retry';rj.disabled=false}return}
+      rj.disabled=true;try{await API.rejectReport(rj.dataset.reject,still(rj.dataset.ref,rj.dataset.reject));API.notify(rj.dataset.ref,'notfound',{rid:rj.dataset.reject})}catch(x){rj.textContent='Could not save. Retry';rj.disabled=false}return}
     const cs=e.target.closest('[data-cash]');if(cs){S.cashOpen[cs.dataset.cash]=true;renderList();return}
     const cc=e.target.closest('[data-cashclose]');if(cc){delete S.cashOpen[cc.dataset.cashclose];renderList();return}
     const ns=e.target.closest('[data-noshow]');
@@ -335,14 +335,14 @@
   $('list').addEventListener('submit',async e=>{
     const fm=e.target,btn=fm.querySelector('[type=submit]');
     if(fm.classList.contains('voidForm')){e.preventDefault();const [ref,kind,i]=fm.dataset.k.split('|');btn.disabled=true;
-      try{await API.voidReceipt(ref,kind,Number(i),fm.reason.value,fm.note.value.trim());S.voidOpen[fm.dataset.k]=false;document.activeElement.blur();renderList()}
+      try{await API.voidReceipt(ref,kind,Number(i),fm.reason.value,fm.note.value.trim());API.notify(ref,'void');S.voidOpen[fm.dataset.k]=false;document.activeElement.blur();renderList()}
       catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
     if(fm.classList.contains('refundForm')){e.preventDefault();const ref=fm.dataset.ref,l=S.lookups[ref],paid=l?G.account(l).paid:0,amt=Math.round(Number(fm.amt.value)||0);
       if(!(amt>=1&&amt<=paid)){fm.amt.focus();return}btn.disabled=true;
-      try{const no=await API.refund(ref,amt,fm.method.value,fm.reason.value,fm.note.value.trim());S.refundOpen[ref]=false;document.activeElement.blur();renderList()}
+      try{const no=await API.refund(ref,amt,fm.method.value,fm.reason.value,fm.note.value.trim());API.notify(ref,'refund');S.refundOpen[ref]=false;document.activeElement.blur();renderList()}
       catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
     if(fm.classList.contains('cancelForm')){e.preventDefault();btn.disabled=true;
-      try{await API.cancel(fm.dataset.id,fm.reason.value);S.cancelOpen[fm.dataset.id]=false;document.activeElement.blur()}
+      try{const ref=await API.cancel(fm.dataset.id,fm.reason.value);if(ref)API.notify(ref,'cancelled');S.cancelOpen[fm.dataset.id]=false;document.activeElement.blur()}
       catch(x){btn.disabled=false;btn.textContent='Could not cancel. Retry'}return}
     if(!e.target.classList.contains('cashForm'))return;e.preventDefault();
     const ref=fm.dataset.ref,amt=Math.max(0,Math.round(Number(fm.amt.value)||0)),seva=Math.max(0,Math.round(Number(fm.seva.value)||0));

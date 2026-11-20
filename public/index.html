@@ -27,6 +27,14 @@
 <div class="demo" id="iosTip" hidden><div class="wrap">ਇਸ ਨੂੰ ਐਪ ਵਾਂਗ ਰੱਖਣ ਲਈ: Safari ਵਿੱਚ <b>Share ⬆</b> → <b>Add to Home Screen</b> · To keep this as an app, tap Share, then Add to Home Screen. <button class="linkbtn" id="iosTipClose" type="button">Close</button></div></div>
 <div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: bookings are saved only on this device. Fill in firebase-config.js to go live.</div></div>
 
+<section class="hero" aria-label="Gurdwara Patshahi Dasvi Gosayiana Sahib">
+  <img src="img/gate.jpg" alt="ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਦਾ ਮੁੱਖ ਦਰਵਾਜ਼ਾ · Main gate of Gurdwara Sahib" fetchpriority="high">
+  <div class="hero-txt"><div class="wrap">
+    <p class="dhan">ਧੰਨ ਧੰਨ ਬਾਬਾ ਜਿਓਣ ਸਿੰਘ ਜੀ <span aria-hidden="true">·</span> ਧੰਨ ਧੰਨ ਬਾਬਾ ਨਿਹਾਲ ਸਿੰਘ ਜੀ</p>
+    <h2>ਗੁਰਦੁਆਰਾ ਪਾਤਸ਼ਾਹੀ ਦਸਵੀਂ ਗੋਸਾਈਆਣਾ ਸਾਹਿਬ</h2>
+    <p class="en">Dhan Dhan Baba Jeon Singh Ji · Dhan Dhan Baba Nihal Singh Ji<br>Gurdwara Patshahi Dasvi Gosayiana Sahib</p>
+  </div></div>
+</section>
 <section class="seva" aria-label="ਅਖੰਡ ਪਾਠ ਚੱਲ ਰਿਹਾ ਹੈ: Pathi Singh reading Sri Guru Granth Sahib Ji, a Singh doing chaur sahib seva, Singhs in full bana standing in attendance and the sangat seated">
   <div class="wrap seva-in">
     <svg class="seva-art" viewBox="0 0 600 270" role="img" aria-hidden="true">
@@ -473,6 +481,8 @@
   // ---------- Information for the sangat (tap a card to open it) ----------
   S.infoOpen=S.infoOpen||{};
   const para=t=>G.esc(t).split('\n').map((x,i)=>i?`<span class="en" style="display:block;margin-top:6px">${x}</span>`:x).join('');
+  const PHOTOS=[['nishan-sahib.jpg','ਨਿਸ਼ਾਨ ਸਾਹਿਬ ਅਤੇ ਦਰਬਾਰ ਸਾਹਿਬ','Nishan Sahib and Darbar Sahib'],['darbar-sahib.jpg','ਦਰਬਾਰ ਸਾਹਿਬ (ਅੰਦਰੋਂ)','Darbar Sahib, inside'],
+    ['darbar-building.jpg','ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਦੀ ਇਮਾਰਤ','Gurdwara Sahib building'],['gate-evening.jpg','ਮੁੱਖ ਦਰਵਾਜ਼ਾ','Main gate']];
   function renderInfo(){
     const I=G.infoOf(S.settings),s=S.settings,op=k=>S.infoOpen[k]?'open':'';
     const fees=G.TYPES.map(t=>{const f=G.feeOf(s,t.key);return f?`<li><b>${t.pa}</b> <span class="en">${t.en}</span>: ${M$(f)} <span class="hint">(ਪੂਰੀ ਆਨਲਾਈਨ ${M$(Math.max(0,f-G.discountOf(s,f)))})</span></li>`:''}).join('');
@@ -482,6 +492,8 @@
         <div class="row"><a class="btn" href="tel:${G.esc(tel)}">📞 ਕਾਲ ਕਰੋ</a><a class="btn ghost" href="${G.waLink(g.phone,'ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ। ਗ੍ਰੰਥੀ ਸਿੰਘ ਜੀ, ਘਰ ਵਿੱਚ ਸ੍ਰੀ ਸੁਖਮਨੀ ਸਾਹਿਬ ਦੇ ਪਾਠ ਬਾਰੇ ਗੱਲ ਕਰਨੀ ਸੀ ਜੀ।')}" target="_blank" rel="noopener">WhatsApp</a></div></div>`}).join('')}</div>`
       :`<div class="note">ਗ੍ਰੰਥੀ ਸਿੰਘ ਸਾਹਿਬਾਨ ਦੇ ਨੰਬਰ ਜਲਦੀ ਇੱਥੇ ਦਿੱਤੇ ਜਾਣਗੇ ਜੀ। ਤਦ ਤੱਕ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ।</div>${office}`;
     $('infoBox').innerHTML=`<h2 id="infoTitle" class="infotitle">ਜਾਣਕਾਰੀ <span class="en">Information for the sangat</span></h2>
+      <details data-k="photos" ${S.infoOpen.photos===false?'':'open'}><summary>📷 ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਦੇ ਦਰਸ਼ਨ <span class="en">Darshan of Gurdwara Sahib</span></summary>
+        <div class="gallery">${PHOTOS.map(([f,pa,en])=>`<a href="img/${f}" target="_blank" rel="noopener"><img src="img/${f}" alt="${pa} · ${en}" loading="lazy"><span>${pa}<span class="en">${en}</span></span></a>`).join('')}</div></details>
       <details data-k="inc" ${op('inc')}><summary>📿 ਪਾਠ ਦੀ ਭੇਟਾ ਵਿੱਚ ਕੀ ਸ਼ਾਮਲ ਹੈ? <span class="en">What the path bheta includes</span></summary>
         <ul class="incl">${I.includes.map(x=>`<li>✓ ${G.esc(x)}</li>`).join('')}</ul>${fees?`<ul class="fees">${fees}</ul>`:''}</details>
       <details data-k="big" ${op('big')}><summary>🍲 ਵੱਡਾ ਸਮਾਗਮ ਜਾਂ ਵਾਧੂ ਪ੍ਰਬੰਧ <span class="en">Bigger programme or extra arrangements</span></summary>
@@ -616,7 +628,7 @@
     if(e.target.id==='doneClose'){S.done=null;renderAll();return}
     if(e.target.id==='moveBtn'){
       const M=S.mg,btn=e.target;btn.disabled=true;btn.textContent='ਬਦਲ ਰਹੇ ਹਾਂ…';
-      try{await API.reschedule(M.b,M.phone,S.sel);M.newDate=S.sel;M.stage='done';M.err='';renderAll()}
+      try{await API.reschedule(M.b,M.phone,S.sel);API.notify(M.b.ref,'moved');M.newDate=S.sel;M.stage='done';M.err='';renderAll()}
       catch(x){M.err=x.message==='late'?`ਇਸ ਬੁਕਿੰਗ ਲਈ ਆਨਲਾਈਨ ਬਦਲਾਅ ਬੰਦ ਹਨ। ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਫ਼ੋਨ ਕਰੋ ਜੀ।`
         :x.message==='nomatch'?'ਫ਼ੋਨ ਨੰਬਰ ਇਸ ਬੁਕਿੰਗ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ, ਜਾਂ ਇਹ ਮਿਤੀ ਹੁਣ ਖਾਲੀ ਨਹੀਂ। ਬੁਕਿੰਗ ਵੇਲੇ ਦਿੱਤਾ ਨੰਬਰ ਚੈੱਕ ਕਰੋ ਜੀ।'
         :x.message==='taken'?'ਇਹ ਮਿਤੀ ਹੁਣੇ ਕਿਸੇ ਹੋਰ ਨੇ ਲੈ ਲਈ। ਹੋਰ ਮਿਤੀ ਚੁਣੋ ਜੀ।'
@@ -639,7 +651,7 @@
       if(amount>max){pe.innerHTML=`<div class="note err">ਬਾਕੀ ਭੇਟਾ ਸਿਰਫ਼ ${M$(max)} ਹੈ। ਉੱਪਰ ਰਕਮ ਬਦਲੋ ਜੀ।</div>`;return}
       if(!/^[0-9A-Za-z]{6,30}$/.test(utr)){pe.innerHTML='<div class="note err">ਭੁਗਤਾਨ ਤੋਂ ਬਾਅਦ UPI ਐਪ ਵਿੱਚ ਦਿਸਦਾ ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਨੰਬਰ (UTR, ਆਮ ਤੌਰ ਤੇ 12 ਅੰਕ) ਭਰੋ ਜੀ।</div>';return}
       const btn=fm.querySelector('button');btn.disabled=true;btn.textContent='ਸੇਵ ਹੋ ਰਿਹਾ ਹੈ…';
-      try{await API.reportPayment(ref,utr,amount,seva)}
+      try{await API.reportPayment(ref,utr,amount,seva);API.notify(ref,'reported')}
       catch(x){btn.disabled=false;btn.textContent='ਭੇਟਾ ਭੇਜ ਦਿੱਤੀ';
         pe.innerHTML=`<div class="note err">${x.message==='advance'?`ਪਹਿਲੀ ਭੇਟਾ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ ਜੀ।`:'ਸੇਵ ਨਹੀਂ ਹੋਇਆ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।'}</div>`}
       return}
