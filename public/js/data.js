@@ -25,7 +25,9 @@ window.GPB_API = (function () {
       onlineDiscountPct: G.discountPct(v), holdHours: G.holdHours(v),
       policy: String(v.policy || '').trim().slice(0, 1500), receiptPrefix: String(v.receiptPrefix || 'RCPT').trim() || 'RCPT',
       sevaPrefix: String(v.sevaPrefix || 'SEVA').trim() || 'SEVA',
+      refundPrefix: String(v.refundPrefix || 'REFUND').trim() || 'REFUND',
       includes: Array.isArray(v.includes) ? v.includes.map(x => String(x).trim().slice(0, 120)).filter(Boolean).slice(0, 12) : [],
+      leadDays: Object.fromEntries(G.TYPES.map(t => [t.key, G.leadDays(v, t.key)])),
       bigEvent: String(v.bigEvent || '').trim().slice(0, 1500),
       sukhmaniNote: String(v.sukhmaniNote || '').trim().slice(0, 1500),
       granthis: Array.isArray(v.granthis) ? v.granthis.slice(0, 20).map(g => ({ name: String(g.name || '').trim().slice(0, 60),
@@ -70,7 +72,7 @@ window.GPB_API = (function () {
       const s = {}; for (const [k, v] of Object.entries(mem.slots)) if (v.date >= G.today) s[k] = v;
       subs.slots.forEach(f => f(s, false)); subs.settings.forEach(f => f(mem.settings));
       const all = {}; for (const [k, v] of Object.entries(mem.slots)) if (v.date >= pastFrom()) all[k] = v;
-      subs.admin.forEach(f => f(clone({ slots: all, contacts: mem.contacts, lookups: mem.lookup, reports: mem.reports })));
+      subs.admin.forEach(f => f(clone({ slots: all, contacts: mem.contacts, lookups: mem.lookup, reports: mem.reports, counters: mem.counters })));
       subs.lookup.forEach(([ref, f]) => f(mem.lookup[ref] ? clone(mem.lookup[ref]) : null));
     };
     const change = () => { save(); emit(); };
@@ -141,6 +143,7 @@ window.GPB_API = (function () {
       async rejectReport(id, stillChecking) {
         const r = mem.reports[id]; r.status = 'rejected'; mem.lookup[r.ref].checking = !!stillChecking; change();
       },
+      async setNextReceipt(key, next) { mem.counters[key] = { fy: G.finYear(), next }; change(); },
       async recordCash(ref, amount, method, seva) {
         const l = mem.lookup[ref]; const o = issue(ref, amount, method || 'Cash', '', seva || 0);
         l.paidCash = (l.paidCash || 0) + amount; change(); return o;
@@ -156,13 +159,35 @@ window.GPB_API = (function () {
       async signOut() { demoUser = null; try { sessionStorage.removeItem('gpb-demo-admin'); } catch (e) {} subs.auth.forEach(f => f(null, false)); },
       async getContact(id) { return mem.contacts[id] || null; },
       // Frees the dates. A booking with money received is kept as "cancelled" for the records.
-      async cancel(startId) {
+      async cancel(startId, reason) {
         const v = mem.slots[startId]; if (!v) return;
         idsOf(v).forEach(id => delete mem.slots[id]);
         const c = mem.contacts[startId], l = c && c.ref && mem.lookup[c.ref];
-        if (l && G.account(l).paid > 0) l.closed = 'cancelled';
-        else { if (c && c.ref) delete mem.lookup[c.ref]; delete mem.contacts[startId]; }
+        if (l) { const cid = 'cx_' + c.ref; mem.contacts[cid] = c;
+          Object.assign(l, { closed: 'cancelled', cancelReason: reason || '', closedAt: new Date().toISOString(), slot: cid, cancelledSlot: startId }); }
+        delete mem.contacts[startId];
+        change(); return (c && c.ref) || '';
+      },
+      async voidReceipt(ref, kind, i, reason, note) {
+        const l = mem.lookup[ref], r = ((kind === 'seva' ? l.sevaReceipts : l.receipts) || [])[i];
+        if (!r || r.void) return;
+        r.void = { reason, note: note || '', date: new Date().toISOString() };
+        if (kind !== 'seva') { if (r.method === 'UPI') l.paidOnline = Math.max(0, (l.paidOnline || 0) - r.amount); else l.paidCash = Math.max(0, (l.paidCash || 0) - r.amount); }
         change();
+      },
+      async refund(ref, amount, method, reason, note) {
+        const fy = G.finYear(), c = mem.counters.refund && mem.counters.refund.fy === fy ? mem.counters.refund : { fy, next: 1 };
+        mem.counters.refund = { fy, next: c.next + 1 };
+        const no = receiptNo(mem.settings.refundPrefix || 'REFUND', fy, c.next), l = mem.lookup[ref];
+        l.refunds = [...(l.refunds || []), { no, amount, method, reason, note: note || '', date: new Date().toISOString() }];
+        l.refunded = (l.refunded || 0) + amount; change(); return no;
+      },
+      async deleteEntry(ref) {
+        const l = mem.lookup[ref]; if (!l || G.hasMoney(l)) throw new Error('has-money');
+        const v = l.slot && mem.slots[l.slot]; if (v) idsOf(v).forEach(id => delete mem.slots[id]);
+        if (l.slot) delete mem.contacts[l.slot];
+        for (const [id, r] of Object.entries(mem.reports)) if (r.ref === ref) delete mem.reports[id];
+        delete mem.lookup[ref]; change();
       },
       async saveSettings(s) { mem.settings = cleanSettings(s); change(); },
       async resetPassword() {}
@@ -211,9 +236,9 @@ window.GPB_API = (function () {
   return {
     demo: false,
     // Asks the server to send the automatic WhatsApp message (does nothing if WhatsApp is not set up).
-    notify(ref, event) {
+    notify(ref, event, extra) {
       try { fetch('/.netlify/functions/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref, event }), keepalive: true }).catch(() => {}); } catch (e) {}
+        body: JSON.stringify({ ref, event, ...(extra || {}) }), keepalive: true }).catch(() => {}); } catch (e) {}
     },
     watchSlots(cb, onErr) {
       ready.then(({ F, db }) => F.onSnapshot(F.query(F.collection(db, 'slots'), F.where('date', '>=', G.today)),
@@ -322,7 +347,7 @@ window.GPB_API = (function () {
     async resetPassword(email) { const { U, auth } = await ready; return U.sendPasswordResetEmail(auth, email); },
     // Committee: everything for the bookings list, live.
     watchAdmin(cb) {
-      const st = { slots: {}, contacts: {}, lookups: {}, reports: {} };
+      const st = { slots: {}, contacts: {}, lookups: {}, reports: {}, counters: {} };
       const out = () => cb({ ...st });
       ready.then(({ F, db }) => {
         const on = (q, key) => F.onSnapshot(q, snap => { const m = {}; snap.forEach(d => { m[d.id] = toPlain(d.data()); }); st[key] = m; out(); }, e => console.error(key, e));
@@ -330,7 +355,13 @@ window.GPB_API = (function () {
         on(F.collection(db, 'contacts'), 'contacts');
         on(F.collection(db, 'lookup'), 'lookups');
         on(F.collection(db, 'reports'), 'reports');
+        on(F.collection(db, 'counters'), 'counters');
       });
+    },
+    // Committee: the number the next receipt of a series will get ('receipts' = path, 'seva' = seva), this financial year.
+    async setNextReceipt(key, next) {
+      const { F, db } = await ready;
+      return F.setDoc(F.doc(db, 'counters', key), { fy: G.finYear(), next });
     },
     async verifyReport(id, stillChecking) {
       const { F, db } = await ready;
@@ -355,7 +386,7 @@ window.GPB_API = (function () {
     async setClosed(ref, closed) { const { F, db } = await ready; return F.updateDoc(F.doc(db, 'lookup', ref), { closed: closed || '' }); },
     async getContact(id) { const { F, db } = await ready; const d = await F.getDoc(F.doc(db, 'contacts', id)); return d.exists() ? d.data() : null; },
     // Frees the dates. A booking with money received is kept as "cancelled" for the records.
-    async cancel(startId) {
+    async cancel(startId, reason) {
       const { F, db } = await ready;
       const s = await F.getDoc(F.doc(db, 'slots', startId));
       if (!s.exists()) return;
@@ -364,8 +395,56 @@ window.GPB_API = (function () {
       const c = await F.getDoc(F.doc(db, 'contacts', startId)).catch(() => null);
       const ref = c && c.exists() && c.data().ref;
       const l = ref ? await F.getDoc(F.doc(db, 'lookup', ref)).catch(() => null) : null;
-      if (l && l.exists() && G.account(l.data()).paid > 0) batch.update(F.doc(db, 'lookup', ref), { closed: 'cancelled' });
-      else { if (ref) batch.delete(F.doc(db, 'lookup', ref)); batch.delete(F.doc(db, 'contacts', startId)); }
+      // The booking is kept as Cancelled so the devotee can be told; an unpaid one can then be removed with "Delete entry".
+      // Its contact moves to "cx_<ref>" so the date and place can be booked again by someone else.
+      if (l && l.exists()) {
+        const cid = 'cx_' + ref;
+        batch.set(F.doc(db, 'contacts', cid), c.data());
+        batch.update(F.doc(db, 'lookup', ref), { closed: 'cancelled', cancelReason: reason || '', closedAt: new Date().toISOString(), slot: cid, cancelledSlot: startId });
+      }
+      batch.delete(F.doc(db, 'contacts', startId));
+      await batch.commit();
+      return ref || '';
+    },
+    // Committee: mark a receipt void (number is kept, never reused); path amounts come off the paid total.
+    async voidReceipt(ref, kind, i, reason, note) {
+      const { F, db } = await ready;
+      return F.runTransaction(db, async tx => {
+        const lref = F.doc(db, 'lookup', ref), ls = await tx.get(lref); if (!ls.exists()) throw new Error('missing');
+        const l = ls.data(), key = kind === 'seva' ? 'sevaReceipts' : 'receipts', arr = [...(l[key] || [])], r = arr[i];
+        if (!r || r.void) return;
+        arr[i] = { ...r, void: { reason, note: note || '', date: new Date().toISOString() } };
+        const up = { [key]: arr };
+        if (kind !== 'seva') { if (r.method === 'UPI') up.paidOnline = Math.max(0, (l.paidOnline || 0) - r.amount); else up.paidCash = Math.max(0, (l.paidCash || 0) - r.amount); }
+        tx.update(lref, up);
+      });
+    },
+    // Committee: money given back to the devotee, with its own refund voucher number.
+    async refund(ref, amount, method, reason, note) {
+      const { F, db } = await ready;
+      return F.runTransaction(db, async tx => {
+        const lref = F.doc(db, 'lookup', ref), cref = F.doc(db, 'counters', 'refund');
+        const [ls, cs] = [await tx.get(lref), await tx.get(cref)]; if (!ls.exists()) throw new Error('missing');
+        const fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1, l = ls.data();
+        const no = receiptNo(lastSettings.refundPrefix || 'REFUND', fy, next);
+        tx.set(cref, { fy, next: next + 1 });
+        tx.update(lref, { refunds: [...(l.refunds || []), { no, amount, method, reason, note: note || '', date: new Date().toISOString() }], refunded: (l.refunded || 0) + amount });
+        return no;
+      });
+    },
+    // Committee: remove a booking that never had any payment (all its records).
+    async deleteEntry(ref, reportIds) {
+      const { F, db } = await ready;
+      const ls = await F.getDoc(F.doc(db, 'lookup', ref)); if (!ls.exists()) return;
+      const l = ls.data(); if (G.hasMoney(l)) throw new Error('has-money');
+      const batch = F.writeBatch(db);
+      if (l.slot) {
+        const s = await F.getDoc(F.doc(db, 'slots', l.slot)).catch(() => null);
+        if (s && s.exists()) idsOf(s.data()).forEach(id => batch.delete(F.doc(db, 'slots', id)));
+        batch.delete(F.doc(db, 'contacts', l.slot));
+      }
+      (reportIds || []).forEach(id => batch.delete(F.doc(db, 'reports', id)));
+      batch.delete(F.doc(db, 'lookup', ref));
       await batch.commit();
     },
     async saveSettings(s) { const { F, db } = await ready; return F.setDoc(F.doc(db, 'settings', 'main'), cleanSettings(s)); }
