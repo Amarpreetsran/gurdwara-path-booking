@@ -59,9 +59,15 @@ window.GPB = (function () {
     return n >= 1 ? Math.min(n, MAX_PLACES) : 1;
   }
   // Places still free for this path starting on this date (empty list = fully booked or closed).
+  // Minimum days ahead a path can be booked (committee setting). Leaves time for the 48-hour advance
+  // and date-change window to close before the path starts. Also enforced in firestore.rules.
+  const LEAD_DEFAULTS = { akhand: 7, sehaj: 3 };
+  const leadDays = (settings, key) => { const n = Number(settings && settings.leadDays && settings.leadDays[key]);
+    return Number.isFinite(n) && n >= 1 && n <= 90 ? Math.round(n) : (LEAD_DEFAULTS[key] || 3); };
+  const firstFor = (settings, key) => { const f = add(today, leadDays(settings, key)); return f > first ? f : first; };
   function freeSeats(t, date, slots, settings) {
     const closed = (settings && settings.closed) || [];
-    if (date < first || date > last) return [];
+    if (date < firstFor(settings, t.key) || date > last) return [];
     for (let i = 0; i < t.days; i++) if (closed.includes(add(date, i))) return [];
     const out = [];
     for (let seat = 1; seat <= capOf(settings, t.key); seat++) {
@@ -130,11 +136,19 @@ window.GPB = (function () {
   // Seva bheta: an optional gift to Gurdwara Sahib, kept apart from the path bheta.
   const SEVA_PICKS = [101, 251, 501, 1100];
   // Seva bheta gets its own receipts (own number series), listed in l.sevaReceipts.
-  const sevaOf = l => ((l && l.sevaReceipts) || []).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  // Number part of a receipt like GBJS/2026-27/0042 -> 42.
+  const receiptSerial = no => { const m = String(no || '').match(/(\d+)\s*$/); return m ? parseInt(m[1], 10) : 0; };
+  const sevaOf = l => ((l && l.sevaReceipts) || []).reduce((s, r) => s + (r.void ? 0 : Number(r.amount) || 0), 0);
+  // A booking that has any money record (receipts, refunds or a payment being checked) is kept when cancelled.
+  const hasMoney = l => !!(l && ((l.receipts || []).length || (l.sevaReceipts || []).length || (l.refunds || []).length || l.checking));
+  const VOID_REASONS = ['Entered by mistake', 'Wrong amount', 'Payment not received in bank', 'Duplicate receipt', 'Wrong family or booking', 'Other'];
+  const CANCEL_REASONS = ['Devotee asked to cancel', 'No advance received', 'Date not available (gurdwara programme)', 'Duplicate booking', 'Other'];
+  const REFUND_REASONS = ['Booking cancelled', 'Paid twice', 'Paid too much', 'Gurdwara cancelled the programme', 'Other'];
   function account(l) {
     l = l || {};
     const total = Number(l.total) || 0, disc = Number(l.discount) || 0;
-    const online = Number(l.paidOnline) || 0, cash = Number(l.paidCash) || 0, paid = online + cash;
+    const online = Number(l.paidOnline) || 0, cash = Number(l.paidCash) || 0, refunded = Number(l.refunded) || 0;
+    const paid = Math.max(0, online + cash - refunded);   // voided receipts are already taken off online/cash
     const fullOnline = Math.max(0, total - disc);
     const target = cash > 0 ? total : fullOnline;          // discount only when nothing is paid in cash
     const due = Math.max(0, target - paid);
@@ -149,7 +163,7 @@ window.GPB = (function () {
     else if (l.checking) state = 'checking';
     else if (!paid) state = 'due';
     else state = 'partial';
-    return { total, disc, online, cash, paid, fullOnline, target, due, advance, advanceDue, state };
+    return { total, disc, online, cash, refunded, paid, fullOnline, target, due, advance, advanceDue, state };
   }
   const STATES = {
     due: ['ਅਗਾਊਂ ਭੇਟਾ ਬਾਕੀ', 'Advance due'],
@@ -177,8 +191,8 @@ window.GPB = (function () {
     return parts.join(' ');
   }
 
-  return { SEVA_PICKS, sevaOf, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
+  return { SEVA_PICKS, receiptSerial, sevaOf, hasMoney, VOID_REASONS, CANCEL_REASONS, REFUND_REASONS, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
     CHANGE_HOURS, CUTOFF_TEXT, bookedMs, changeDeadline, canReschedule, fmtTime, phoneKey, waLink, feeOf, upiLink, confirmText,
     MONTHS, monthYear, fmtDateTime, pad, iso, parse, add, fmtShort, fmtLong, fmtDow, TYPES, OCCASIONS, today, first, last, esc, typeOf, slotId, makeRef,
-    MAX_PLACES, capOf, freeSeats, isFree, bookingsOn };
+    MAX_PLACES, capOf, freeSeats, isFree, bookingsOn, LEAD_DEFAULTS, leadDays, firstFor };
 })();
