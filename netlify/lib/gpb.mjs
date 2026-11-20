@@ -133,7 +133,7 @@ export function statusText(l, s) {
   }
   return `${money(a.paid)} received, balance ${money(a.due)} due before the bhog`;
 }
-export const siteUrl = () => (env('SITE_URL') || '').replace(/\/+$/, '');
+export const siteUrl = () => (env('SITE_URL') || env('URL') || '').replace(/\/+$/, '');
 
 // ---------- WhatsApp Cloud API ----------
 export function toNumber(phone) {
@@ -174,5 +174,32 @@ export async function sendOnce(key, to, template, params, info) {
 export const TEMPLATES = {
   booked: env('WA_TPL_BOOKED') || 'path_booking_confirmed',
   payment: env('WA_TPL_PAYMENT') || 'path_bheta_received',
-  reminder: env('WA_TPL_REMINDER') || 'path_aarambh_reminder'
+  reminder: env('WA_TPL_REMINDER') || 'path_aarambh_reminder',
+  checking: env('WA_TPL_CHECKING') || 'path_payment_checking',
+  notfound: env('WA_TPL_NOTFOUND') || 'path_payment_not_found',
+  moved: env('WA_TPL_MOVED') || 'path_date_changed',
+  cancelled: env('WA_TPL_CANCELLED') || 'path_booking_cancelled',
+  void: env('WA_TPL_VOID') || 'path_receipt_void',
+  refund: env('WA_TPL_REFUND') || 'path_refund_issued'
 };
+// Punjabi + English wording for the reasons the committee picks (the committee page stores the English).
+const REASONS = {
+  'Devotee asked to cancel': 'ਆਪ ਜੀ ਦੀ ਬੇਨਤੀ ਅਨੁਸਾਰ / As you requested',
+  'No advance received': 'ਸਮੇਂ ਸਿਰ ਅਗਾਊਂ ਭੇਟਾ ਨਹੀਂ ਮਿਲੀ / Advance not received in time',
+  'Date not available (gurdwara programme)': 'ਇਸ ਮਿਤੀ ਨੂੰ ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਦਾ ਪ੍ਰੋਗਰਾਮ ਹੈ / Gurdwara Sahib programme on this date',
+  'Duplicate booking': 'ਦੋਹਰੀ ਬੁਕਿੰਗ / Duplicate booking',
+  'Entered by mistake': 'ਗ਼ਲਤੀ ਨਾਲ ਦਰਜ ਹੋਈ / Entered by mistake',
+  'Wrong amount': 'ਗ਼ਲਤ ਰਕਮ / Wrong amount',
+  'Payment not received in bank': 'ਰਕਮ ਬੈਂਕ ਵਿੱਚ ਨਹੀਂ ਮਿਲੀ / Payment not found in bank',
+  'Duplicate receipt': 'ਦੋਹਰੀ ਰਸੀਦ / Duplicate receipt',
+  'Wrong family or booking': 'ਗ਼ਲਤ ਪਰਿਵਾਰ ਜਾਂ ਬੁਕਿੰਗ / Wrong family or booking',
+  'Booking cancelled': 'ਬੁਕਿੰਗ ਰੱਦ ਹੋਈ / Booking cancelled',
+  'Paid twice': 'ਦੋ ਵਾਰ ਭੁਗਤਾਨ / Paid twice',
+  'Paid too much': 'ਵੱਧ ਰਕਮ ਭੇਜੀ / Paid too much',
+  'Gurdwara cancelled the programme': 'ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਵੱਲੋਂ ਪ੍ਰੋਗਰਾਮ ਰੱਦ / Programme cancelled by Gurdwara Sahib',
+  'Other': 'ਹੋਰ ਕਾਰਨ, ਕਿਰਪਾ ਕਰਕੇ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ / Other, kindly contact the office'
+};
+export const reasonText = r => REASONS[r] || String(r || 'ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ / Kindly contact the office');
+export const AUTO_CANCEL_REASON = 'ਸਮੇਂ ਸਿਰ ਅਗਾਊਂ ਭੇਟਾ ਨਹੀਂ ਮਿਲੀ, ਤਾਂ ਜੋ ਮਿਤੀ ਹੋਰ ਸੰਗਤ ਲਈ ਖੁੱਲ੍ਹੀ ਰਹੇ / Advance not received within 48 hours, so the date is kept open for other sangat';
+// The "booking cancelled" message (used by notify and by the hourly release).
+export const cancelParams = (l, ref, reason, url) => [l.name, (TYPES[l.type] || { en: l.type }).en, whenText(l.type, l.start), ref, reason, url || 'the gurdwara booking page'];
