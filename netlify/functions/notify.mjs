@@ -24,7 +24,7 @@ export default async (req) => {
 
     if (event === 'booked') {
       results.push(await sendOnce(`${ref}_booked`, to, TEMPLATES.booked,
-        [path, whenText(l.type, l.start), gname, l.name, ref, statusText(l), url || 'the gurdwara booking page'],
+        [path, whenText(l.type, l.start), gname, l.name, ref, statusText(l, s), url || 'the gurdwara booking page'],
         { ref, event }));
     } else {
       // One message per confirmed receipt that has not been announced yet (newest three at most).
@@ -39,6 +39,16 @@ export default async (req) => {
         const bal = a.due ? `${money(a.due)} due` : 'ਪੂਰੀ ਭੇਟਾ ਪ੍ਰਾਪਤ / Paid in full';
         results.push(await sendOnce(`${ref}_r${i + 1}`, to, TEMPLATES.payment,
           [money(r.amount), path, whenText(l.type, l.start), ref, r.no, bal, url ? `${url}/receipt.html?ref=${ref}&n=${i + 1}` : `receipt ${r.no}`],
+          { ref, event, receipt: r.no }));
+      }
+      // Seva bheta receipts (own series): same message, the amount marked as seva for Gurdwara Sahib.
+      const sev = l.sevaReceipts || [];
+      const pathBal = (() => { const a = account(l); return a.due ? `path bheta ${money(a.due)} due` : 'ਪੂਰੀ ਭੇਟਾ ਪ੍ਰਾਪਤ / Path bheta paid in full'; })();
+      for (let i = Math.max(0, sev.length - 3); i < sev.length; i++) {
+        const r = sev[i];
+        results.push(await sendOnce(`${ref}_s${i + 1}`, to, TEMPLATES.payment,
+          [`${money(r.amount)} ਸੇਵਾ ਭੇਟਾ / seva bheta for Gurdwara Sahib`, path, whenText(l.type, l.start), ref, r.no, pathBal,
+            url ? `${url}/receipt.html?ref=${ref}&s=${i + 1}` : `receipt ${r.no}`],
           { ref, event, receipt: r.no }));
       }
     }
