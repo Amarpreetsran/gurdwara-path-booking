@@ -87,6 +87,10 @@ export async function updateDoc(path, data) {
     body: JSON.stringify({ fields: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, toValue(v)])) }) });
   if (!r.ok) throw new Error(`Firestore update ${path}: ${r.status} ${await r.text()}`);
 }
+export async function deleteDoc(path) {
+  const r = await fetch(`${base()}/${path}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + await googleToken() } });
+  if (!r.ok && r.status !== 404) throw new Error(`Firestore delete ${path}: ${r.status} ${await r.text()}`);
+}
 export async function queryEq(collection, filters) {
   const r = await fetch(`${base()}:runQuery`, { method: 'POST',
     headers: { Authorization: 'Bearer ' + await googleToken(), 'Content-Type': 'application/json' },
@@ -101,7 +105,7 @@ export async function queryEq(collection, filters) {
 export const TYPES = { akhand: { en: 'ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ / Akhand Path Sahib', days: 2 }, sehaj: { en: 'ਸਹਿਜ ਪਾਠ ਦਾ ਭੋਗ / Sehaj Path Bhog', days: 1 },
   'sukh-am': { en: 'ਸੁਖਮਨੀ ਸਾਹਿਬ / Sukhmani Sahib (7:00 AM)', days: 1 }, 'sukh-pm': { en: 'ਸੁਖਮਨੀ ਸਾਹਿਬ / Sukhmani Sahib (5:00 PM)', days: 1 } };
 export const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
-const addDays = (s, n) => { const d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+export const addDays = (s, n) => { const d = new Date(s + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const fmt = s => new Date(s + 'T12:00:00Z').toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 export const istToday = () => new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
 export const istTomorrow = () => addDays(istToday(), 1);
@@ -116,11 +120,17 @@ export function account(l) {
   const due = Math.max(0, target - paid), advance = Math.ceil(total * 0.2);
   return { total, disc, online, cash, paid, due, advance };
 }
-export function statusText(l) {
+// Hours an unpaid booking is held (committee setting, default 48; 0 = never released).
+export const holdHours = s => { const n = Number(s && s.holdHours); return Number.isFinite(n) && n >= 0 && n <= 168 ? Math.round(n) : 48; };
+export function statusText(l, s) {
   const a = account(l);
   if (!a.total) return 'no bheta amount set, please ask at the gurdwara office';
   if (!a.due) return `paid in full (${money(a.paid)})`;
-  if (!a.paid) return `advance of ${money(a.advance)} due now (total ${money(a.total)}, or ${money(Math.max(0, a.total - a.disc))} if paid fully online)`;
+  if (!a.paid) {
+    const h = s ? holdHours(s) : 0;
+    return `advance of ${money(a.advance)} (20%) needed` + (h ? ` within ${h} hours of booking ji, otherwise the booking is cancelled automatically and you will need to book again` : '') +
+      `. Total ${money(a.total)}, or ${money(Math.max(0, a.total - a.disc))} if paid fully online`;
+  }
   return `${money(a.paid)} received, balance ${money(a.due)} due before the bhog`;
 }
 export const siteUrl = () => (env('SITE_URL') || '').replace(/\/+$/, '');
