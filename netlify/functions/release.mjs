@@ -5,7 +5,7 @@
 //   - it has not been closed already, and its path date has not yet started.
 // The dates are freed, the phone number is removed, and the booking is kept as "Released, not paid"
 // so the devotee sees why on "My booking" and the committee sees it under that filter.
-import { queryEq, getDoc, updateDoc, deleteDoc, TYPES, addDays, istToday, holdHours } from '../lib/gpb.mjs';
+import { queryEq, getDoc, updateDoc, deleteDoc, TYPES, addDays, istToday, holdHours, sendOnce, toNumber, TEMPLATES, cancelParams, AUTO_CANCEL_REASON, siteUrl } from '../lib/gpb.mjs';
 
 const unpaid = l => l && !l.closed && Number(l.total) > 0 && !Number(l.paidOnline) && !Number(l.paidCash) && !l.checking;
 
@@ -25,6 +25,12 @@ export default async () => {
       const fresh = await getDoc(`lookup/${ref}`);           // check again just before releasing
       if (!unpaid(fresh) || fresh.slot !== l.slot) continue;
       await updateDoc(`lookup/${ref}`, { closed: 'expired', releasedAt: new Date() });
+      // A respectful WhatsApp before the phone number is removed (does nothing if WhatsApp is not set up).
+      try {
+        const c = await getDoc(`contacts/${l.slot}`);
+        if (c && c.phone) await sendOnce(`${ref}_expired`, toNumber(c.phone), TEMPLATES.cancelled,
+          cancelParams(l, ref, AUTO_CANCEL_REASON, siteUrl()), { ref, event: 'expired' });
+      } catch (e) { console.error('cancel message', ref, e); }
       const [date, type, seat] = l.slot.split('__');
       const days = (TYPES[type] || { days: 1 }).days;
       for (let i = 0; i < days; i++) await deleteDoc(`slots/${addDays(date, i)}__${type}__${seat}`);
