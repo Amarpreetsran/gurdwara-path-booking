@@ -52,29 +52,66 @@ redeploys by itself in about a minute. **Don't use drag-and-drop on Netlify any 
 5. Under **To**, click **Manage phone number list → Add phone number**, enter **+91 9996056369**, and
    type the code WhatsApp sends you. (You can add up to 5 test numbers.)
 
-## Step 4 — Create the three message templates
+## Step 4 — Create the three message templates (Punjabi + English)
 
-Meta → **WhatsApp Manager → Message templates → Create template**. For each one:
-Category **Utility**, Language **English**, the exact name below, paste the body, and fill the sample
-values Meta asks for (use the examples). Submit. Approval usually takes minutes to a day.
+Meta → **WhatsApp Manager → Message templates → Create template**, account **Test Messaging Account**.
+For each: Category **Utility**, Language **English**, variable type **Number**, the exact name, paste the body
+(keep the line breaks), fill the samples, leave header/footer/buttons empty, **Submit**.
 
 **1. `path_booking_confirmed`**
 ```
-Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. Your booking for {{1}} on {{2}} at {{3}} for {{4}} parivar is confirmed. Booking reference: {{5}}. Bheta status: {{6}}. To see your booking, pay or open receipts, visit {{7}} and tap My booking. Thank you.
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਦੀ ਬੁਕਿੰਗ ਪੱਕੀ ਹੋ ਗਈ ਹੈ। Your booking is confirmed.
+ਪਾਠ / Path: {{1}}
+ਮਿਤੀ / Date: {{2}}
+ਸਥਾਨ / Gurdwara: {{3}}
+ਪਰਿਵਾਰ / Family: {{4}} parivar
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{5}}
+ਭੇਟਾ / Bheta: {{6}}
+
+ਬੁਕਿੰਗ ਦੇਖਣ, ਭੇਟਾ ਭੇਜਣ ਜਾਂ ਰਸੀਦ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਇਹ ਲਿੰਕ ਖੋਲ੍ਹ ਕੇ ਮੇਰੀ ਬੁਕਿੰਗ ਦਬਾਓ ਜੀ: {{7}}
+To see your booking, pay or open receipts, kindly open the link above and tap My booking.
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
 ```
-Samples: Akhand Path Sahib · Fri, 20 Nov, 2026 (bhog Sun, 22 Nov, 2026) · Gurdwara Baba Jeon Singh Ji · Sra · K7MQ2D · advance of ₹1,020 due now · https://babajeonsinghpathbooking.netlify.app
+Samples: ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ / Akhand Path Sahib · Fri, 20 Nov, 2026 (bhog Sun, 22 Nov, 2026) · Gurudwara Gosayiana Patshahi Dasvi Pathrala Bhatinda · Sra · K7MQ2D · advance of ₹1,020 (20%) needed within 48 hours of booking ji, otherwise the booking is cancelled automatically and you will need to book again. Total ₹5,100, or ₹4,590 if paid fully online · https://babajeonsinghpathbooking.netlify.app
 
 **2. `path_bheta_received`**
 ```
-Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. We have received your bheta of {{1}} for {{2}} on {{3}} (reference {{4}}). Receipt number: {{5}}. {{6}}. Your receipt: {{7}} Thank you.
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਦੀ ਭੇਟਾ ਪ੍ਰਾਪਤ ਹੋ ਗਈ ਹੈ। We have received your bheta.
+ਰਕਮ / Amount: {{1}}
+ਪਾਠ / Path: {{2}}
+ਮਿਤੀ / Date: {{3}}
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{4}}
+ਰਸੀਦ ਨੰਬਰ / Receipt no.: {{5}}
+ਬਕਾਇਆ / Balance: {{6}}
+ਰਸੀਦ / Receipt: {{7}}
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
 ```
-Samples: ₹1,020 · Akhand Path Sahib · Fri, 20 Nov, 2026 · K7MQ2D · GBJS/2026-27/0001 · Balance due: ₹3,580 · https://babajeonsinghpathbooking.netlify.app/receipt.html?ref=K7MQ2D&n=1
+Samples: ₹1,020 · ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ / Akhand Path Sahib · Fri, 20 Nov, 2026 · K7MQ2D · GBJS/2026-27/0001 · ₹3,580 due · https://babajeonsinghpathbooking.netlify.app/receipt.html?ref=K7MQ2D&n=1
 
 **3. `path_aarambh_reminder`**
 ```
-Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh. Reminder for {{1}} parivar: your {{2}} begins tomorrow, {{3}}, at {{4}}. Booking reference: {{5}}. Bheta status: {{6}}. For any help, call {{7}}. Waheguru Ji Ki Fateh.
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਯਾਦ ਦਹਾਨੀ: ਆਪ ਜੀ ਦੇ ਪਾਠ ਦੀ ਆਰੰਭਤਾ ਕੱਲ੍ਹ ਹੈ। Reminder: your path begins tomorrow.
+ਪਰਿਵਾਰ / Family: {{1}} parivar
+ਪਾਠ / Path: {{2}}
+ਮਿਤੀ / Date: {{3}}
+ਸਥਾਨ / Gurdwara: {{4}}
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{5}}
+ਭੇਟਾ / Bheta: {{6}}
+ਸੰਪਰਕ / Contact: {{7}}
+
+ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
 ```
-Samples: Sra · Akhand Path Sahib · Fri, 20 Nov, 2026 · Gurdwara Baba Jeon Singh Ji · K7MQ2D · ₹1,020 received, balance ₹3,580 due before the bhog · 98765 00000
+Samples: Sra · ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ / Akhand Path Sahib · Fri, 20 Nov, 2026 · Gurudwara Gosayiana Patshahi Dasvi Pathrala Bhatinda · K7MQ2D · ₹1,020 received, balance ₹3,580 due before the bhog · 98765 00000
 
 ## Step 5 — Put the keys into Netlify
 

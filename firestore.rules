@@ -54,21 +54,25 @@ service cloud.firestore {
     function feeFor(type) {
       return exists(settingsPath()) ? get(settingsPath()).data.get('fees', {}).get(type, 0) : 0;
     }
-    function discountSetting() {
-      return exists(settingsPath()) ? get(settingsPath()).data.get('onlineDiscount', 500) : 500;
+    // % of the bheta taken off when the whole amount is paid online (committee setting, default 10).
+    function discountPct() {
+      return exists(settingsPath()) ? get(settingsPath()).data.get('onlineDiscountPct', 10) : 10;
     }
     function lookupPath(ref) { return /databases/$(database)/documents/lookup/$(ref); }
     function validReport(rid) {
       let r = request.resource.data;
       let l = get(lookupPath(r.ref)).data;
       let n = l.get('reports', 0) + 1;
-      return r.keys().hasOnly(['ref', 'utr', 'amount', 'createdAt'])
+      return r.keys().hasOnly(['ref', 'utr', 'amount', 'seva', 'createdAt'])
         && l.get('closed', '') == ''
         && rid == r.ref + '_' + string(n)
         && getAfter(lookupPath(r.ref)).data.reports == n
         && r.utr is string && r.utr.matches('^[0-9A-Za-z]{6,30}$')
-        && r.amount is number && r.amount >= 1 && r.amount <= l.total
-        && (l.get('paidOnline', 0) > 0 || l.get('checking', false) == true || r.amount * 100 >= l.total * 20)
+        && r.amount is number && r.amount >= 0 && r.amount <= l.total
+        // optional seva bheta for Gurdwara Sahib, apart from the path bheta
+        && r.get('seva', 0) is int && r.get('seva', 0) >= 0 && r.get('seva', 0) <= 100000
+        && r.amount + r.get('seva', 0) >= 1
+        && (l.get('paidOnline', 0) + l.get('paidCash', 0) > 0 || l.get('checking', false) == true || r.amount * 100 >= l.total * 20)
         && r.createdAt == request.time;
     }
     // How many places the committee allows for this path (set on the committee page, max 10).
@@ -81,11 +85,11 @@ service cloud.firestore {
     function validSlot(id) {
       let d = request.resource.data;
       return d.keys().hasOnly(['type', 'date', 'start', 'part', 'seat', 'name', 'occasion', 'next', 'bookedAt', 'createdAt'])
-        && d.type in ['akhand', 'sehaj', 'sukh-am', 'sukh-pm']
+        && d.type in ['akhand', 'sehaj']
         && isDate(d.date) && isDate(d.start)
         && d.seat is int && d.seat >= 1 && d.seat <= 10 && d.seat <= placesFor(d.type)
         && id == d.date + '__' + d.type + '__' + string(d.seat)
-        && text(d.name, 60) && text(d.occasion, 60)
+        && text(d.name, 150) && text(d.occasion, 150)
         && d.createdAt == request.time
         && d.bookedAt is timestamp
         && (d.bookedAt == request.time || keptBookingTime(d))
@@ -122,8 +126,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['phone', 'note', 'name', 'ref', 'pkey', 'createdAt'])
         && request.resource.data.phone is string
         && request.resource.data.phone.matches('^[0-9+ -]{7,20}$')
-        && request.resource.data.note is string && request.resource.data.note.size() <= 400
-        && text(request.resource.data.name, 60)
+        && request.resource.data.note is string && request.resource.data.note.size() <= 1200
+        && text(request.resource.data.name, 150)
         && text(request.resource.data.ref, 10)
         && request.resource.data.createdAt == request.time;
       allow update: if false;
@@ -144,7 +148,9 @@ service cloud.firestore {
         && request.resource.data.name == getAfter(slotPath(request.resource.data.slot)).data.name
         && request.resource.data.start == getAfter(slotPath(request.resource.data.slot)).data.start
         && request.resource.data.total == feeFor(request.resource.data.type)
-        && request.resource.data.discount == (request.resource.data.total > discountSetting() ? discountSetting() : 0)
+        && request.resource.data.discount is int
+        && request.resource.data.discount * 100 >= request.resource.data.total * discountPct() - 50
+        && request.resource.data.discount * 100 < request.resource.data.total * discountPct() + 50
         && request.resource.data.paidOnline == 0 && request.resource.data.paidCash == 0
         && request.resource.data.receipts == [] && request.resource.data.reports == 0
         && request.resource.data.checking == false && request.resource.data.closed == '';
@@ -165,7 +171,7 @@ service cloud.firestore {
     }
 
     // A record of each date change made by the person who booked.
-    // Allowed only with the right phone number, within 24 hours of booking, and only
+    // Allowed only with the right phone number, within 48 hours of booking, and only
     // when the old dates are removed and the new booking is added in the same step.
     match /reschedules/{rid} {
       allow read: if isAdmin();
@@ -175,7 +181,7 @@ service cloud.firestore {
         && get(contactPath(request.resource.data.old)).data.ref == request.resource.data.ref
         && get(contactPath(request.resource.data.old)).data.get('pkey', '') == request.resource.data.pkey
         && request.resource.data.pkey.size() >= 7
-        && get(slotPath(request.resource.data.old)).data.bookedAt + duration.value(24, 'h') > request.time
+        && get(slotPath(request.resource.data.old)).data.bookedAt + duration.value(48, 'h') > request.time
         && inFuture(get(slotPath(request.resource.data.old)).data.start)
         && !existsAfter(slotPath(request.resource.data.old))
         && existsAfter(slotPath(request.resource.data.next))
@@ -185,7 +191,7 @@ service cloud.firestore {
     }
 
     // "I have paid" reports from devotees (UPI transaction ID). Only the committee can read them.
-    // The first payment must be at least 20% of the bheta (the advance).
+    // The first payment must be at least 20% of the bheta (the advance needed to keep the booking).
     match /reports/{rid} {
       allow read, update, delete: if isAdmin();
       allow create: if validReport(rid);

@@ -1,6 +1,6 @@
 # Gurdwara Path Booking — setup guide
 
-A website where the sangat books **Akhand Path Sahib, Sehaj Path bhog and Sukhmani Sahib**
+A website where the sangat books **Akhand Path Sahib and Sehaj Path bhog** (Sukhmani Sahib at home is arranged directly with the Granthi Singhs listed on the site)
 for any free date, and the committee manages bookings. It runs free on Google Firebase.
 
 **Try it first:** open `public/index.html` on a computer. Until Step 3 is done it runs in
@@ -106,12 +106,10 @@ If you add a new path type, also add its key to the list in `firestore.rules`
 (`['akhand', 'sehaj', 'sukh-am', 'sukh-pm']`) and publish the rules again.
 
 ## Good to know
-Updated keys
 - Anyone with the link can book, without logging in. That keeps it easy for elders. If someone makes
   fake bookings, cancel them from the committee page. If it becomes a problem, Firebase **App Check**
   (free) can be added later to block bots.
 - Back up bookings any time from the Firebase console (Firestore → Data).
-Updated keys
 
 ## Later: Android app
 Once the website is online, go to **pwabuilder.com**, enter your website address and download the
