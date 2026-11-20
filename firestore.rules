@@ -32,6 +32,17 @@ service cloud.firestore {
       let p = s.split('-');
       return timestamp.date(int(p[0]), int(p[1]), int(p[2])) > request.time;
     }
+    // Minimum days ahead for each path (committee setting "leadDays"; defaults: Akhand Path 7, Sehaj Path 3).
+    function leadDays(type) {
+      let dflt = type == 'akhand' ? 7 : 3;
+      return exists(/databases/$(database)/documents/settings/main)
+        ? get(/databases/$(database)/documents/settings/main).data.get('leadDays', {}).get(type, dflt)
+        : dflt;
+    }
+    function farEnough(s, type) {
+      let p = s.split('-');
+      return timestamp.date(int(p[0]), int(p[1]), int(p[2])) > request.time + duration.value((leadDays(type) - 1) * 24, 'h');
+    }
     function contactPath(id) { return /databases/$(database)/documents/contacts/$(id); }
     function slotPath(id) { return /databases/$(database)/documents/slots/$(id); }
     function movePath(id) { return /databases/$(database)/documents/reschedules/$(id); }
@@ -95,6 +106,7 @@ service cloud.firestore {
         && (d.bookedAt == request.time || keptBookingTime(d))
         && !dateClosed(d.date)
         && inFuture(d.start)
+        && farEnough(d.start, d.type)
         && (
           // First day of any path: must come with the private contact record.
           (d.part == 0 && d.date == d.start && existsAfter(contactPath(id))
