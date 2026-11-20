@@ -22,7 +22,14 @@ window.GPB_API = (function () {
     return { name: v.name || 'Gurdwara Sahib', phone: v.phone || '', address: v.address || '',
       closed: Array.isArray(v.closed) ? v.closed : [], capacity,
       upi: String(v.upi || '').trim(), payee: String(v.payee || '').trim(), fees,
-      onlineDiscount: G.discountOf(v), receiptPrefix: String(v.receiptPrefix || 'RCPT').trim() || 'RCPT' };
+      onlineDiscountPct: G.discountPct(v), holdHours: G.holdHours(v),
+      policy: String(v.policy || '').trim().slice(0, 1500), receiptPrefix: String(v.receiptPrefix || 'RCPT').trim() || 'RCPT',
+      sevaPrefix: String(v.sevaPrefix || 'SEVA').trim() || 'SEVA',
+      includes: Array.isArray(v.includes) ? v.includes.map(x => String(x).trim().slice(0, 120)).filter(Boolean).slice(0, 12) : [],
+      bigEvent: String(v.bigEvent || '').trim().slice(0, 1500),
+      sukhmaniNote: String(v.sukhmaniNote || '').trim().slice(0, 1500),
+      granthis: Array.isArray(v.granthis) ? v.granthis.slice(0, 20).map(g => ({ name: String(g.name || '').trim().slice(0, 60),
+        phone: String(g.phone || '').trim().slice(0, 20), note: String(g.note || '').trim().slice(0, 80) })).filter(g => g.name && g.phone) : [] };
   }
 
   function buildDocs(t, date, info, ref, seat, bookedAt) {
@@ -38,8 +45,8 @@ window.GPB_API = (function () {
   }
   // The booking's account record, fixed at the moment of booking.
   function newLookup(t, date, name, slot, settings) {
-    const total = G.feeOf(settings, t.key), d = G.discountOf(settings);
-    return { slot, type: t.key, name, start: date, total, discount: total > d ? d : 0,
+    const total = G.feeOf(settings, t.key);
+    return { slot, type: t.key, name, start: date, total, discount: G.discountOf(settings, total),
       paidOnline: 0, paidCash: 0, receipts: [], reports: 0, checking: false, closed: '' };
   }
   const idsOf = v => { const t = G.typeOf(v.type); const out = [];
@@ -68,12 +75,14 @@ window.GPB_API = (function () {
     };
     const change = () => { save(); emit(); };
     window.addEventListener('storage', e => { if (e.key === KEY) { mem = load(); emit(); } });
-    const issue = (ref, amount, method, utr) => {
-      const fy = G.finYear(); const c = mem.counters.receipts && mem.counters.receipts.fy === fy ? mem.counters.receipts : { fy, next: 1 };
-      const no = receiptNo(mem.settings.receiptPrefix, fy, c.next); mem.counters.receipts = { fy, next: c.next + 1 };
-      const l = mem.lookup[ref];
-      l.receipts = [...(l.receipts || []), { no, amount, method, utr: utr || '', date: new Date().toISOString() }];
-      return no;
+    // Path bheta and seva bheta each get their own receipt from their own number series.
+    const issue = (ref, amount, method, utr, seva) => {
+      const fy = G.finYear(), l = mem.lookup[ref], date = new Date().toISOString(), out = { no: '', sevaNo: '' };
+      const take = (key, prefix) => { const c = mem.counters[key] && mem.counters[key].fy === fy ? mem.counters[key] : { fy, next: 1 };
+        mem.counters[key] = { fy, next: c.next + 1 }; return receiptNo(prefix, fy, c.next); };
+      if (amount > 0) { out.no = take('receipts', mem.settings.receiptPrefix); l.receipts = [...(l.receipts || []), { no: out.no, amount, method, utr: utr || '', date }]; }
+      if (seva > 0) { out.sevaNo = take('seva', mem.settings.sevaPrefix); l.sevaReceipts = [...(l.sevaReceipts || []), { no: out.sevaNo, amount: seva, method, utr: utr || '', date }]; }
+      return out;
     };
     return {
       demo: true,
@@ -112,28 +121,29 @@ window.GPB_API = (function () {
         Object.assign(mem.lookup[b.ref], { slot: ids[0], prev: b.id, start: date });
         change(); return b.ref;
       },
-      async reportPayment(ref, utr, amount) {
+      async reportPayment(ref, utr, amount, seva) {
+        seva = Math.max(0, Math.round(seva || 0));
         const l = mem.lookup[ref]; if (!l) throw new Error('missing');
         const a = G.account(l);
-        if (!a.online && !l.checking && amount < a.advance) throw new Error('advance');
+        if (!a.paid && !l.checking && amount < a.advance) throw new Error('advance');
         l.reports = (l.reports || 0) + 1; l.checking = true;
-        mem.reports[ref + '_' + l.reports] = { ref, utr, amount, createdAt: new Date().toISOString() };
+        mem.reports[ref + '_' + l.reports] = { ref, utr, amount, seva, createdAt: new Date().toISOString() };
         change();
       },
       // Committee
       watchAdmin(cb) { subs.admin.push(cb); setTimeout(emit, 50); },
       async verifyReport(id, stillChecking) {
         const r = mem.reports[id]; const l = mem.lookup[r.ref];
-        const no = issue(r.ref, r.amount, 'UPI', r.utr);
+        const o = issue(r.ref, r.amount, 'UPI', r.utr, r.seva || 0);
         l.paidOnline = (l.paidOnline || 0) + r.amount; l.checking = !!stillChecking;
-        Object.assign(r, { status: 'verified', receiptNo: no }); change(); return no;
+        Object.assign(r, { status: 'verified', receiptNo: o.no, sevaReceiptNo: o.sevaNo }); change(); return o;
       },
       async rejectReport(id, stillChecking) {
         const r = mem.reports[id]; r.status = 'rejected'; mem.lookup[r.ref].checking = !!stillChecking; change();
       },
-      async recordCash(ref, amount, method) {
-        const l = mem.lookup[ref]; const no = issue(ref, amount, method || 'Cash', '');
-        l.paidCash = (l.paidCash || 0) + amount; change(); return no;
+      async recordCash(ref, amount, method, seva) {
+        const l = mem.lookup[ref]; const o = issue(ref, amount, method || 'Cash', '', seva || 0);
+        l.paidCash = (l.paidCash || 0) + amount; change(); return o;
       },
       async setClosed(ref, closed) { mem.lookup[ref].closed = closed || ''; change(); },
       onAuth(cb) { subs.auth.push(cb); setTimeout(() => cb(demoUser, !!demoUser), 50); },
@@ -154,7 +164,8 @@ window.GPB_API = (function () {
         else { if (c && c.ref) delete mem.lookup[c.ref]; delete mem.contacts[startId]; }
         change();
       },
-      async saveSettings(s) { mem.settings = cleanSettings(s); change(); }
+      async saveSettings(s) { mem.settings = cleanSettings(s); change(); },
+      async resetPassword() {}
     };
   }
 
@@ -172,19 +183,29 @@ window.GPB_API = (function () {
   const toPlain = v => { const o = {}; for (const [k, x] of Object.entries(v || {})) o[k] = x; return o; };
 
   // Issue a numbered receipt inside a transaction (numbers restart each financial year).
-  async function issueReceipt(F, db, ref, amount, method, utr, extra) {
+  // Path bheta and seva bheta each get their own numbered receipt (separate series), in one transaction.
+  async function issueReceipt(F, db, ref, amount, method, utr, extra, seva) {
+    seva = Math.max(0, Math.round(seva || 0));
     return F.runTransaction(db, async tx => {
-      const lref = F.doc(db, 'lookup', ref), cref = F.doc(db, 'counters', 'receipts');
-      const [ls, cs] = [await tx.get(lref), await tx.get(cref)];
+      const lref = F.doc(db, 'lookup', ref), cref = F.doc(db, 'counters', 'receipts'), sref = F.doc(db, 'counters', 'seva');
+      const [ls, cs, ss] = [await tx.get(lref), await tx.get(cref), await tx.get(sref)];
       if (!ls.exists()) throw new Error('missing');
-      const fy = G.finYear(); const next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1;
-      const no = receiptNo(lastSettings.receiptPrefix, fy, next);
-      const l = ls.data();
-      const rec = { no, amount, method, utr: utr || '', date: new Date().toISOString() };
-      tx.set(cref, { fy, next: next + 1 });
-      tx.update(lref, { receipts: [...(l.receipts || []), rec], ...extra(l) });
-      return { no, tx };
-    }).then(r => r.no);
+      const fy = G.finYear(), l = ls.data(), date = new Date().toISOString(), up = { ...extra(l) }, out = { no: '', sevaNo: '' };
+      if (amount > 0) {
+        const next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1;
+        out.no = receiptNo(lastSettings.receiptPrefix, fy, next);
+        tx.set(cref, { fy, next: next + 1 });
+        up.receipts = [...(l.receipts || []), { no: out.no, amount, method, utr: utr || '', date }];
+      }
+      if (seva > 0) {
+        const next = ss.exists() && ss.data().fy === fy ? ss.data().next : 1;
+        out.sevaNo = receiptNo(lastSettings.sevaPrefix, fy, next);
+        tx.set(sref, { fy, next: next + 1 });
+        up.sevaReceipts = [...(l.sevaReceipts || []), { no: out.sevaNo, amount: seva, method, utr: utr || '', date }];
+      }
+      tx.update(lref, up);
+      return out;
+    });
   }
 
   return {
@@ -243,7 +264,7 @@ window.GPB_API = (function () {
       return { id, ref, data: s.exists() ? s.data() : null, l: toPlain(l.data()) };
     },
     // Move a booking to a new date in one step. The rules check the phone number matches
-    // the booking and that it is within 24 hours of booking, then remove the old date and add the new one.
+    // the booking and that it is within 48 hours of booking, then remove the old date and add the new one.
     async reschedule(b, phone, date) {
       const { F, db } = await ready;
       const t = G.typeOf(b.data.type);
@@ -273,15 +294,16 @@ window.GPB_API = (function () {
       throw new Error(refused ? 'nomatch' : 'taken');
     },
     // Devotee: "I have paid" with the UPI transaction ID. The committee confirms it later.
-    async reportPayment(ref, utr, amount) {
+    async reportPayment(ref, utr, amount, seva) {
+      seva = Math.max(0, Math.round(seva || 0));
       const { F, db } = await ready;
       const ls = await F.getDoc(F.doc(db, 'lookup', ref));
       if (!ls.exists()) throw new Error('missing');
       const l = ls.data(), a = G.account(l);
-      if (!a.online && !l.checking && amount < a.advance) throw new Error('advance');
+      if (!a.paid && !l.checking && amount < a.advance) throw new Error('advance');
       const n = (l.reports || 0) + 1;
       const batch = F.writeBatch(db);
-      batch.set(F.doc(db, 'reports', ref + '_' + n), { ref, utr, amount, createdAt: F.serverTimestamp() });
+      batch.set(F.doc(db, 'reports', ref + '_' + n), { ref, utr, amount, seva, createdAt: F.serverTimestamp() });
       batch.update(F.doc(db, 'lookup', ref), { reports: n, checking: true });
       await batch.commit();
     },
@@ -297,6 +319,7 @@ window.GPB_API = (function () {
     },
     async signIn(email, pass) { const { U, auth } = await ready; return U.signInWithEmailAndPassword(auth, email, pass); },
     async signOut() { const { U, auth } = await ready; return U.signOut(auth); },
+    async resetPassword(email) { const { U, auth } = await ready; return U.sendPasswordResetEmail(auth, email); },
     // Committee: everything for the bookings list, live.
     watchAdmin(cb) {
       const st = { slots: {}, contacts: {}, lookups: {}, reports: {} };
@@ -312,10 +335,10 @@ window.GPB_API = (function () {
     async verifyReport(id, stillChecking) {
       const { F, db } = await ready;
       const r = (await F.getDoc(F.doc(db, 'reports', id))).data();
-      const no = await issueReceipt(F, db, r.ref, r.amount, 'UPI', r.utr,
-        l => ({ paidOnline: (l.paidOnline || 0) + r.amount, checking: !!stillChecking }));
-      await F.updateDoc(F.doc(db, 'reports', id), { status: 'verified', receiptNo: no });
-      return no;
+      const o = await issueReceipt(F, db, r.ref, r.amount, 'UPI', r.utr,
+        l => ({ paidOnline: (l.paidOnline || 0) + r.amount, checking: !!stillChecking }), r.seva);
+      await F.updateDoc(F.doc(db, 'reports', id), { status: 'verified', receiptNo: o.no, sevaReceiptNo: o.sevaNo });
+      return o;
     },
     async rejectReport(id, stillChecking) {
       const { F, db } = await ready;
@@ -325,9 +348,9 @@ window.GPB_API = (function () {
       batch.update(F.doc(db, 'lookup', r.ref), { checking: !!stillChecking });
       await batch.commit();
     },
-    async recordCash(ref, amount, method) {
+    async recordCash(ref, amount, method, seva) {
       const { F, db } = await ready;
-      return issueReceipt(F, db, ref, amount, method || 'Cash', '', l => ({ paidCash: (l.paidCash || 0) + amount }));
+      return issueReceipt(F, db, ref, amount, method || 'Cash', '', l => (amount ? { paidCash: (l.paidCash || 0) + amount } : {}), seva);
     },
     async setClosed(ref, closed) { const { F, db } = await ready; return F.updateDoc(F.doc(db, 'lookup', ref), { closed: closed || '' }); },
     async getContact(id) { const { F, db } = await ready; const d = await F.getDoc(F.doc(db, 'contacts', id)); return d.exists() ? d.data() : null; },

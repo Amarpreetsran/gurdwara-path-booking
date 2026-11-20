@@ -5,26 +5,49 @@ window.GPB = (function () {
   const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
   const add = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
-  const fmtShort = s => parse(s).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-  const fmtLong = s => parse(s).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const fmtDow = s => parse(s).toLocaleDateString('en-IN', { weekday: 'short' });
+  // Punjabi dates, spelled out here so every phone shows them the same way.
+  const MONTHS = ['ਜਨਵਰੀ', 'ਫ਼ਰਵਰੀ', 'ਮਾਰਚ', 'ਅਪ੍ਰੈਲ', 'ਮਈ', 'ਜੂਨ', 'ਜੁਲਾਈ', 'ਅਗਸਤ', 'ਸਤੰਬਰ', 'ਅਕਤੂਬਰ', 'ਨਵੰਬਰ', 'ਦਸੰਬਰ'];
+  const DAYS = ['ਐਤਵਾਰ', 'ਸੋਮਵਾਰ', 'ਮੰਗਲਵਾਰ', 'ਬੁੱਧਵਾਰ', 'ਵੀਰਵਾਰ', 'ਸ਼ੁੱਕਰਵਾਰ', 'ਸ਼ਨੀਵਾਰ'];
+  const DAYS_S = ['ਐਤ', 'ਸੋਮ', 'ਮੰਗਲ', 'ਬੁੱਧ', 'ਵੀਰ', 'ਸ਼ੁੱਕਰ', 'ਸ਼ਨੀ'];
+  const monthYear = d => `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  const clock = d => { const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
+    const part = h < 12 ? 'ਸਵੇਰੇ' : h < 16 ? 'ਦੁਪਹਿਰ' : h < 20 ? 'ਸ਼ਾਮ' : 'ਰਾਤ'; return `${part} ${(h % 12) || 12}:${m}`; };
+  const fmtDateTime = x => { const d = new Date(x); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${clock(d)}`; };
+  const fmtShort = s => { const d = parse(s); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+  const fmtLong = s => { const d = parse(s); return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+  const fmtDow = s => DAYS_S[parse(s).getDay()];
 
-  const TYPES = [
+  // Paths booked online. Sukhmani Sahib is now arranged directly with the Granthi Singhs (see INFO below);
+  // its old keys stay in ALL_TYPES so earlier bookings still show their names.
+  const ALL_TYPES = [
     { key: 'akhand', pa: 'ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ', en: 'Akhand Path Sahib', days: 2,
-      when: d => `Arambh ${fmtShort(d)} morning · Bhog ${fmtShort(add(d, 2))} morning` },
-    { key: 'sehaj', pa: 'ਸਹਿਜ ਪਾਠ ਦਾ ਭੋਗ', en: 'Sehaj Path · Bhog', days: 1, when: () => 'Bhog in the morning diwan' },
-    { key: 'sukh-am', pa: 'ਸੁਖਮਨੀ ਸਾਹਿਬ', en: 'Sukhmani Sahib · Morning', days: 1, when: () => '7:00 AM' },
-    { key: 'sukh-pm', pa: 'ਸੁਖਮਨੀ ਸਾਹਿਬ', en: 'Sukhmani Sahib · Evening', days: 1, when: () => '5:00 PM' }
+      when: d => `ਆਰੰਭ ${fmtShort(d)} ਸਵੇਰੇ · ਭੋਗ ${fmtShort(add(d, 2))} ਸਵੇਰੇ` },
+    { key: 'sehaj', pa: 'ਸਹਿਜ ਪਾਠ ਦਾ ਭੋਗ', en: 'Sehaj Path · Bhog', days: 1, when: () => 'ਭੋਗ ਸਵੇਰ ਦੇ ਦੀਵਾਨ ਵਿੱਚ' },
+    { key: 'sukh-am', pa: 'ਸੁਖਮਨੀ ਸਾਹਿਬ', en: 'Sukhmani Sahib · Morning', days: 1, when: () => 'ਸਵੇਰੇ 7:00 ਵਜੇ' },
+    { key: 'sukh-pm', pa: 'ਸੁਖਮਨੀ ਸਾਹਿਬ', en: 'Sukhmani Sahib · Evening', days: 1, when: () => 'ਸ਼ਾਮ 5:00 ਵਜੇ' }
   ];
-  const OCCASIONS = ['Birthday', 'Wedding anniversary', 'New home (griha pravesh)', 'Remembrance (barsi)',
-    'Child birth / naming', 'Shukrana (thanksgiving)', 'New business', 'Other'];
+  const TYPES = ALL_TYPES.filter(t => !t.key.startsWith('sukh'));
+  // Information for the sangat (the committee can rewrite each part on the committee page).
+  const INFO_DEFAULTS = {
+    includes: ["ਗ੍ਰੰਥੀ ਸਿੰਘ ਜੀ ਦੀ ਭੇਟਾ / Granthi Singh ji's bheta", "ਕੜਾਹ ਪ੍ਰਸ਼ਾਦ / Karah Parshad", "ਰੁਮਾਲਾ ਸਾਹਿਬ / Rumala Sahib", "20–25 ਸੰਗਤ ਲਈ ਲੰਗਰ ਪ੍ਰਸ਼ਾਦਾ / Langar parshada for 20–25 sangat"],
+    bigEvent: "ਜੇ ਆਪ ਜੀ ਦਾ ਸਮਾਗਮ ਵੱਡਾ ਹੈ (ਜ਼ਿਆਦਾ ਸੰਗਤ), ਤਾਂ ਵਾਧੂ ਲੰਗਰ ਜਾਂ ਹੋਰ ਪ੍ਰਬੰਧ ਆਪ ਜੀ ਆਪਣੇ ਵੱਲੋਂ ਕਰ ਸਕਦੇ ਹੋ ਜੀ; ਗੁਰੂ ਘਰ ਵੱਲੋਂ ਇਸ ਲਈ ਥਾਂ ਖੁਸ਼ੀ ਨਾਲ ਦਿੱਤੀ ਜਾਵੇਗੀ। ਹੋਰ ਪ੍ਰਬੰਧਾਂ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸਿੱਧਾ ਸੰਪਰਕ ਕਰੋ ਜੀ। ਇਨ੍ਹਾਂ ਪ੍ਰਬੰਧਾਂ ਦੀ ਭੇਟਾ ਬੁਕਿੰਗ ਦੇ ਭੇਟਾ ਵਾਲੇ ਹਿੱਸੇ ਵਿੱਚ \"ਸੇਵਾ ਭੇਟਾ\" ਵਜੋਂ ਆਨਲਾਈਨ ਵੀ ਭੇਜੀ ਜਾ ਸਕਦੀ ਹੈ ਜੀ।\nFor a bigger programme (more sangat), you may arrange extra langar or other arrangements yourselves; Gurughar will gladly provide the venue. For further arrangements, kindly contact the gurdwara office directly. The bheta for these can also be sent online as \"Seva bheta\" in the bheta section of your booking.",
+    sukhmaniNote: "ਸ੍ਰੀ ਸੁਖਮਨੀ ਸਾਹਿਬ ਦਾ ਪਾਠ ਗੁਰੂ ਘਰ ਦੇ ਗ੍ਰੰਥੀ ਸਿੰਘ ਸਾਹਿਬਾਨ ਆਪ ਜੀ ਦੇ ਘਰ ਆ ਕੇ ਕਰਦੇ ਹਨ। ਮਿਤੀ, ਸਮਾਂ ਅਤੇ ਭੇਟਾ ਕਿਰਪਾ ਕਰਕੇ ਗ੍ਰੰਥੀ ਸਿੰਘ ਜੀ ਨਾਲ ਸਿੱਧੀ ਤੈਅ ਕਰੋ ਜੀ। ਮਹਾਰਾਜ ਜੀ ਦੀ ਚੜ੍ਹਤ ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਵਿਖੇ ਗੁਰੂ ਕੀ ਗੋਲਕ ਵਿੱਚ ਜਮ੍ਹਾਂ ਕਰਾਈ ਜਾਵੇ ਜੀ।\nSukhmani Sahib is performed at your home by the Gurughar's Granthi Singhs. Kindly fix the date, time and bheta directly with the Granthi Singh ji. The charhat offered to Maharaj is to be deposited in the Guru ki Golak at Gurdwara Sahib."
+  };
+  const infoOf = s => ({
+    includes: (s && Array.isArray(s.includes) && s.includes.length) ? s.includes : INFO_DEFAULTS.includes,
+    bigEvent: String((s && s.bigEvent) || '').trim() || INFO_DEFAULTS.bigEvent,
+    sukhmaniNote: String((s && s.sukhmaniNote) || '').trim() || INFO_DEFAULTS.sukhmaniNote,
+    granthis: (s && Array.isArray(s.granthis)) ? s.granthis : []
+  });
+  const OCCASIONS = ['ਜਨਮ ਦਿਨ', 'ਵਿਆਹ ਦੀ ਵਰ੍ਹੇਗੰਢ', 'ਗ੍ਰਹਿ ਪ੍ਰਵੇਸ਼ (ਨਵਾਂ ਘਰ)', 'ਬਰਸੀ', 'ਬੱਚੇ ਦਾ ਨਾਮਕਰਨ',
+    'ਸ਼ੁਕਰਾਨਾ', 'ਨਵਾਂ ਕਾਰੋਬਾਰ', 'ਹੋਰ'];
 
   const today = iso(new Date());
   const first = add(today, 1);               // bookings open from tomorrow
   const last = (() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return iso(d); })(); // six months ahead
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const typeOf = k => TYPES.find(t => t.key === k);
+  const typeOf = k => ALL_TYPES.find(t => t.key === k);
   // Each path has a number of "places" (seats) that can run at the same time.
   // A booking takes one place; its id is date__path__place, e.g. 2026-12-05__akhand__2.
   const slotId = (date, key, seat) => `${date}__${key}__${seat}`;
@@ -52,16 +75,16 @@ window.GPB = (function () {
   const bookingsOn = (t, date, slots) => Object.values(slots).filter(v => v.type === t.key && v.date === date)
     .sort((a, b) => (a.seat || 1) - (b.seat || 1));
 
-  // Online date changes are allowed within 24 hours of making the booking (enforced in firestore.rules too).
-  const CHANGE_HOURS = 24;
-  const CUTOFF_TEXT = 'within 24 hours of booking';
+  // Online date changes are allowed within 48 hours of making the booking (enforced in firestore.rules too).
+  const CHANGE_HOURS = 48;   // also in firestore.rules
+  const CUTOFF_TEXT = 'within 48 hours of booking';
   const bookedMs = v => { const b = v && v.bookedAt; if (!b) return 0;
     if (typeof b === 'string') return Date.parse(b);
     if (b.toMillis) return b.toMillis();
     return (b.seconds || 0) * 1000; };
   const changeDeadline = v => bookedMs(v) + CHANGE_HOURS * 3600e3;
   const canReschedule = v => bookedMs(v) > 0 && Date.now() < changeDeadline(v) && v.start > iso(new Date());
-  const fmtTime = ms => new Date(ms).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  const fmtTime = ms => { const d = new Date(ms); return `${d.getDate()} ${MONTHS[d.getMonth()]}, ${clock(d)}`; };
   const phoneKey = p => String(p || '').replace(/\D/g, '').slice(-10);
   function waLink(phone, text) {
     let d = String(phone || '').replace(/\D/g, '');
@@ -76,25 +99,38 @@ window.GPB = (function () {
       '&am=' + amount + '&cu=INR&tn=' + encodeURIComponent('Path booking ' + ref);
   }
   function confirmText(o) {
-    const t = typeOf(o.type) || { en: o.type };
-    return `Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.\n` +
-      `${o.moved ? 'Your booking has been moved' : 'Your booking is confirmed'}: ${t.en} at ${o.gname} on ${fmtLong(o.date)}` +
-      `${t.days > 1 ? ` (bhog ${fmtLong(add(o.date, 2))})` : ''}, for ${o.name} parivar.\n` +
-      `Booking reference: ${o.ref}\n` +
-      (o.deadline && o.deadline > Date.now() ? `To change the date online (until ${fmtTime(o.deadline)}), open ${o.url} and tap "Change my booking".` : `Booking page: ${o.url}`) +
-      (o.phone ? `\nGurdwara office: ${o.phone}` : '');
+    const t = typeOf(o.type) || { en: o.type, pa: o.type };
+    return `ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।\n` +
+      `${o.moved ? 'ਆਪ ਜੀ ਦੀ ਬੁਕਿੰਗ ਦੀ ਮਿਤੀ ਬਦਲ ਗਈ ਹੈ' : 'ਆਪ ਜੀ ਦੀ ਬੁਕਿੰਗ ਪੱਕੀ ਹੋ ਗਈ ਹੈ'}।\n` +
+      `ਪਾਠ: ${t.pa} (${t.en})\nਸਥਾਨ: ${o.gname}\nਮਿਤੀ: ${fmtLong(o.date)}${t.days > 1 ? `\nਭੋਗ: ${fmtLong(add(o.date, 2))}` : ''}\n` +
+      `ਪਰਿਵਾਰ: ${o.name} ਪਰਿਵਾਰ\nਬੁਕਿੰਗ ਨੰਬਰ: ${o.ref}\n` +
+      (o.deadline && o.deadline > Date.now() ? `ਮਿਤੀ ਬਦਲਣ ਲਈ (${fmtTime(o.deadline)} ਤੱਕ): ${o.url} → "ਮੇਰੀ ਬੁਕਿੰਗ"` : `ਬੁਕਿੰਗ: ${o.url}`) +
+      (o.phone ? `\nਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ: ${o.phone}` : '') + `\nਧੰਨਵਾਦ ਜੀ।`;
   }
+
 
 
   // ---------- Bheta accounts ----------
   // Each booking keeps: total (bheta for that path), discount (₹ off when the whole amount is paid
-  // online), paidOnline and paidCash (only amounts the committee has confirmed), and receipts.
-  const ADVANCE_PCT = 20;   // at least this % must be paid online as advance (also in firestore.rules)
-  const discountOf = settings => { const n = Number(settings && settings.onlineDiscount);
-    return Number.isFinite(n) && n >= 0 ? Math.round(n) : 500; };
+  // online, worked out at booking as a % of the bheta), paidOnline and paidCash (only amounts the committee has confirmed), and receipts.
+  const ADVANCE_PCT = 20;   // advance needed within the hold time to keep a booking (also in firestore.rules)
+  // % off when the whole bheta is paid online (committee setting, default 10; also in firestore.rules).
+  const discountPct = settings => { const n = Number(settings && settings.onlineDiscountPct);
+    return Number.isFinite(n) && n >= 0 && n <= 50 ? Math.round(n) : 10; };
+  // Hours an unpaid booking is held before the date is released (committee setting; 0 = never).
+  const holdHours = settings => { const n = Number(settings && settings.holdHours);
+    return Number.isFinite(n) && n >= 0 && n <= 168 ? Math.round(n) : 48; };
+  // Refund / date-change policy shown to the sangat (committee can rewrite it).
+  const DEFAULT_POLICY = 'ਸਤਿਕਾਰਯੋਗ ਸੰਗਤ ਜੀ, ਬੁਕਿੰਗ ਪੱਕੀ ਰੱਖਣ ਲਈ 48 ਘੰਟਿਆਂ ਦੇ ਅੰਦਰ ਘੱਟੋ-ਘੱਟ 20% ਅਗਾਊਂ ਭੇਟਾ (ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰੇ) ਜ਼ਰੂਰੀ ਹੈ ਜੀ; ਨਹੀਂ ਤਾਂ ਬੁਕਿੰਗ ਆਪਣੇ ਆਪ ਰੱਦ ਹੋ ਜਾਂਦੀ ਹੈ ਅਤੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰਨੀ ਪਵੇਗੀ। ਪਾਠ ਲਈ ਭੇਟ ਕੀਤੀ ਭੇਟਾ ਵਾਪਸ ਨਹੀਂ ਕੀਤੀ ਜਾਂਦੀ। ਜੇ ਆਪ ਜੀ ਨੂੰ ਮਿਤੀ ਬਦਲਣੀ ਪਵੇ, ਤਾਂ ਬੁਕਿੰਗ ਤੋਂ 48 ਘੰਟਿਆਂ ਦੇ ਅੰਦਰ "ਮੇਰੀ ਬੁਕਿੰਗ" ਵਿੱਚ ਆਪ ਬਦਲ ਸਕਦੇ ਹੋ ਜੀ। ਉਸ ਤੋਂ ਬਾਅਦ ਕਿਰਪਾ ਕਰਕੇ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ; ਆਪ ਜੀ ਦੀ ਭੇਟਾ ਨਵੀਂ ਮਿਤੀ ਲਈ ਮੰਨੀ ਜਾਵੇਗੀ।' + '\n' + 'Respected sangat ji, to keep a booking, an advance of at least 20% (online or at the gurdwara) is required within 48 hours; otherwise the booking is cancelled automatically and you will need to book again. Bheta offered for a path is not refunded. If you need to change the date, you can do it yourself under "My booking" within 48 hours of booking. After that, kindly contact the gurdwara office ji; your bheta will be kept for the new date.';
+  const policyOf = settings => String((settings && settings.policy) || '').trim() || DEFAULT_POLICY;
+  const discountOf = (settings, total) => Math.round((Number(total) || 0) * discountPct(settings) / 100);
   const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
   const advanceOf = total => Math.ceil(total * ADVANCE_PCT / 100);
   const bhogDate = (type, start) => { const t = typeOf(type); return t && t.days > 1 ? add(start, 2) : start; };
+  // Seva bheta: an optional gift to Gurdwara Sahib, kept apart from the path bheta.
+  const SEVA_PICKS = [101, 251, 501, 1100];
+  // Seva bheta gets its own receipts (own number series), listed in l.sevaReceipts.
+  const sevaOf = l => ((l && l.sevaReceipts) || []).reduce((s, r) => s + (Number(r.amount) || 0), 0);
   function account(l) {
     l = l || {};
     const total = Number(l.total) || 0, disc = Number(l.discount) || 0;
@@ -107,6 +143,7 @@ window.GPB = (function () {
     let state;
     if (l.closed === 'noshow') state = 'noshow';
     else if (l.closed === 'cancelled') state = 'cancelled';
+    else if (l.closed === 'expired') state = 'expired';
     else if (!total) state = 'free';
     else if (!due) state = 'paid';
     else if (l.checking) state = 'checking';
@@ -119,6 +156,7 @@ window.GPB = (function () {
     checking: ['ਜਾਂਚ ਅਧੀਨ', 'Payment being checked'],
     partial: ['ਅੰਸ਼ਕ ਭੇਟਾ ਪ੍ਰਾਪਤ', 'Part paid, balance due'],
     paid: ['ਪੂਰੀ ਭੇਟਾ ਪ੍ਰਾਪਤ', 'Fully paid'],
+    expired: ['ਅਗਾਊਂ ਭੇਟਾ ਨਾ ਆਉਣ ਕਰਕੇ ਬੁਕਿੰਗ ਰੱਦ', 'Cancelled, advance not paid'],
     pastdue: ['ਭੋਗ ਹੋ ਗਿਆ, ਬਕਾਇਆ ਬਾਕੀ', 'Bhog done, balance pending'],
     noshow: ['ਹਾਜ਼ਰ ਨਹੀਂ ਹੋਏ', 'No-show, closed'],
     cancelled: ['ਰੱਦ', 'Cancelled'],
@@ -139,8 +177,8 @@ window.GPB = (function () {
     return parts.join(' ');
   }
 
-  return { ADVANCE_PCT, discountOf, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
+  return { SEVA_PICKS, sevaOf, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
     CHANGE_HOURS, CUTOFF_TEXT, bookedMs, changeDeadline, canReschedule, fmtTime, phoneKey, waLink, feeOf, upiLink, confirmText,
-    pad, iso, parse, add, fmtShort, fmtLong, fmtDow, TYPES, OCCASIONS, today, first, last, esc, typeOf, slotId, makeRef,
+    MONTHS, monthYear, fmtDateTime, pad, iso, parse, add, fmtShort, fmtLong, fmtDow, TYPES, OCCASIONS, today, first, last, esc, typeOf, slotId, makeRef,
     MAX_PLACES, capOf, freeSeats, isFree, bookingsOn };
 })();
