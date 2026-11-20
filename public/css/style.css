@@ -182,3 +182,8 @@ footer .wrap{padding-block:0 32px;padding-bottom:max(32px,env(safe-area-inset-bo
 .sel{user-select:all;font-variant-numeric:tabular-nums}
 .sukhlink{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:12px;background:transparent;color:inherit;font:inherit;cursor:pointer;line-height:1.5}
 .sukhlink .en{display:block}
+.rcitem{display:inline-block;margin-right:10px}
+.rcitem.voided a{text-decoration:line-through}
+.voidForm,.refundForm,.cancelForm{margin:8px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.danger-text{color:var(--bad)!important}
+.rcpt.voided span:first-child{text-decoration:line-through}
