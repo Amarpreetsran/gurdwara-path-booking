@@ -198,7 +198,72 @@ window.GPB = (function () {
     return parts.join(' ');
   }
 
-  return { EXPENSE_TYPES, SEVA_PURPOSES, makeSevaRef, SEVA_PICKS, receiptSerial, sevaOf, hasMoney, VOID_REASONS, CANCEL_REASONS, REFUND_REASONS, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
+  // ---------- Committee roles ----------
+  // sevadar: office work (bookings, money in, receipts). treasurer: + money out, refunds, voids, Excel.
+  // admin (Pardhan): everything, settings, users, activity log.
+  const ROLES = { sevadar: ['ਸੇਵਾਦਾਰ', 'Sevadar (office)'], treasurer: ['ਖ਼ਜ਼ਾਨਚੀ', 'Khazanchi (treasurer)'], admin: ['ਪ੍ਰਧਾਨ', 'Pardhan / Admin'] };
+  const RANK = { sevadar: 1, treasurer: 2, admin: 3 };
+  const roleAtLeast = (role, need) => (RANK[role] || 0) >= (RANK[need] || 9);
+  // ---------- Pathi Singh rosters ----------
+  // Akhand Path runs 48 hours. Rauls are kept as India wall-clock times "YYYY-MM-DDTHH:MM".
+  const raulHoursOf = s => { const n = Number(s && s.raulHours); return [1, 1.5, 2, 3, 4].includes(n) ? n : 2; };
+  const akhandTimeOf = s => /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(String(s && s.akhandTime || '')) ? s.akhandTime : '08:00';
+  const wallAdd = (dt, hours) => { const [d, t] = dt.split('T'), [y, m, dd] = d.split('-').map(Number), [hh, mm] = t.split(':').map(Number);
+    return new Date(Date.UTC(y, m - 1, dd, hh, mm) + hours * 3600e3).toISOString().slice(0, 16); };
+  function makeRauls(start, time, hours) {
+    const n = Math.ceil(48 / hours), out = []; let from = `${start}T${time}`;
+    for (let i = 0; i < n; i++) { const to = wallAdd(from, hours); out.push({ from, to, pathiId: '', name: '' }); from = to; }
+    return out;
+  }
+  const fmtClock = dt => { const [h, m] = dt.split('T')[1].split(':').map(Number); return `${((h + 11) % 12) + 1}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`; };
+  const raulText = r => `${fmtShort(r.from.slice(0, 10))} ${fmtClock(r.from)} – ${r.to.slice(0, 10) !== r.from.slice(0, 10) ? fmtShort(r.to.slice(0, 10)) + ' ' : ''}${fmtClock(r.to)}`;
+  // ---------- Programmes (gurpurabs etc.) shown on the booking page, with seva sign-up ----------
+  const SIGNUP_SEVAS = ['ਲੰਗਰ ਦੀ ਸੇਵਾ / Langar seva', 'ਕੜਾਹ ਪ੍ਰਸ਼ਾਦ ਦੀ ਸੇਵਾ / Karah Parshad seva', 'ਬਰਤਨਾਂ ਦੀ ਸੇਵਾ / Washing utensils', 'ਜੋੜਿਆਂ ਦੀ ਸੇਵਾ / Shoe seva', 'ਸਫ਼ਾਈ ਦੀ ਸੇਵਾ / Cleaning', 'ਪਾਣੀ / ਛਬੀਲ ਦੀ ਸੇਵਾ / Water / chhabeel'];
+  // A Pathi Singh's availability for one raul: 'no' (not available), 'mismatch' (day/night only), 'yes', or '' (not told).
+  // Day = 6 AM to 6 PM.
+  const AVAIL = { any: ['ਕਿਸੇ ਵੀ ਸਮੇਂ', 'Any time'], day: ['ਸਿਰਫ਼ ਦਿਨ ਵੇਲੇ (6 AM–6 PM)', 'Day only'], night: ['ਸਿਰਫ਼ ਰਾਤ ਵੇਲੇ (6 PM–6 AM)', 'Night only'], no: ['ਉਪਲਬਧ ਨਹੀਂ', 'Not available'] };
+  function availFor(p, ref, raul, day) {
+    if (!p) return '';
+    if ((p.unavailable || []).includes(day)) return 'no';
+    const a = (p.avail || {})[ref];
+    if (!a) return '';
+    if (a === 'no') return 'no';
+    if (a === 'any' || !raul || !raul.from) return 'yes';
+    const h = Number(raul.from.slice(11, 13)), isDay = h >= 6 && h < 18;
+    return (a === 'day') === isDay ? 'yes' : 'mismatch';
+  }
+  const upcomingProgrammes = s => ((s && s.programmes) || []).filter(p => p.date >= today).sort((a, b) => a.date < b.date ? -1 : 1);
+
+  // ---------- Monthly report: everything received and paid out in a month ("YYYY-MM") ----------
+  function monthData(d, m) {
+    const mon = x => !!x && iso(new Date(x)).slice(0, 7) === m;
+    const o = { paths: [], byType: {}, cancelled: 0, online: 0, office: 0, seva: 0, sevaOnly: 0, refunds: 0, expenses: {}, expTotal: 0, receipts: [], vouchers: [] };
+    for (const [ref, l] of Object.entries(d.lookups || {})) {
+      const bhog = bhogDate(l.type, l.start), closed = l.closed === 'cancelled' || l.closed === 'expired';
+      if (bhog.slice(0, 7) === m && !closed) {
+        const ro = (d.rosters || {})[ref];
+        o.paths.push({ ref, l, bhog, a: account(l), pathis: ro ? [...new Set((ro.rauls || []).map(x => x.name).filter(Boolean))] : [] });
+        o.byType[l.type] = (o.byType[l.type] || 0) + 1;
+      }
+      if (closed && mon(l.closedAt || l.releasedAt)) o.cancelled++;
+      (l.receipts || []).forEach(r => { if (!mon(r.date)) return; o.receipts.push({ ...r, kind: 'Path bheta', ref, name: l.name });
+        if (!r.void) { if (r.method === 'UPI') o.online += r.amount; else o.office += r.amount; } });
+      (l.sevaReceipts || []).forEach(r => { if (!mon(r.date)) return; o.receipts.push({ ...r, kind: 'Seva bheta', ref, name: l.name }); if (!r.void) o.seva += r.amount; });
+      (l.refunds || []).forEach(r => { if (!mon(r.date)) return; o.receipts.push({ ...r, kind: 'Refund', ref, name: l.name }); o.refunds += r.amount; });
+    }
+    for (const [ref, x] of Object.entries(d.sevaonly || {})) { const r = x.receipt; if (!r || !mon(r.date)) continue;
+      o.receipts.push({ ...r, kind: 'Seva bheta (no booking)', ref, name: x.name }); if (!r.void) o.sevaOnly += r.amount; }
+    for (const [id, e] of Object.entries(d.expenses || {})) { if (!mon(e.date)) continue; o.vouchers.push({ id, ...e });
+      if (!e.void) { o.expenses[e.category] = (o.expenses[e.category] || 0) + (Number(e.amount) || 0); o.expTotal += Number(e.amount) || 0; } }
+    o.paths.sort((a, b) => a.bhog < b.bhog ? -1 : 1);
+    o.receipts.sort((a, b) => a.kind !== b.kind ? (a.kind < b.kind ? -1 : 1) : receiptSerial(a.no) - receiptSerial(b.no));
+    o.vouchers.sort((a, b) => receiptSerial(a.no) - receiptSerial(b.no));
+    o.received = o.online + o.office + o.seva + o.sevaOnly;
+    o.net = o.received - o.refunds - o.expTotal;
+    return o;
+  }
+
+  return { AVAIL, availFor, monthData, ROLES, RANK, roleAtLeast, raulHoursOf, akhandTimeOf, wallAdd, makeRauls, fmtClock, raulText, SIGNUP_SEVAS, upcomingProgrammes, EXPENSE_TYPES, SEVA_PURPOSES, makeSevaRef, SEVA_PICKS, receiptSerial, sevaOf, hasMoney, VOID_REASONS, CANCEL_REASONS, REFUND_REASONS, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
     CHANGE_HOURS, CUTOFF_TEXT, bookedMs, changeDeadline, canReschedule, fmtTime, phoneKey, waLink, feeOf, upiLink, confirmText,
     MONTHS, monthYear, fmtDateTime, pad, iso, parse, add, fmtShort, fmtLong, fmtDow, TYPES, OCCASIONS, today, first, last, esc, typeOf, slotId, makeRef,
     MAX_PLACES, capOf, freeSeats, isFree, bookingsOn, LEAD_DEFAULTS, leadDays, firstFor };

@@ -32,7 +32,15 @@ window.GPB_API = (function () {
       bigEvent: String(v.bigEvent || '').trim().slice(0, 1500),
       sukhmaniNote: String(v.sukhmaniNote || '').trim().slice(0, 1500),
       granthis: Array.isArray(v.granthis) ? v.granthis.slice(0, 20).map(g => ({ name: String(g.name || '').trim().slice(0, 60),
-        phone: String(g.phone || '').trim().slice(0, 20), note: String(g.note || '').trim().slice(0, 80) })).filter(g => g.name && g.phone) : [] };
+        phone: String(g.phone || '').trim().slice(0, 20), note: String(g.note || '').trim().slice(0, 80) })).filter(g => g.name && g.phone) : [],
+      // Pathi Singh rosters and bheta
+      raulHours: G.raulHoursOf(v), akhandTime: G.akhandTimeOf(v),
+      raulBheta: Math.max(0, Math.round(Number(v.raulBheta) || 0)), sehajBheta: Math.max(0, Math.round(Number(v.sehajBheta) || 0)),
+      // Programmes and gurpurabs on the booking page
+      programmes: Array.isArray(v.programmes) ? v.programmes.slice(0, 40).map(x => ({ id: String(x.id || '').slice(0, 20), date: String(x.date || '').slice(0, 10),
+        title: String(x.title || '').trim().slice(0, 120), note: String(x.note || '').trim().slice(0, 600),
+        sevas: Array.isArray(x.sevas) ? x.sevas.map(y => String(y).trim().slice(0, 60)).filter(Boolean).slice(0, 10) : [] }))
+        .filter(x => x.id && /^\d{4}-\d{2}-\d{2}$/.test(x.date) && x.title) : [] };
   }
 
   function buildDocs(t, date, info, ref, seat, bookedAt) {
@@ -56,24 +64,77 @@ window.GPB_API = (function () {
     for (let i = 0; i < (t ? t.days : 1); i++) out.push(G.slotId(G.add(v.start, i), v.type, v.seat || 1)); return out; };
   const receiptNo = (prefix, fy, n) => `${prefix}/${fy}/${String(n).padStart(4, '0')}`;
   const pastFrom = () => G.add(G.today, -120);
+  // Who is signed in on the committee page (for "issued by" and the activity log).
+  let me = null;
+  const who = () => (me && (me.name || me.email)) || '';
+  const randomId = n => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789', a = new Uint32Array(n); crypto.getRandomValues(a); return [...a].map(x => c[x % c.length]).join(''); };
+  const newPin = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return String(1000 + (a[0] % 9000)); };
+  async function sha256(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+  const pinHash = (id, pin) => sha256(id + ':' + pin);
+  const cleanRoster = o => ({ ref: o.ref, type: o.type, start: o.start, name: String(o.name || '').slice(0, 150), place: String(o.place || '').trim().slice(0, 150),
+    time: String(o.time || ''), hours: Number(o.hours) || 0, note: String(o.note || '').trim().slice(0, 300),
+    rauls: (o.rauls || []).slice(0, 60).map(x => ({ from: x.from || '', to: x.to || '', pathiId: x.pathiId || '', name: String(x.name || '').slice(0, 80), label: String(x.label || '').slice(0, 40) })),
+    pathiIds: [...new Set((o.rauls || []).map(x => x.pathiId).filter(Boolean))] });
+  // What each committee action writes to the activity log: [action, booking ref, detail].
+  const R$ = n => '₹' + (Number(n) || 0);
+  const LOGS = {
+    book: (a, r) => a[3] && a[3].office ? ['Office booking', r, `${a[0].en} ${a[1]} · ${a[2].name}`] : null,
+    verifyReport: (a, r) => ['Online payment confirmed', String(a[0]).replace(/_\d+$/, ''), [r && r.no, r && r.sevaNo].filter(Boolean).join(', ')],
+    rejectReport: a => ['Payment marked not received', String(a[0]).replace(/_\d+$/, ''), a[0]],
+    recordCash: (a, r) => ['Payment at gurdwara', a[0], `${R$(a[1])}${a[3] ? ' + seva ' + R$(a[3]) : ''} ${a[2]} · ${[r && r.no, r && r.sevaNo].filter(Boolean).join(', ')}`],
+    voidReceipt: a => ['Receipt made void', a[0], `${a[1]} receipt ${a[2] + 1} · ${a[3]}${a[4] ? ' · ' + a[4] : ''}`],
+    refund: (a, r) => ['Refund', a[0], `${R$(a[1])} ${a[2]} · ${a[3]} · ${r}`],
+    cancel: (a, r) => ['Booking cancelled', r, a[1]],
+    setClosed: a => [a[1] ? 'Closed as ' + a[1] : 'Reopened', a[0], ''],
+    deleteEntry: a => ['Entry deleted (no payment)', a[0], ''],
+    verifySevaOnly: (a, r) => ['Online seva confirmed', a[0], r],
+    rejectSevaOnly: a => ['Seva marked not received', a[0], ''],
+    recordSevaAtOffice: (a, r) => ['Seva at gurdwara', r, `${R$(a[0].amount)} ${a[0].method} · ${a[0].name}`],
+    voidSevaOnly: a => ['Seva receipt made void', a[0], a[1]],
+    addExpense: (a, r) => ['Payment voucher', a[0].ref || '', `${R$(a[0].amount)} ${a[0].method} · ${a[0].category} · ${a[0].name}`],
+    voidExpense: a => ['Payment voucher made void', '', `${a[1]}${a[2] ? ' · ' + a[2] : ''}`],
+    setNextReceipt: a => ['Receipt number set', '', `${a[0]}: next ${a[1]}`],
+    saveSettings: () => ['Settings saved', '', ''],
+    invite: a => ['User invited', '', `${a[0]} · ${a[2]}`],
+    cancelInvite: a => ['Invite removed', '', a[0]],
+    setStaff: a => ['User changed', '', `${a[2] || a[0]}: ${Object.entries(a[1]).map(([k, v]) => k + ' ' + v).join(', ')}`],
+    addPathi: a => ['Pathi Singh added', '', a[0].name],
+    updatePathi: a => ['Pathi Singh changed', '', a[1].name || a[0]],
+    resetPin: a => ['Pathi Singh PIN reset', '', a[1] || a[0]],
+    saveRoster: a => ['Roster saved', a[0].ref, `${(a[0].rauls || []).filter(x => x.pathiId).length} of ${(a[0].rauls || []).length} filled`],
+    deleteSignup: a => ['Seva sign-up removed', '', a[1] || a[0]]
+  };
+  function withLog(api, write) {
+    for (const k of Object.keys(LOGS)) if (api[k]) { const f = api[k];
+      api[k] = async (...a) => { const r = await f.apply(api, a);
+        try { const x = me && LOGS[k](a, r); if (x) write({ action: x[0], ref: x[1] || '', detail: String(x[2] || '').slice(0, 300) }); } catch (e) { console.error('Log', e); }
+        return r; }; }
+    return api;
+  }
 
   // ---------- Demo store ----------
   if (DEMO) {
     const KEY = 'gpb-demo-v3';
     const load = () => { let m; try { m = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { m = {}; }
-      ['slots', 'contacts', 'lookup', 'reports', 'counters', 'sevaonly', 'sevacontacts', 'expenses'].forEach(k => { m[k] = m[k] || {}; });
+      ['slots', 'contacts', 'lookup', 'reports', 'counters', 'sevaonly', 'sevacontacts', 'expenses', 'rosters', 'pathis', 'pathipins', 'notices', 'signups', 'log', 'staff', 'invites'].forEach(k => { m[k] = m[k] || {}; });
       m.settings = cleanSettings(m.settings); return m; };
     let mem = load();
-    const subs = { slots: [], settings: [], auth: [], admin: [], lookup: [], seva: [] };
+    const subs = { slots: [], settings: [], auth: [], admin: [], lookup: [], seva: [], staff: [], log: [] };
+    // Demo sign-in: password "demo" = Pardhan/Admin, "treasurer" = Khazanchi, "sevadar" = Sevadar.
     let demoUser = null;
-    try { demoUser = sessionStorage.getItem('gpb-demo-admin') ? { email: 'demo@committee' } : null; } catch (e) {}
+    try { const r = sessionStorage.getItem('gpb-demo-admin'); if (r) demoUser = { email: 'demo-' + (r === '1' ? 'admin' : r) + '@committee', role: r === '1' ? 'admin' : r }; } catch (e) {}
+    if (demoUser) me = { uid: 'demo', email: demoUser.email, name: demoUser.email.split('@')[0], role: demoUser.role };
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {} };
     const clone = o => JSON.parse(JSON.stringify(o));
     const emit = () => {
       const s = {}; for (const [k, v] of Object.entries(mem.slots)) if (v.date >= G.today) s[k] = v;
       subs.slots.forEach(f => f(s, false)); subs.settings.forEach(f => f(mem.settings));
       const all = {}; for (const [k, v] of Object.entries(mem.slots)) if (v.date >= pastFrom()) all[k] = v;
-      subs.admin.forEach(f => f(clone({ slots: all, contacts: mem.contacts, lookups: mem.lookup, reports: mem.reports, counters: mem.counters, sevaonly: mem.sevaonly, sevacontacts: mem.sevacontacts, expenses: mem.expenses })));
+      const failed = Object.fromEntries(Object.entries(mem.notices).filter(([, n]) => n.status === 'failed'));
+      subs.admin.forEach(f => f(clone({ slots: all, contacts: mem.contacts, lookups: mem.lookup, reports: mem.reports, counters: mem.counters, sevaonly: mem.sevaonly, sevacontacts: mem.sevacontacts,
+        expenses: me && G.roleAtLeast(me.role, 'treasurer') ? mem.expenses : {}, rosters: mem.rosters, pathis: mem.pathis, notices: failed, signups: mem.signups })));
+      subs.staff.forEach(f => f(clone({ staff: mem.staff, invites: mem.invites })));
+      subs.log.forEach(f => f(clone(Object.entries(mem.log).sort((a, b) => a[1].at < b[1].at ? 1 : -1).slice(0, 300))));
       subs.seva.forEach(([r, f]) => f(mem.sevaonly[r] ? clone(mem.sevaonly[r]) : null));
       subs.lookup.forEach(([ref, f]) => f(mem.lookup[ref] ? clone(mem.lookup[ref]) : null));
     };
@@ -86,13 +147,15 @@ window.GPB_API = (function () {
       const fy = G.finYear(), l = mem.lookup[ref], date = new Date().toISOString(), out = { no: '', sevaNo: '' };
       const take = (key, prefix) => { const c = mem.counters[key] && mem.counters[key].fy === fy ? mem.counters[key] : { fy, next: 1 };
         mem.counters[key] = { fy, next: c.next + 1 }; return receiptNo(prefix, fy, c.next); };
-      if (amount > 0) { out.no = take('receipts', mem.settings.receiptPrefix); l.receipts = [...(l.receipts || []), { no: out.no, amount, method, utr: utr || '', date }]; }
-      if (seva > 0) { out.sevaNo = take('seva', mem.settings.sevaPrefix); l.sevaReceipts = [...(l.sevaReceipts || []), { no: out.sevaNo, amount: seva, method, utr: utr || '', date }]; }
+      if (amount > 0) { out.no = take('receipts', mem.settings.receiptPrefix); l.receipts = [...(l.receipts || []), { no: out.no, amount, method, utr: utr || '', date, by: who() }]; }
+      if (seva > 0) { out.sevaNo = take('seva', mem.settings.sevaPrefix); l.sevaReceipts = [...(l.sevaReceipts || []), { no: out.sevaNo, amount: seva, method, utr: utr || '', date, by: who() }]; }
       return out;
     };
-    return {
+    const demoApi = {
       demo: true,
       notify() {},
+      me: () => me,
+      async callFn(name, body) { console.log('demo function', name, body); return { ok: true, demo: true, results: [] }; },
       watchSlots(cb) { subs.slots.push(cb); setTimeout(emit, 50); },
       watchSettings(cb) { subs.settings.push(cb); setTimeout(() => cb(mem.settings), 50); },
       watchLookup(ref, cb) { subs.lookup.push([ref, cb]); setTimeout(emit, 50); },
@@ -158,23 +221,23 @@ window.GPB_API = (function () {
       async verifySevaOnly(ref) {
         const d = mem.sevaonly[ref]; if (!d || d.status !== 'checking') return;
         const no = takeNo('seva', mem.settings.sevaPrefix);
-        Object.assign(d, { status: 'verified', receipt: { no, amount: d.amount, method: 'UPI', utr: d.utr, date: new Date().toISOString() } }); change(); return no;
+        Object.assign(d, { status: 'verified', receipt: { no, amount: d.amount, method: 'UPI', utr: d.utr, date: new Date().toISOString(), by: who() } }); change(); return no;
       },
       async rejectSevaOnly(ref) { const d = mem.sevaonly[ref]; if (d) { d.status = 'rejected'; change(); } },
       async recordSevaAtOffice(o) {
         const ref = G.makeSevaRef(), no = takeNo('seva', mem.settings.sevaPrefix), date = new Date().toISOString();
         mem.sevaonly[ref] = { name: o.name, amount: o.amount, purpose: o.purpose, note: o.note || '', status: 'verified', office: true, createdAt: date,
-          receipt: { no, amount: o.amount, method: o.method, utr: '', date } };
+          receipt: { no, amount: o.amount, method: o.method, utr: '', date, by: who() } };
         if (o.phone) mem.sevacontacts[ref] = { phone: o.phone, pkey: G.phoneKey(o.phone), createdAt: date };
         change(); return ref;
       },
-      async voidSevaOnly(ref, reason, note) { const d = mem.sevaonly[ref]; if (d && d.receipt && !d.receipt.void) { d.receipt.void = { reason, note: note || '', date: new Date().toISOString() }; change(); } },
+      async voidSevaOnly(ref, reason, note) { const d = mem.sevaonly[ref]; if (d && d.receipt && !d.receipt.void) { d.receipt.void = { reason, note: note || '', date: new Date().toISOString(), by: who() }; change(); } },
       async addExpense(o) {
         const id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date = new Date().toISOString();
         const no = takeNo('expense', mem.settings.expensePrefix || 'EXP');
-        mem.expenses[id] = { ...o, no, date, createdAt: date }; change(); return id;
+        mem.expenses[id] = { ...o, no, date, createdAt: date, by: who() }; change(); return id;
       },
-      async voidExpense(id, reason, note) { const e = mem.expenses[id]; if (e && !e.void) { e.void = { reason, note: note || '', date: new Date().toISOString() }; change(); } },
+      async voidExpense(id, reason, note) { const e = mem.expenses[id]; if (e && !e.void) { e.void = { reason, note: note || '', date: new Date().toISOString(), by: who() }; change(); } },
       async getExpense(id) { return mem.expenses[id] ? clone(mem.expenses[id]) : null; },
       async setNextReceipt(key, next) { mem.counters[key] = { fy: G.finYear(), next }; change(); },
       async recordCash(ref, amount, method, seva) {
@@ -182,14 +245,18 @@ window.GPB_API = (function () {
         l.paidCash = (l.paidCash || 0) + amount; change(); return o;
       },
       async setClosed(ref, closed) { mem.lookup[ref].closed = closed || ''; change(); },
-      onAuth(cb) { subs.auth.push(cb); setTimeout(() => cb(demoUser, !!demoUser), 50); },
+      onAuth(cb) { subs.auth.push(cb); setTimeout(() => cb(demoUser, !!demoUser, demoUser && demoUser.role, {}), 50); },
       async signIn(email, pass) {
-        if (pass !== 'demo') throw new Error('wrong');
-        demoUser = { email: email || 'demo@committee' };
-        try { sessionStorage.setItem('gpb-demo-admin', '1'); } catch (e) {}
-        subs.auth.forEach(f => f(demoUser, true));
+        const role = { demo: 'admin', treasurer: 'treasurer', sevadar: 'sevadar' }[pass];
+        if (!role) throw new Error('wrong');
+        demoUser = { email: email || 'demo@committee', role };
+        me = { uid: 'demo-' + role, email: demoUser.email, name: demoUser.email.split('@')[0], role };
+        try { sessionStorage.setItem('gpb-demo-admin', role === 'admin' ? '1' : role); } catch (e) {}
+        subs.auth.forEach(f => f(demoUser, true, role, {}));
       },
-      async signOut() { demoUser = null; try { sessionStorage.removeItem('gpb-demo-admin'); } catch (e) {} subs.auth.forEach(f => f(null, false)); },
+      async signUp() { throw Object.assign(new Error('demo'), { code: 'demo' }); },
+      async resendVerification() {},
+      async signOut() { demoUser = null; me = null; try { sessionStorage.removeItem('gpb-demo-admin'); } catch (e) {} subs.auth.forEach(f => f(null, false, null, {})); },
       async getContact(id) { return mem.contacts[id] || null; },
       // Frees the dates. A booking with money received is kept as "cancelled" for the records.
       async cancel(startId, reason) {
@@ -197,14 +264,14 @@ window.GPB_API = (function () {
         idsOf(v).forEach(id => delete mem.slots[id]);
         const c = mem.contacts[startId], l = c && c.ref && mem.lookup[c.ref];
         if (l) { const cid = 'cx_' + c.ref; mem.contacts[cid] = c;
-          Object.assign(l, { closed: 'cancelled', cancelReason: reason || '', closedAt: new Date().toISOString(), slot: cid, cancelledSlot: startId }); }
+          Object.assign(l, { closed: 'cancelled', cancelReason: reason || '', closedAt: new Date().toISOString(), slot: cid, cancelledSlot: startId, closedBy: who() }); }
         delete mem.contacts[startId];
         change(); return (c && c.ref) || '';
       },
       async voidReceipt(ref, kind, i, reason, note) {
         const l = mem.lookup[ref], r = ((kind === 'seva' ? l.sevaReceipts : l.receipts) || [])[i];
         if (!r || r.void) return;
-        r.void = { reason, note: note || '', date: new Date().toISOString() };
+        r.void = { reason, note: note || '', date: new Date().toISOString(), by: who() };
         if (kind !== 'seva') { if (r.method === 'UPI') l.paidOnline = Math.max(0, (l.paidOnline || 0) - r.amount); else l.paidCash = Math.max(0, (l.paidCash || 0) - r.amount); }
         change();
       },
@@ -212,7 +279,7 @@ window.GPB_API = (function () {
         const fy = G.finYear(), c = mem.counters.refund && mem.counters.refund.fy === fy ? mem.counters.refund : { fy, next: 1 };
         mem.counters.refund = { fy, next: c.next + 1 };
         const no = receiptNo(mem.settings.refundPrefix || 'REFUND', fy, c.next), l = mem.lookup[ref];
-        l.refunds = [...(l.refunds || []), { no, amount, method, reason, note: note || '', date: new Date().toISOString() }];
+        l.refunds = [...(l.refunds || []), { no, amount, method, reason, note: note || '', date: new Date().toISOString(), by: who() }];
         l.refunded = (l.refunded || 0) + amount; change(); return no;
       },
       async deleteEntry(ref) {
@@ -223,8 +290,47 @@ window.GPB_API = (function () {
         delete mem.lookup[ref]; change();
       },
       async saveSettings(s) { mem.settings = cleanSettings(s); change(); },
-      async resetPassword() {}
+      async resetPassword() {},
+      // Users and activity log (Pardhan)
+      watchStaff(cb) { subs.staff.push(cb); setTimeout(emit, 50); },
+      watchLog(cb) { subs.log.push(cb); setTimeout(emit, 50); },
+      async invite(email, name, role) { mem.invites[email.toLowerCase()] = { name, role, createdAt: new Date().toISOString(), by: who() }; change(); },
+      async cancelInvite(email) { delete mem.invites[email]; change(); },
+      async setStaff(uid, data) { Object.assign(mem.staff[uid], data); change(); },
+      // Pathi Singhs: a private link + 4-digit PIN each.
+      async addPathi(o) { const id = randomId(20), pin = newPin();
+        mem.pathis[id] = { name: o.name, phone: o.phone || '', note: o.note || '', active: true, unavailable: [], createdAt: new Date().toISOString() };
+        mem.pathipins[id] = { hash: await pinHash(id, pin), fails: 0, lockUntil: 0 }; change(); return { id, pin }; },
+      async updatePathi(id, data) { Object.assign(mem.pathis[id], data); change(); },
+      async resetPin(id) { const pin = newPin(); mem.pathipins[id] = { hash: await pinHash(id, pin), fails: 0, lockUntil: 0 }; change(); return pin; },
+      async saveRoster(o) { mem.rosters[o.ref] = { ...cleanRoster(o), updatedAt: new Date().toISOString(), by: who() }; change(); },
+      // Pathi Singh's own page (in the real site this goes through the server, which checks the PIN).
+      async pathiView(id, pin, action, extra) {
+        const dates = Array.isArray(extra) ? extra : [], x = Array.isArray(extra) ? {} : (extra || {});
+        const p = mem.pathis[id], k = mem.pathipins[id];
+        if (!p || !k || !p.active) return { error: 'notfound' };
+        if (k.lockUntil > Date.now()) return { error: 'locked' };
+        if (k.hash !== await pinHash(id, pin)) { k.fails = (k.fails || 0) + 1; if (k.fails >= 5) { k.lockUntil = Date.now() + 15 * 60e3; k.fails = 0; } save(); return { error: 'pin' }; }
+        k.fails = 0;
+        if (action === 'unavailable') { p.unavailable = dates; change(); }
+        const paths = Object.entries(mem.lookup).filter(([, l]) => !l.closed && (l.type === 'akhand' || l.type === 'sehaj') && l.start >= G.today && l.start <= G.add(G.today, 90))
+          .map(([ref, l]) => ({ ref, type: l.type, start: l.start, name: l.name })).sort((a, b) => a.start < b.start ? -1 : 1);
+        p.avail = Object.fromEntries(Object.entries(p.avail || {}).filter(([r]) => paths.some(q => q.ref === r)));
+        if (action === 'avail') { if (x.value) p.avail[x.ref] = x.value; else delete p.avail[x.ref]; change(); }
+        if (action === 'usual') { p.usual = String(x.text || '').trim().slice(0, 200); change(); }
+        const rosters = Object.values(mem.rosters).filter(r => (r.pathiIds || []).includes(id) && r.start >= G.add(G.today, -60))
+          .map(r => ({ ref: r.ref, type: r.type, start: r.start, name: r.name, place: r.place, note: r.note || '', rauls: r.rauls.map(x => ({ from: x.from, to: x.to, label: x.label || '', name: x.name, mine: x.pathiId === id })) }));
+        const vouchers = Object.values(mem.expenses).filter(e => e.pathiId === id).map(e => ({ no: e.no, amount: e.amount, method: e.method, date: e.date, ref: e.ref || '', void: !!e.void, pathType: e.pathType || '', pathDate: e.pathDate || '' }));
+        save();
+        return { ok: true, name: p.name, unavailable: p.unavailable || [], paths, avail: p.avail, usual: p.usual || '', rosters, vouchers, gurdwara: { name: mem.settings.name, phone: mem.settings.phone } };
+      },
+      // Seva sign-up for a programme (anyone).
+      async addSignup(o) { mem.signups['g' + Date.now().toString(36)] = { ...o, createdAt: new Date().toISOString() }; change(); },
+      async deleteSignup(id) { delete mem.signups[id]; change(); },
+      // Demo only: pretend a WhatsApp message failed, to see the warning.
+      demoFailNotice(ref) { mem.notices[ref + '_demo' + Date.now()] = { ref, event: 'booked', template: 'path_booking_confirmed', to: '919999999999', status: 'failed', error: '131026 Message undeliverable (number not on WhatsApp)', createdAt: new Date().toISOString(), params: [] }; change(); }
     };
+    return withLog(demoApi, x => { mem.log['l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)] = { ...x, at: new Date().toISOString(), by: me.uid, email: me.email, name: me.name, role: me.role }; change(); });
   }
 
   // ---------- Firebase ----------
@@ -253,21 +359,28 @@ window.GPB_API = (function () {
         const next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1;
         out.no = receiptNo(lastSettings.receiptPrefix, fy, next);
         tx.set(cref, { fy, next: next + 1 });
-        up.receipts = [...(l.receipts || []), { no: out.no, amount, method, utr: utr || '', date }];
+        up.receipts = [...(l.receipts || []), { no: out.no, amount, method, utr: utr || '', date, by: who() }];
       }
       if (seva > 0) {
         const next = ss.exists() && ss.data().fy === fy ? ss.data().next : 1;
         out.sevaNo = receiptNo(lastSettings.sevaPrefix, fy, next);
         tx.set(sref, { fy, next: next + 1 });
-        up.sevaReceipts = [...(l.sevaReceipts || []), { no: out.sevaNo, amount: seva, method, utr: utr || '', date }];
+        up.sevaReceipts = [...(l.sevaReceipts || []), { no: out.sevaNo, amount: seva, method, utr: utr || '', date, by: who() }];
       }
       tx.update(lref, up);
       return out;
     });
   }
 
-  return {
+  const fbApi = {
     demo: false,
+    me: () => me,
+    // Committee-only server actions (WhatsApp buttons, backup): sends the signed-in user's Firebase token.
+    async callFn(name, body) {
+      const { auth } = await ready, u = auth.currentUser; if (!u) throw new Error('signed out');
+      const r = await fetch('/.netlify/functions/' + name, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await u.getIdToken() }, body: JSON.stringify(body || {}) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(j.error || ('HTTP ' + r.status)), { status: r.status }); return j;
+    },
     // Asks the server to send the automatic WhatsApp message (does nothing if WhatsApp is not set up).
     notify(ref, event, extra) {
       try { fetch('/.netlify/functions/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -365,22 +478,43 @@ window.GPB_API = (function () {
       batch.update(F.doc(db, 'lookup', ref), { reports: n, checking: true });
       await batch.commit();
     },
+    // cb(user, isCommittee, role, info). The first members (admins / Gurlal collections) are Pardhan / Admin.
+    // Others are invited by email on the Users panel; after verifying their email they become committee users.
     onAuth(cb) {
       ready.then(({ F, U, db, auth }) => U.onAuthStateChanged(auth, async u => {
-        if (!u) return cb(null, false);
-        let admin = false;
-        for (const c of ADMIN_COLLECTIONS) {
-          try { if ((await F.getDoc(F.doc(db, c, u.uid))).exists()) { admin = true; break; } } catch (e) { console.error('Admin check:', e); }
-        }
-        cb(u, admin);
+        me = null;
+        if (!u) return cb(null, false, null, {});
+        const email = String(u.email || '').toLowerCase(), get = p => F.getDoc(F.doc(db, ...p)).catch(() => null);
+        try {
+          for (const c of ADMIN_COLLECTIONS) { const d = await get([c, u.uid]);
+            if (d && d.exists()) { me = { uid: u.uid, email, name: u.displayName || email.split('@')[0], role: 'admin', owner: true }; return cb(u, true, 'admin', {}); } }
+          let st = await get(['staff', u.uid]);
+          if (!(st && st.exists())) {
+            const inv = await get(['invites', email]);
+            if (inv && inv.exists()) {
+              if (!u.emailVerified) await u.reload().catch(() => {});
+              if (!auth.currentUser.emailVerified) return cb(u, false, null, { needVerify: true });
+              await u.getIdToken(true);
+              const d = inv.data();
+              await F.setDoc(F.doc(db, 'staff', u.uid), { email, name: d.name, role: d.role, active: true, createdAt: F.serverTimestamp() });
+              await F.deleteDoc(F.doc(db, 'invites', email)).catch(() => {});
+              st = await get(['staff', u.uid]);
+            }
+          }
+          if (st && st.exists() && st.data().active) { const d = st.data(); me = { uid: u.uid, email, name: d.name || email, role: d.role }; return cb(u, true, d.role, {}); }
+          cb(u, false, null, { disabled: !!(st && st.exists()) });
+        } catch (e) { console.error('Role check:', e); cb(u, false, null, { error: true }); }
       }));
     },
     async signIn(email, pass) { const { U, auth } = await ready; return U.signInWithEmailAndPassword(auth, email, pass); },
+    // An invited sevadar / Khazanchi makes their own password; Firebase sends a link to confirm the email first.
+    async signUp(email, pass) { const { U, auth } = await ready; const c = await U.createUserWithEmailAndPassword(auth, email, pass); await U.sendEmailVerification(c.user); return c; },
+    async resendVerification() { const { U, auth } = await ready; if (auth.currentUser) await U.sendEmailVerification(auth.currentUser); },
     async signOut() { const { U, auth } = await ready; return U.signOut(auth); },
     async resetPassword(email) { const { U, auth } = await ready; return U.sendPasswordResetEmail(auth, email); },
     // Committee: everything for the bookings list, live.
     watchAdmin(cb) {
-      const st = { slots: {}, contacts: {}, lookups: {}, reports: {}, counters: {}, sevaonly: {}, sevacontacts: {}, expenses: {} };
+      const st = { slots: {}, contacts: {}, lookups: {}, reports: {}, counters: {}, sevaonly: {}, sevacontacts: {}, expenses: {}, rosters: {}, pathis: {}, notices: {}, signups: {} };
       const out = () => cb({ ...st });
       ready.then(({ F, db }) => {
         const on = (q, key) => F.onSnapshot(q, snap => { const m = {}; snap.forEach(d => { m[d.id] = toPlain(d.data()); }); st[key] = m; out(); }, e => console.error(key, e));
@@ -391,9 +525,45 @@ window.GPB_API = (function () {
         on(F.collection(db, 'counters'), 'counters');
         on(F.collection(db, 'sevaonly'), 'sevaonly');
         on(F.collection(db, 'sevacontacts'), 'sevacontacts');
-        on(F.collection(db, 'expenses'), 'expenses');
+        if (me && G.roleAtLeast(me.role, 'treasurer')) on(F.collection(db, 'expenses'), 'expenses');
+        on(F.collection(db, 'rosters'), 'rosters');
+        on(F.collection(db, 'pathis'), 'pathis');
+        on(F.query(F.collection(db, 'notices'), F.where('status', '==', 'failed')), 'notices');
+        on(F.collection(db, 'signups'), 'signups');
       });
     },
+    // ---------- Users and activity log (Pardhan / Admin) ----------
+    watchStaff(cb) {
+      const st = { staff: {}, invites: {} };
+      ready.then(({ F, db }) => ['staff', 'invites'].forEach(k => F.onSnapshot(F.collection(db, k),
+        snap => { const m = {}; snap.forEach(d => { m[d.id] = toPlain(d.data()); }); st[k] = m; cb({ ...st }); }, e => console.error(k, e))));
+    },
+    watchLog(cb) {
+      ready.then(({ F, db }) => F.onSnapshot(F.query(F.collection(db, 'log'), F.orderBy('at', 'desc'), F.limit(300)),
+        snap => { const out = []; snap.forEach(d => { const x = toPlain(d.data()); x.at = x.at && x.at.toDate ? x.at.toDate().toISOString() : x.at; out.push([d.id, x]); }); cb(out); }, e => console.error('log', e)));
+    },
+    async invite(email, name, role) { const { F, db } = await ready; return F.setDoc(F.doc(db, 'invites', email.toLowerCase()), { name, role, createdAt: F.serverTimestamp(), by: who() }); },
+    async cancelInvite(email) { const { F, db } = await ready; return F.deleteDoc(F.doc(db, 'invites', email)); },
+    async setStaff(uid, data) { const { F, db } = await ready; return F.updateDoc(F.doc(db, 'staff', uid), data); },
+    // ---------- Pathi Singhs and rosters ----------
+    async addPathi(o) {
+      const { F, db } = await ready, id = randomId(20), pin = newPin(), batch = F.writeBatch(db);
+      batch.set(F.doc(db, 'pathis', id), { name: o.name, phone: o.phone || '', note: o.note || '', active: true, unavailable: [], createdAt: F.serverTimestamp() });
+      batch.set(F.doc(db, 'pathipins', id), { hash: await pinHash(id, pin), fails: 0, lockUntil: 0 });
+      await batch.commit(); return { id, pin };
+    },
+    async updatePathi(id, data) { const { F, db } = await ready; return F.updateDoc(F.doc(db, 'pathis', id), data); },
+    async resetPin(id) { const { F, db } = await ready, pin = newPin(); await F.setDoc(F.doc(db, 'pathipins', id), { hash: await pinHash(id, pin), fails: 0, lockUntil: 0 }); return pin; },
+    async saveRoster(o) { const { F, db } = await ready; return F.setDoc(F.doc(db, 'rosters', o.ref), { ...cleanRoster(o), updatedAt: F.serverTimestamp(), by: who() }); },
+    // The Pathi Singh's page: the server checks the PIN and sends back only their own roster and vouchers.
+    async pathiView(id, pin, action, extra) {
+      const body = { id, pin, action, ...(Array.isArray(extra) ? { dates: extra } : (extra || {})) };
+      const r = await fetch('/.netlify/functions/pathi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      return r.json().catch(() => ({ error: 'server' }));
+    },
+    // ---------- Seva sign-up for programmes ----------
+    async addSignup(o) { const { F, db } = await ready; return F.addDoc(F.collection(db, 'signups'), { ...o, createdAt: F.serverTimestamp() }); },
+    async deleteSignup(id) { const { F, db } = await ready; return F.deleteDoc(F.doc(db, 'signups', id)); },
     // ---------- Money paid out by the gurdwara (payment vouchers) ----------
     async addExpense(o) {
       const { F, db } = await ready, eref = F.doc(F.collection(db, 'expenses'));
@@ -401,13 +571,13 @@ window.GPB_API = (function () {
         const cref = F.doc(db, 'counters', 'expense'), cs = await tx.get(cref);
         const fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1, date = new Date().toISOString();
         tx.set(cref, { fy, next: next + 1 });
-        tx.set(eref, { ...o, no: receiptNo(lastSettings.expensePrefix || 'EXP', fy, next), date, createdAt: date });
+        tx.set(eref, { ...o, no: receiptNo(lastSettings.expensePrefix || 'EXP', fy, next), date, createdAt: date, by: who() });
       });
       return eref.id;
     },
     async voidExpense(id, reason, note) {
       const { F, db } = await ready;
-      return F.updateDoc(F.doc(db, 'expenses', id), { void: { reason, note: note || '', date: new Date().toISOString() } });
+      return F.updateDoc(F.doc(db, 'expenses', id), { void: { reason, note: note || '', date: new Date().toISOString(), by: who() } });
     },
     async getExpense(id) { const { F, db } = await ready; const s = await F.getDoc(F.doc(db, 'expenses', id)); return s.exists() ? s.data() : null; },
     // ---------- Seva bheta without a path booking ----------
@@ -431,7 +601,7 @@ window.GPB_API = (function () {
         const d = ds.data(), fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1;
         const no = receiptNo(lastSettings.sevaPrefix || 'SEVA', fy, next);
         tx.set(cref, { fy, next: next + 1 });
-        tx.update(dref, { status: 'verified', receipt: { no, amount: d.amount, method: 'UPI', utr: d.utr || '', date: new Date().toISOString() } });
+        tx.update(dref, { status: 'verified', receipt: { no, amount: d.amount, method: 'UPI', utr: d.utr || '', date: new Date().toISOString(), by: who() } });
         return no;
       });
     },
@@ -444,7 +614,7 @@ window.GPB_API = (function () {
         const no = receiptNo(lastSettings.sevaPrefix || 'SEVA', fy, next);
         tx.set(cref, { fy, next: next + 1 });
         tx.set(F.doc(db, 'sevaonly', ref), { name: o.name, amount: o.amount, purpose: o.purpose, note: o.note || '', status: 'verified', office: true,
-          createdAt: date, receipt: { no, amount: o.amount, method: o.method, utr: '', date } });
+          createdAt: date, receipt: { no, amount: o.amount, method: o.method, utr: '', date, by: who() } });
         if (o.phone) tx.set(F.doc(db, 'sevacontacts', ref), { phone: o.phone, pkey: G.phoneKey(o.phone), createdAt: date });
       });
       return ref;
@@ -454,7 +624,7 @@ window.GPB_API = (function () {
       return F.runTransaction(db, async tx => {
         const dref = F.doc(db, 'sevaonly', ref), ds = await tx.get(dref);
         if (!ds.exists() || !ds.data().receipt || ds.data().receipt.void) return;
-        tx.update(dref, { receipt: { ...ds.data().receipt, void: { reason, note: note || '', date: new Date().toISOString() } } });
+        tx.update(dref, { receipt: { ...ds.data().receipt, void: { reason, note: note || '', date: new Date().toISOString(), by: who() } } });
       });
     },
     // Committee: the number the next receipt of a series will get ('receipts' = path, 'seva' = seva), this financial year.
@@ -499,7 +669,7 @@ window.GPB_API = (function () {
       if (l && l.exists()) {
         const cid = 'cx_' + ref;
         batch.set(F.doc(db, 'contacts', cid), c.data());
-        batch.update(F.doc(db, 'lookup', ref), { closed: 'cancelled', cancelReason: reason || '', closedAt: new Date().toISOString(), slot: cid, cancelledSlot: startId });
+        batch.update(F.doc(db, 'lookup', ref), { closed: 'cancelled', cancelReason: reason || '', closedAt: new Date().toISOString(), slot: cid, cancelledSlot: startId, closedBy: who() });
       }
       batch.delete(F.doc(db, 'contacts', startId));
       await batch.commit();
@@ -512,7 +682,7 @@ window.GPB_API = (function () {
         const lref = F.doc(db, 'lookup', ref), ls = await tx.get(lref); if (!ls.exists()) throw new Error('missing');
         const l = ls.data(), key = kind === 'seva' ? 'sevaReceipts' : 'receipts', arr = [...(l[key] || [])], r = arr[i];
         if (!r || r.void) return;
-        arr[i] = { ...r, void: { reason, note: note || '', date: new Date().toISOString() } };
+        arr[i] = { ...r, void: { reason, note: note || '', date: new Date().toISOString(), by: who() } };
         const up = { [key]: arr };
         if (kind !== 'seva') { if (r.method === 'UPI') up.paidOnline = Math.max(0, (l.paidOnline || 0) - r.amount); else up.paidCash = Math.max(0, (l.paidCash || 0) - r.amount); }
         tx.update(lref, up);
@@ -527,7 +697,7 @@ window.GPB_API = (function () {
         const fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1, l = ls.data();
         const no = receiptNo(lastSettings.refundPrefix || 'REFUND', fy, next);
         tx.set(cref, { fy, next: next + 1 });
-        tx.update(lref, { refunds: [...(l.refunds || []), { no, amount, method, reason, note: note || '', date: new Date().toISOString() }], refunded: (l.refunded || 0) + amount });
+        tx.update(lref, { refunds: [...(l.refunds || []), { no, amount, method, reason, note: note || '', date: new Date().toISOString(), by: who() }], refunded: (l.refunded || 0) + amount });
         return no;
       });
     },
@@ -548,4 +718,6 @@ window.GPB_API = (function () {
     },
     async saveSettings(s) { const { F, db } = await ready; return F.setDoc(F.doc(db, 'settings', 'main'), cleanSettings(s)); }
   };
+  return withLog(fbApi, x => ready.then(({ F, db }) => F.addDoc(F.collection(db, 'log'),
+    { ...x, at: F.serverTimestamp(), by: me.uid, email: me.email, name: me.name || '', role: me.role })).catch(e => console.error('Log write:', e)));
 })();
