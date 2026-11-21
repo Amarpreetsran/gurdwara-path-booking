@@ -21,6 +21,7 @@
     <p>ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ ਅਤੇ ਸਹਿਜ ਪਾਠ ਦੀ ਬੁਕਿੰਗ <span class="en">· Path booking</span></p>
   </div>
   <button class="hdlink" id="installBtn" type="button" hidden>ਐਪ ਇੰਸਟਾਲ ਕਰੋ</button>
+  <button class="hdlink" id="sevaBtn" type="button">🙏 ਸੇਵਾ ਭੇਟਾ</button>
   <button class="hdlink" id="infoBtn" type="button">ਜਾਣਕਾਰੀ</button>
   <button class="hdlink" id="manageBtn" type="button">ਮੇਰੀ ਬੁਕਿੰਗ</button>
 </div></header>
@@ -341,6 +342,10 @@
     if(!h||!bms||a.state!=='due'||l.checking)return'';
     return `<div class="note warnnote" style="margin-top:8px">ਕਿਰਪਾ ਕਰਕੇ <b>${G.fmtTime(bms+h*3600e3)}</b> ਤੱਕ ਘੱਟੋ-ਘੱਟ <b>${M$(a.advance)}</b> ਅਗਾਊਂ ਭੇਟਾ ਭੇਜੋ ਜੀ (ਆਨਲਾਈਨ ਜਾਂ ਗੁਰਦੁਆਰੇ)। ਨਹੀਂ ਤਾਂ ਇਹ ਬੁਕਿੰਗ ਆਪਣੇ ਆਪ ਰੱਦ ਹੋ ਜਾਵੇਗੀ ਅਤੇ ਦੁਬਾਰਾ ਬੁਕਿੰਗ ਕਰਨੀ ਪਵੇਗੀ। <span class="en">Kindly pay an advance of at least ${M$(a.advance)} before this time, or the booking will be cancelled and you will need to book again.</span></div>`;
   }
+  // Short privacy notice (what is collected, why, who sees it, how to correct or remove it).
+  const privacyText=()=>`ਆਪ ਜੀ ਦਾ ਨਾਮ, ਫ਼ੋਨ ਨੰਬਰ, ਬੁਕਿੰਗ ਅਤੇ ਭੁਗਤਾਨ ਦੀ ਜਾਣਕਾਰੀ (UTR) ਸਿਰਫ਼ ਬੁਕਿੰਗ, ਰਸੀਦਾਂ, WhatsApp ਸੂਚਨਾਵਾਂ ਅਤੇ ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਦੇ ਹਿਸਾਬ-ਕਿਤਾਬ ਲਈ ਵਰਤੀ ਜਾਂਦੀ ਹੈ ਜੀ। ਫ਼ੋਨ ਨੰਬਰ ਸਿਰਫ਼ ਕਮੇਟੀ ਵੇਖ ਸਕਦੀ ਹੈ ਅਤੇ ਇਹ ਕਿਸੇ ਹੋਰ ਨੂੰ ਨਹੀਂ ਦਿੱਤਾ ਜਾਂਦਾ। ਜਾਣਕਾਰੀ Google Firebase ਤੇ ਸੁਰੱਖਿਅਤ ਰੱਖੀ ਜਾਂਦੀ ਹੈ ਅਤੇ WhatsApp ਸੁਨੇਹੇ Meta (WhatsApp) ਰਾਹੀਂ ਜਾਂਦੇ ਹਨ। ਜਾਣਕਾਰੀ ਠੀਕ ਕਰਵਾਉਣ ਜਾਂ ਹਟਵਾਉਣ ਲਈ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ${S.settings.phone?': '+G.esc(S.settings.phone):''}। ਭੇਟਾ ਦੀਆਂ ਰਸੀਦਾਂ ਹਿਸਾਬ-ਕਿਤਾਬ ਲਈ ਸੰਭਾਲ ਕੇ ਰੱਖੀਆਂ ਜਾਂਦੀਆਂ ਹਨ।
+      <span class="en" style="display:block;margin-top:4px">Your name, phone number, booking and payment details (UTR) are used only for the booking, receipts, WhatsApp updates and the Gurdwara Sahib's accounts. Only the committee can see your phone number, and it is not shared with anyone else. The data is stored securely on Google Firebase, and WhatsApp messages are sent through Meta (WhatsApp). To correct or remove your details, kindly contact the gurdwara office${S.settings.phone?': '+G.esc(S.settings.phone):''}. Bheta receipts are kept for the accounts.</span>`;
+  const privacyBox=()=>`<details class="privacy"><summary>🔒 ਆਪ ਜੀ ਦੀ ਜਾਣਕਾਰੀ ਦੀ ਵਰਤੋਂ <span class="en">How your details are used</span></summary><p>${privacyText()}</p></details>`;
   const policyBox=()=>`<div class="policy">${G.esc(G.policyOf(S.settings))}</div>`;
   // Account summary for a booking.
   function accountBox(l){
@@ -416,7 +421,7 @@
     document.querySelectorAll('#side details.sevaonly').forEach(d=>d.addEventListener('toggle',()=>{S.sevaOpen=S.sevaOpen||{};S.sevaOpen[d.dataset.ref]=d.open}));
     document.querySelectorAll('#side .paybox').forEach(pb=>{
       const ref=pb.dataset.ref,inp=pb.querySelector('.amt'),sv=pb.querySelector('.seva'),btn=pb.querySelector('.upibtn'),qr=pb.querySelector('.qr');
-      const upd=()=>{const s=Math.max(0,Math.round(Number(sv&&sv.value)||0)),v=Math.round(Number(inp.value)||0)+s;const link=G.upiLink(S.settings,v,ref);btn.href=link;
+      const upd=()=>{const s=Math.max(0,Math.round(Number(sv&&sv.value)||0)),v=Math.round(Number(inp.value)||0)+s;const link=G.upiLink(S.settings,v,ref,pb.dataset.kind==='sevaonly'?'Seva bheta':'');btn.href=link;
         pb.querySelectorAll('.appbtn').forEach(x=>{x.href=link.replace('upi://pay',x.dataset.sch)});
         btn.textContent=s&&v>s?`${M$(v)} UPI ਨਾਲ ਭੇਜੋ (ਸੇਵਾ ${M$(s)} ਸਮੇਤ)`:`${M$(v)} UPI ਨਾਲ ਭੇਜੋ`;
         pb.querySelectorAll('.sevapick').forEach(b=>b.classList.toggle('on',Number(b.dataset.v)===s));
@@ -454,7 +459,7 @@
   }
 
   function renderSide(){
-    if(S.mg)renderManage();else if(S.form)renderForm();else if(S.done)renderDone();else renderDay();
+    if(S.sv)renderSevaOnly();else if(S.mg)renderManage();else if(S.form)renderForm();else if(S.done)renderDone();else renderDay();
     wirePay();
   }
   function renderDay(){
@@ -497,11 +502,12 @@
       <details data-k="inc" ${op('inc')}><summary>📿 ਪਾਠ ਦੀ ਭੇਟਾ ਵਿੱਚ ਕੀ ਸ਼ਾਮਲ ਹੈ? <span class="en">What the path bheta includes</span></summary>
         <ul class="incl">${I.includes.map(x=>`<li>✓ ${G.esc(x)}</li>`).join('')}</ul>${fees?`<ul class="fees">${fees}</ul>`:''}</details>
       <details data-k="big" ${op('big')}><summary>🍲 ਵੱਡਾ ਸਮਾਗਮ ਜਾਂ ਵਾਧੂ ਪ੍ਰਬੰਧ <span class="en">Bigger programme or extra arrangements</span></summary>
-        <p>${para(I.bigEvent)}</p>${office}</details>
+        <p>${para(I.bigEvent)}</p>${office}${s.upi?`<div class="row" style="margin-top:8px"><button class="btn" type="button" data-seva-open>🙏 ਸੇਵਾ ਭੇਟਾ ਆਨਲਾਈਨ ਭੇਜੋ</button></div>`:''}</details>
       <details data-k="sukh" id="info-sukh" ${op('sukh')}><summary>🏠 ਸ੍ਰੀ ਸੁਖਮਨੀ ਸਾਹਿਬ, ਘਰ ਵਿੱਚ <span class="en">Sukhmani Sahib at your home</span></summary>
         <p>${para(I.sukhmaniNote)}</p>${gr}</details>
       <details data-k="rules" ${op('rules')}><summary>📜 ਬੁਕਿੰਗ ਅਤੇ ਭੇਟਾ ਦੇ ਨਿਯਮ <span class="en">Booking and bheta rules</span></summary>
-        ${ruleText()?`<p>${ruleText()}</p>`:''}<p style="white-space:pre-line">${G.esc(G.policyOf(s))}</p></details>`;
+        ${ruleText()?`<p>${ruleText()}</p>`:''}<p style="white-space:pre-line">${G.esc(G.policyOf(s))}</p></details>
+      <details data-k="privacy" ${op('privacy')}><summary>🔒 ਆਪ ਜੀ ਦੀ ਜਾਣਕਾਰੀ ਦੀ ਵਰਤੋਂ <span class="en">How your details are used</span></summary><p>${privacyText()}</p></details>`;
   }
   const openInfo=k=>{S.infoOpen[k]=true;renderInfo();const el=document.querySelector(`#infoBox details[data-k="${k}"]`)||$('infoBox');el.scrollIntoView({behavior:'smooth',block:'start'})};
 
@@ -528,7 +534,7 @@
       <label for="f-occ">ਮੌਕਾ<select id="f-occ">${G.OCCASIONS.map(o=>`<option>${o}</option>`).join('')}</select></label>
       <label for="f-note">ਗ੍ਰੰਥੀ ਸਿੰਘ ਲਈ ਨੋਟ <span class="hint">ਲੋੜ ਹੋਵੇ ਤਾਂ। ਅਰਦਾਸ ਲਈ ਨਾਂ, ਲੰਗਰ ਬਾਰੇ</span><textarea id="f-note" maxlength="400"></textarea><span class="tl" id="tl-note" hidden></span></label>
       <label class="row" style="gap:8px;font-weight:400;font-size:14px" for="f-keep"><input id="f-keep" type="checkbox" style="width:auto"> ਜਿਵੇਂ ਲਿਖਿਆ ਉਵੇਂ ਰੱਖੋ, ਗੁਰਮੁਖੀ ਵਿੱਚ ਨਾ ਬਦਲੋ <span class="en">(keep as typed)</span></label>
-      ${policyBox()}
+      ${policyBox()}${privacyBox()}
       ${G.holdHours(S.settings)&&G.feeOf(S.settings,t.key)?`<label class="row agree" for="f-agree"><input id="f-agree" type="checkbox" style="width:auto"> <span>ਮੈਂ ਸਮਝ ਲਿਆ ਹੈ ਜੀ: ${G.holdHours(S.settings)} ਘੰਟਿਆਂ ਵਿੱਚ ਘੱਟੋ-ਘੱਟ ${G.ADVANCE_PCT}% ਅਗਾਊਂ ਭੇਟਾ ਨਾ ਭੇਜਣ ਤੇ ਬੁਕਿੰਗ ਆਪਣੇ ਆਪ ਰੱਦ ਹੋ ਜਾਵੇਗੀ। <span class="en">I understand the booking is cancelled if the advance is not paid in time.</span></span></label>`:''}
       <div id="formErr"></div>
       <div class="row"><button class="btn" type="submit" id="submitBtn">${G.feeOf(S.settings,t.key)?'ਬੁਕਿੰਗ ਪੱਕੀ ਕਰੋ ਅਤੇ ਭੇਟਾ ਭੇਜੋ':'ਬੁਕਿੰਗ ਪੱਕੀ ਕਰੋ'}</button><button class="btn ghost" type="button" id="back">ਵਾਪਸ</button></div>
@@ -551,6 +557,34 @@
   }
   const gurmukhi=(id,v)=>{if(!TL||$('f-keep').checked||!TL.hasLatin(v))return v;const pv=$(id);return pv.dataset.src===v&&pv.dataset.out?pv.dataset.out:TL.convert(v)};
 
+  // ---------- Seva bheta without a path booking ----------
+  function openSeva(){S.sv={stage:'form'};S.mg=null;S.form=null;S.done=null;renderAll();$('side').scrollIntoView({behavior:'smooth',block:'start'})}
+  function renderSevaOnly(){
+    const v=S.sv,close=`<div class="row" style="margin-top:12px"><button class="btn ghost" type="button" data-sv-close>ਬੰਦ ਕਰੋ</button></div>`;
+    const head=`<p class="day-title">🙏 ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ</p><p class="sub">ਪਾਠ ਦੀ ਬੁਕਿੰਗ ਤੋਂ ਬਿਨਾਂ, ਇੱਛਾ ਅਨੁਸਾਰ ਸੇਵਾ ਭੇਟਾ ਭੇਜੋ ਜੀ। ਰਸੀਦ WhatsApp ਤੇ ਆਵੇਗੀ। <span class="en">Seva bheta for Gurdwara Sahib without a path booking. The receipt comes on WhatsApp.</span></p>`;
+    if(!S.settings.upi){$('side').innerHTML=head+`<div class="note">ਆਨਲਾਈਨ ਭੇਟਾ ਹਾਲੇ ਚਾਲੂ ਨਹੀਂ। ਕਿਰਪਾ ਕਰਕੇ ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ ਵਿਖੇ ਸੇਵਾ ਭੇਟਾ ਜਮ੍ਹਾਂ ਕਰਾਓ ਜੀ।</div>`+close;return}
+    if(v.stage==='form'){
+      $('side').innerHTML=head+`<form id="sevaForm" novalidate>
+        <label for="s-name">ਨਾਮ / ਪਰਿਵਾਰ ਦਾ ਨਾਮ <span class="en">Name</span><input id="s-name" name="sname" maxlength="80" autocomplete="name" value="${G.esc(v.name||'')}"></label>
+        <label for="s-phone">ਫ਼ੋਨ ਨੰਬਰ (WhatsApp) <span class="en">Phone</span><input id="s-phone" name="sphone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" value="${G.esc(v.phone||'')}"></label>
+        <div class="row" style="margin:6px 0">${G.SEVA_PICKS.map(a=>`<button type="button" class="btn ghost svpick" data-v="${a}">${M$(a)}</button>`).join('')}</div>
+        <label for="s-amt">ਸੇਵਾ ਭੇਟਾ (₹) <span class="en">Amount</span><input id="s-amt" name="samt" type="number" min="1" max="100000" step="1" inputmode="numeric" value="${v.amount||''}"></label>
+        <label for="s-purpose">ਸੇਵਾ <span class="en">Towards</span><select id="s-purpose" name="spurpose">${G.SEVA_PURPOSES.map(([pa,en])=>`<option value="${pa} / ${en}"${v.purpose===pa+' / '+en?' selected':''}>${pa} · ${en}</option>`).join('')}</select></label>
+        ${privacyBox()}
+        <div id="sevaErr"></div>
+        <div class="row" style="margin-top:8px"><button class="btn" type="submit">ਅੱਗੇ · Continue</button><button class="btn ghost" type="button" data-sv-close>ਬੰਦ ਕਰੋ</button></div></form>`;
+      $('side').querySelectorAll('.svpick').forEach(b=>b.onclick=()=>{$('s-amt').value=b.dataset.v});return}
+    if(v.stage==='pay'){
+      $('side').innerHTML=head+`<div class="price"><div class="pr"><span>ਨਾਮ</span><b>${G.esc(v.name)}</b></div><div class="pr"><span>ਸੇਵਾ</span><b>${G.esc(v.purpose.split(' / ')[0])}</b></div>
+        <div class="pr total"><span>ਸੇਵਾ ਭੇਟਾ</span><b>${M$(v.amount)}</b></div><div class="hint">ਹਵਾਲਾ ਨੰਬਰ / Reference: <b>${v.ref}</b></div></div>
+        <div class="paybox" data-ref="${v.ref}" data-kind="sevaonly"><input class="amt" type="hidden" value="0"><input class="seva" type="hidden" value="${v.amount}">${upiButtons()}${payTail(v.ref,0,0)}
+        <div class="row" style="margin-top:8px"><button class="btn ghost" type="button" data-sv-back>← ਰਕਮ ਬਦਲੋ</button></div>`;return}
+    // done
+    $('side').innerHTML=head+`<div class="note good">ਧੰਨਵਾਦ ਜੀ! ਆਪ ਜੀ ਦੀ ${M$(v.amount)} ਸੇਵਾ ਭੇਟਾ ਦੀ ਜਾਣਕਾਰੀ ਮਿਲ ਗਈ ਹੈ। ਸੇਵਾਦਾਰ ਭੁਗਤਾਨ ਦੀ ਜਾਂਚ ਕਰਕੇ ਰਸੀਦ WhatsApp ਤੇ ਭੇਜਣਗੇ ਜੀ।
+      <span class="en">Thank you. A sevadar will check the payment and send your receipt on WhatsApp.</span></div>
+      <p>ਹਵਾਲਾ ਨੰਬਰ / Reference: <b class="sel">${v.ref}</b></p>
+      <div class="row"><a class="btn ghost" href="receipt.html?seva=${v.ref}" target="_blank" rel="noopener">ਰਸੀਦ / ਸਥਿਤੀ ਵੇਖੋ · Receipt or status</a></div>${close}`;
+  }
   function renderManage(){
     const M=S.mg,err=M.err?`<div class="note err">${G.esc(M.err)}</div>`:'';
     if(M.stage==='find'){
@@ -597,8 +631,9 @@
   function renderAll(){renderInfo();$('leadNote').textContent=`ਅਖੰਡ ਪਾਠ ਸਾਹਿਬ ਘੱਟੋ-ਘੱਟ ${G.leadDays(S.settings,'akhand')} ਦਿਨ ਅਤੇ ਸਹਿਜ ਪਾਠ ${G.leadDays(S.settings,'sehaj')} ਦਿਨ ਪਹਿਲਾਂ ਬੁੱਕ ਹੁੰਦਾ ਹੈ, ਛੇ ਮਹੀਨੇ ਅੱਗੇ ਤੱਕ ਜੀ।`;$('ruleBanner').innerHTML=ruleText();$('ruleBanner').hidden=!ruleText();$('gname').textContent=gname();document.title='ਪਾਠ ਬੁਕਿੰਗ · '+gname();renderCal();renderSide();renderFooter()}
 
   $('infoBox').addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.k)S.infoOpen[d.dataset.k]=d.open},true);
+  $('sevaBtn').onclick=()=>openSeva();
   $('infoBtn').onclick=()=>{S.infoOpen.inc=true;openInfo('inc')};
-  document.addEventListener('click',e=>{const b=e.target.closest('[data-info]');if(b)openInfo(b.dataset.info)});
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-info]');if(b)openInfo(b.dataset.info);if(e.target.closest('[data-seva-open]'))openSeva()});
   $('side').addEventListener('focusout',()=>setTimeout(()=>{if(S.pending&&!typing()){S.pending=false;renderAll()}},0));
   // Seva animation: Pause/Play, and still for people who prefer reduced motion.
   const sevaSvg=document.querySelector('.seva-art');
@@ -618,13 +653,15 @@
   $('dows').innerHTML=['ਸੋਮ','ਮੰਗਲ','ਬੁੱਧ','ਵੀਰ','ਸ਼ੁੱਕਰ','ਸ਼ਨੀ','ਐਤ'].map(d=>`<div class="dow">${d}</div>`).join('');
   $('prev').onclick=()=>{S.view=new Date(S.view.getFullYear(),S.view.getMonth()-1,1);renderCal()};
   $('next').onclick=()=>{S.view=new Date(S.view.getFullYear(),S.view.getMonth()+1,1);renderCal()};
-  $('days').onclick=e=>{const b=e.target.closest('.day');if(!b||b.disabled)return;S.sel=b.dataset.d;S.form=null;S.done=null;if(S.mg)S.mg.err='';renderCal();renderSide()};
-  $('manageBtn').onclick=()=>{S.mg={stage:'find'};S.form=null;S.done=null;renderAll();$('side').scrollIntoView({behavior:'smooth',block:'start'})};
+  $('days').onclick=e=>{const b=e.target.closest('.day');if(!b||b.disabled)return;S.sel=b.dataset.d;S.sv=null;S.form=null;S.done=null;if(S.mg)S.mg.err='';renderCal();renderSide()};
+  $('manageBtn').onclick=()=>{S.sv=null;S.mg={stage:'find'};S.form=null;S.done=null;renderAll();$('side').scrollIntoView({behavior:'smooth',block:'start'})};
 
   $('side').addEventListener('click',async e=>{
     const cp=e.target.closest('[data-copy]');
     if(cp){const txt=cp.dataset.copy;try{await navigator.clipboard.writeText(txt);cp.textContent='ਕਾਪੀ ਹੋ ਗਿਆ'}catch(x){cp.textContent='ਕਾਪੀ ਨਹੀਂ ਹੋਇਆ'}return}
     if(e.target.closest('[data-mg-close]')){S.mg=null;renderAll();return}
+    if(e.target.closest('[data-sv-close]')){S.sv=null;renderAll();return}
+    if(e.target.closest('[data-sv-back]')){S.sv.stage='form';renderSide();return}
     if(e.target.id==='doneClose'){S.done=null;renderAll();return}
     if(e.target.id==='moveBtn'){
       const M=S.mg,btn=e.target;btn.disabled=true;btn.textContent='ਬਦਲ ਰਹੇ ਹਾਂ…';
@@ -640,6 +677,20 @@
 
   $('side').addEventListener('submit',async e=>{
     e.preventDefault();
+    if(e.target.id==='sevaForm'){
+      const fm=e.target,name0=fm.sname.value.trim(),phone=fm.sphone.value.trim().replace(/\s+/g,' '),amount=Math.round(Number(fm.samt.value)||0),err=t=>{$('sevaErr').innerHTML=`<div class="note err">${t}</div>`};
+      if(name0.length<2)return err('ਆਪਣਾ ਜਾਂ ਪਰਿਵਾਰ ਦਾ ਨਾਮ ਭਰੋ ਜੀ।');
+      if(!/^[0-9+ \-]{7,20}$/.test(phone)||G.phoneKey(phone).length<10)return err('ਰਸੀਦ WhatsApp ਤੇ ਭੇਜਣ ਲਈ ਸਹੀ ਫ਼ੋਨ ਨੰਬਰ ਭਰੋ ਜੀ।');
+      if(!(amount>=1&&amount<=100000))return err('ਸੇਵਾ ਭੇਟਾ ਦੀ ਰਕਮ ਭਰੋ ਜੀ (₹1 ਤੋਂ ₹1,00,000)।');
+      const name=window.GPB_TRANSLIT&&GPB_TRANSLIT.hasLatin(name0)?GPB_TRANSLIT.convert(name0):name0;
+      Object.assign(S.sv,{stage:'pay',name,phone,amount,purpose:fm.spurpose.value,ref:S.sv.ref||G.makeSevaRef()});renderSide();$('side').scrollIntoView({behavior:'smooth',block:'start'});return}
+    if(e.target.classList.contains('payForm')&&e.target.closest('.paybox').dataset.kind==='sevaonly'){
+      const fm=e.target,pe=fm.querySelector('.payErr'),utr=fm.utr.value.trim().replace(/\s+/g,'');
+      if(!/^[0-9A-Za-z]{6,30}$/.test(utr)){pe.innerHTML='<div class="note err">ਭੁਗਤਾਨ ਤੋਂ ਬਾਅਦ UPI ਐਪ ਵਿੱਚ ਦਿਸਦਾ ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਨੰਬਰ (UTR, ਆਮ ਤੌਰ ਤੇ 12 ਅੰਕ) ਭਰੋ ਜੀ।</div>';return}
+      const btn=fm.querySelector('button');btn.disabled=true;btn.textContent='ਸੇਵ ਹੋ ਰਿਹਾ ਹੈ…';
+      try{await API.reportSevaOnly({ref:S.sv.ref,name:S.sv.name,phone:S.sv.phone,amount:S.sv.amount,purpose:S.sv.purpose,utr});API.notify(S.sv.ref,'seva_reported');S.sv.stage='done';S.sv.utr=utr;renderSide()}
+      catch(x){btn.disabled=false;btn.textContent='ਭੇਟਾ ਭੇਜ ਦਿੱਤੀ';pe.innerHTML='<div class="note err">ਸੇਵ ਨਹੀਂ ਹੋਇਆ। ਇੰਟਰਨੈੱਟ ਚੈੱਕ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ।</div>'}
+      return}
     if(e.target.classList.contains('payForm')){
       const fm=e.target,ref=fm.dataset.ref,pe=fm.querySelector('.payErr'),pb=fm.closest('.paybox');
       const utr=fm.utr.value.trim().replace(/\s+/g,''),amount=Math.round(Number(pb.querySelector('.amt').value)||0);

@@ -65,6 +65,7 @@
         <div id="feeRows" style="display:grid;gap:10px"></div>
         <label for="p-disc" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Discount when the whole amount is paid online <span class="hint">% of the bheta (0 to 50)</span></span><input id="p-disc" type="number" min="0" max="50" step="1" inputmode="numeric" style="width:120px"></label>
         <label for="p-prefix">Receipt number prefix <span class="hint">e.g. GBJS gives receipts like GBJS/2026-27/0001</span><input id="p-prefix" maxlength="12" autocomplete="off"></label>
+        <label for="p-eprefix">Payment voucher number prefix <span class="hint">Payments by the gurdwara (Pathi Singh bheta, expenses), e.g. EXP/2026-27/0001</span><input id="p-eprefix" maxlength="12" autocomplete="off"></label>
         <label for="p-rprefix">Refund voucher number prefix <span class="hint">Refunds get their own series, e.g. REFUND/2026-27/0001</span><input id="p-rprefix" maxlength="12" autocomplete="off"></label>
         <label for="p-sprefix">Seva receipt number prefix <span class="hint">Seva bheta has its own series, e.g. SEVA/2026-27/0001</span><input id="p-sprefix" maxlength="12" autocomplete="off"></label>
         <p class="hint" style="margin:0">A 20% advance is required within 48 hours of booking (online, or at the gurdwara). The first online payment must be at least 20%. Paying everything at the gurdwara gets no discount. A new discount applies to bookings made after you save.</p>
@@ -72,13 +73,81 @@
         <div class="row"><button class="btn" type="submit">Save payment settings</button></div>
       </form>
     </div>
+    <div class="panel" id="obPanel">
+      <h3>New booking at office</h3>
+      <p class="hint">For families who book at the gurdwara office. The minimum days ahead do not apply here, and money received now gets its receipt straight away.</p>
+      <form id="obForm" novalidate>
+        <div class="row" style="align-items:flex-end">
+          <label for="ob-type" style="width:auto">Path<select id="ob-type"></select></label>
+          <label for="ob-date" style="width:auto">Date (aarambh)<input id="ob-date" type="date"></label>
+        </div>
+        <label for="ob-name">Family name<input id="ob-name" maxlength="80" autocomplete="off"></label>
+        <label for="ob-phone">Phone (WhatsApp)<input id="ob-phone" type="tel" inputmode="tel" maxlength="20" autocomplete="off"></label>
+        <label for="ob-occ">Occasion<select id="ob-occ"></select></label>
+        <label for="ob-note">Note <span class="hint">optional</span><input id="ob-note" maxlength="300" autocomplete="off"></label>
+        <div class="row" style="align-items:flex-end">
+          <label for="ob-amt" style="width:auto">Path bheta received now (₹)<input id="ob-amt" type="number" min="0" step="1" inputmode="numeric" style="width:130px"></label>
+          <label for="ob-seva" style="width:auto">Seva bheta (₹)<input id="ob-seva" type="number" min="0" step="1" inputmode="numeric" value="0" style="width:110px"></label>
+          <label for="ob-mode" style="width:auto">Paid by<select id="ob-mode"><option>Cash</option><option>Cheque</option><option>Bank transfer</option><option>UPI at counter</option></select></label>
+        </div>
+        <div id="obMsg"></div>
+        <div class="row"><button class="btn" type="submit">Book and issue receipt</button></div>
+      </form>
+    </div>
+    <div class="panel" id="svPanel">
+      <h3>Seva bheta without path booking</h3>
+      <p class="hint">Online seva sent from the booking page waits here to be checked. Seva given at the office can be recorded below. Receipts use the SEVA series.</p>
+      <div id="svPending"></div>
+      <h4 style="margin:14px 0 4px">Record seva at gurdwara</h4>
+      <form id="svForm" novalidate>
+        <label for="sv-name">Name<input id="sv-name" maxlength="80" autocomplete="off"></label>
+        <label for="sv-phone">Phone (WhatsApp) <span class="hint">optional, for the receipt message</span><input id="sv-phone" type="tel" inputmode="tel" maxlength="20" autocomplete="off"></label>
+        <div class="row" style="align-items:flex-end">
+          <label for="sv-amt" style="width:auto">Amount (₹)<input id="sv-amt" type="number" min="1" step="1" inputmode="numeric" style="width:120px"></label>
+          <label for="sv-mode" style="width:auto">Paid by<select id="sv-mode"><option>Cash</option><option>Cheque</option><option>Bank transfer</option><option>UPI at counter</option></select></label>
+          <label for="sv-purpose" style="width:auto">Towards<select id="sv-purpose"></select></label>
+        </div>
+        <label for="sv-note">Note <span class="hint">optional</span><input id="sv-note" maxlength="200" autocomplete="off"></label>
+        <div id="svMsg"></div>
+        <div class="row"><button class="btn" type="submit">Save and issue seva receipt</button></div>
+      </form>
+      <h4 style="margin:14px 0 4px">Recent seva receipts</h4>
+      <div id="svList"></div>
+    </div>
+    <div class="panel" id="exPanel">
+      <h3>Payments by Gurdwara Sahib (expenses)</h3>
+      <p class="hint">Bheta paid to Pathi Singhs is best recorded from the booking itself (Pay Pathi Singh). Use this form for other payments. Each payment gets a voucher number (EXP series) with signature lines.</p>
+      <form id="exForm" novalidate>
+        <div class="row" style="align-items:flex-end">
+          <label for="ex-cat" style="width:auto">Type<select id="ex-cat"></select></label>
+          <label for="ex-name" style="width:auto">Paid to<input id="ex-name" list="payeeNames" maxlength="80" autocomplete="off"></label>
+          <label for="ex-amt" style="width:auto">Amount (₹)<input id="ex-amt" type="number" min="1" step="1" inputmode="numeric" style="width:120px"></label>
+          <label for="ex-mode" style="width:auto">Paid by<select id="ex-mode"><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Cheque</option></select></label>
+        </div>
+        <div class="row" style="align-items:flex-end">
+          <label for="ex-ref" style="width:auto">Booking reference <span class="hint">optional</span><input id="ex-ref" maxlength="6" autocomplete="off" style="width:110px;text-transform:uppercase"></label>
+          <label for="ex-note" style="min-width:0;flex:1">Note <span class="hint">optional, e.g. bill number</span><input id="ex-note" maxlength="200" autocomplete="off"></label>
+        </div>
+        <div id="exMsg"></div>
+        <div class="row"><button class="btn" type="submit">Save payment and voucher</button></div>
+      </form>
+      <div class="row" style="align-items:flex-end;margin-top:14px">
+        <label for="ex-from" style="width:auto">From<input id="ex-from" type="date"></label>
+        <label for="ex-to" style="width:auto">To<input id="ex-to" type="date"></label>
+        <button class="btn ghost" type="button" id="exXlsx">Download expenses (Excel)</button>
+        <button class="btn ghost" type="button" id="exPrint">Open all vouchers to print</button>
+      </div>
+      <div id="exSummary" class="meta" style="margin-top:8px"></div>
+      <div id="exList"></div>
+      <datalist id="payeeNames"></datalist>
+    </div>
     <div class="panel" id="rcPanel">
       <h3>Receipts</h3>
       <p class="hint">Download all receipts for a period as Excel, or open them all as one printable file (one receipt per page) and save it as PDF into your receipts folder.</p>
       <div class="row" style="align-items:flex-end">
         <label for="rc-from" style="width:auto">From<input id="rc-from" type="date"></label>
         <label for="rc-to" style="width:auto">To<input id="rc-to" type="date"></label>
-        <label for="rc-type" style="width:auto">Type<select id="rc-type"><option value="all">Path and seva</option><option value="path">Path bheta only</option><option value="seva">Seva bheta only</option></select></label>
+        <label for="rc-type" style="width:auto">Type<select id="rc-type"><option value="all">Path and seva</option><option value="path">Path bheta only</option><option value="seva">Seva bheta only</option><option value="expense">Payment vouchers (expenses)</option></select></label>
       </div>
       <div class="row" style="margin-top:8px"><button class="btn" type="button" id="rcXlsx">Download receipts (Excel)</button><button class="btn ghost" type="button" id="rcPrint">Open all receipts to print or save as PDF</button></div>
       <div id="rcMsg" class="hint" style="margin-top:6px"></div>
@@ -87,6 +156,7 @@
       <form id="numForm">
         <label for="n-path" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next path receipt number <span class="hint" id="n-path-last"></span></span><input id="n-path" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
         <label for="n-seva" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next seva receipt number <span class="hint" id="n-seva-last"></span></span><input id="n-seva" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
+<label for="n-exp" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next payment voucher number <span class="hint" id="n-exp-last"></span></span><input id="n-exp" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
         <div id="numMsg"></div>
         <div class="row"><button class="btn" type="submit">Save receipt numbers</button></div>
       </form>
@@ -133,7 +203,7 @@
 <script>
 (function(){
   const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
-  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},open:{},cashOpen:{},voidOpen:{},refundOpen:{},cancelOpen:{},filter:'all',st:'upcoming',watching:false};
+  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},expenses:{},expOpen:{},exVoid:{},open:{},cashOpen:{},voidOpen:{},refundOpen:{},cancelOpen:{},filter:'all',st:'upcoming',watching:false};
   $('demoBar').hidden=!API.demo;
   $('filter').innerHTML+=G.TYPES.map(t=>`<option value="${t.key}">${t.en}</option>`).join('');
   const FILTERS=[['upcoming','Upcoming bookings'],['due','Advance due'],['checking','Payment being checked'],['partial','Part paid'],['paid','Fully paid'],['pastdue','Bhog done, balance pending'],['noshow','No-show'],['cancelled','Cancelled'],['expired','Cancelled, advance not paid']];
@@ -167,6 +237,7 @@
   function dupUtr(utr,selfId){const u=String(utr||'').toUpperCase();if(!u)return'';const hits=[];
     for(const [id,r] of Object.entries(S.reports))if(id!==selfId&&String(r.utr||'').toUpperCase()===u)hits.push(`${r.ref}${r.status==='verified'?' (confirmed'+(r.receiptNo?', '+r.receiptNo:'')+')':r.status==='rejected'?' (marked not received)':' (waiting)'}`);
     for(const [ref,l] of Object.entries(S.lookups))(l.receipts||[]).forEach(x=>{if(String(x.utr||'').toUpperCase()===u&&!hits.some(h=>h.indexOf(x.no)>=0))hits.push(`${ref} (receipt ${x.no})`)});
+    for(const [ref,d] of Object.entries(S.sevaonly||{}))if(ref!==selfId&&String(d.utr||'').toUpperCase()===u)hits.push(`${ref} (seva${d.receipt?', '+d.receipt.no:''})`);
     return hits.length?`<div class="warn">⚠ This UTR was already used: ${G.esc(hits.join('; '))}. Check carefully in the bank app before confirming.</div>`:''}
   // Warning when the same phone number holds other unpaid upcoming bookings.
   function shortAdvance(b){const a=b.a;return b.l&&!b.l.closed&&a.paid>0&&a.paid<a.advance&&a.due?`<div class="warn">⚠ Received ${M$(a.paid)}, less than the 20% advance (${M$(a.advance)}). This booking will not be cancelled automatically; please follow up.</div>`:''}
@@ -189,6 +260,7 @@
     if(b.st==='pastdue')acts.push(`<button class="linkbtn" data-noshow="${G.esc(ref)}">Close as no-show (keep payment received)</button>`);
     if(l&&l.closed==='noshow')acts.push(`<button class="linkbtn" data-reopen="${G.esc(ref)}">Reopen</button>`);
     if(ref&&l&&a.paid>0)acts.push(`<button class="linkbtn" data-refund="${G.esc(ref)}">Record refund</button>`);
+    if(ref&&l&&l.closed!=='expired')acts.push(`<button class="linkbtn" data-exp="${G.esc(ref)}">Pay Pathi Singh</button>`);
     if(canDelete)acts.push(`<button class="linkbtn danger-text" data-delete="${G.esc(ref)}">Delete entry (no payment)</button>`);
     // Receipts with Void; refunds with their vouchers.
     const rlist=(arr,kind,q,label)=>arr&&arr.length?`<div class="meta">${label}: ${arr.map((x,i)=>{const k=`${ref}|${kind}|${i}`;
@@ -214,9 +286,25 @@
     return `<div class="bitem"><div class="bdate">${G.fmtShort(b.start)}<small>${G.fmtDow(b.start)}</small></div>
       <div class="bmain"><div class="who">${t?t.en:G.esc(b.type)}</div>
       <div class="meta">${G.esc(b.name)} parivar${v?' · '+G.esc(v.occasion):''}${v&&(G.capOf(S.settings,v.type)>1||(v.seat||1)>1)?' · Place '+(v.seat||1):''}${t&&t.days>1?' · Bhog '+G.fmtShort(G.add(b.start,2)):''}</div>
-      <div style="margin:4px 0">${G.chip(b.st)}</div>${samePhone(b)}${shortAdvance(b)}${amounts}${pend}${rc}${sr}${rf}
-      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${refundForm}${cancelForm}${details}</div>
+      <div style="margin:4px 0">${G.chip(b.st)}</div>${samePhone(b)}${shortAdvance(b)}${amounts}${pend}${rc}${sr}${rf}${ref?paidOut(ref,a):''}
+      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${refundForm}${cancelForm}${ref&&S.expOpen[ref]?expForm(ref,t):''}${details}</div>
       ${b.id&&b.start>=G.today&&!(l&&l.closed)?`<button class="btn danger" data-cancel="${b.id}">Cancel</button>`:'<span></span>'}</div>`;
+  }
+  // Money the gurdwara paid out for this path (Pathi Singhs etc.), with what is left.
+  const expOf=ref=>Object.entries(S.expenses||{}).filter(([,e])=>e.ref===ref).sort((x,y)=>String(x[1].date).localeCompare(String(y[1].date)));
+  function paidOut(ref,a){const list=expOf(ref);if(!list.length)return'';
+    const out=list.reduce((s,[,e])=>s+(e.void?0:Number(e.amount)||0),0);
+    return `<div class="meta">Paid out: ${list.map(([id,e])=>`<span class="rcitem${e.void?' voided':''}"><a href="receipt.html?exp=${id}" target="_blank" rel="noopener">${G.esc(e.no)}</a> ${G.esc(e.name)} ${M$(e.amount)} ${G.esc(e.method)}${e.void?' <b>VOID</b>':''}</span>`).join(' · ')}
+      · <b>Received ${M$(a.paid)} − paid out ${M$(out)} = ${M$(a.paid-out)}</b></div>`}
+  function expForm(ref,t){
+    return `<form class="expForm" data-ref="${G.esc(ref)}"><div class="row" style="align-items:flex-end">
+        <label style="width:auto">For<select name="cat">${G.EXPENSE_TYPES.slice(0,3).map(c=>`<option>${c}</option>`).join('')}</select></label>
+        <label style="width:auto">Pathi Singh name<input name="name" list="payeeNames" maxlength="80" autocomplete="off"></label>
+        <label style="width:auto">Amount (₹)<input name="amt" type="number" min="1" step="1" inputmode="numeric" style="width:110px"></label>
+        <label style="width:auto">Paid by<select name="method"><option>Cash</option><option>UPI</option><option>Bank transfer</option><option>Cheque</option></select></label>
+        <label style="width:auto">Note<input name="note" maxlength="120" placeholder="optional, e.g. raul 2"></label></div>
+        <div class="row"><button class="btn" type="submit">Save and make voucher</button><button class="btn ghost" type="button" data-expclose="${G.esc(ref)}">Close</button></div>
+        <div class="hint">For ${t?t.en:''}. A payment voucher with its own number (EXP series) is made, with signature lines. Add one entry per Pathi Singh.</div></form>`;
   }
   function voidForm(k,x){
     return `<form class="voidForm" data-k="${G.esc(k)}"><div class="row">
@@ -235,7 +323,7 @@
     if(!$('ruleForm').contains(document.activeElement)){$('r-hold').value=G.holdHours(s);
       $('leadRows').innerHTML=G.TYPES.map(t=>`<label for="lead-${t.key}" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">${t.en}: book at least <span class="hint">days ahead (1 to 90). Keep 3 or more so the 48-hour advance and date-change window end before the path.</span></span><input id="lead-${t.key}" type="number" min="1" max="90" step="1" inputmode="numeric" style="width:120px" value="${G.leadDays(s,t.key)}"></label>`).join('');$('r-policy').value=s.policy||G.DEFAULT_POLICY}
     if(!$('payForm').contains(document.activeElement)){
-      $('p-upi').value=s.upi||'';$('p-payee').value=s.payee||'';$('p-disc').value=G.discountPct(s);$('p-prefix').value=s.receiptPrefix||'RCPT';$('p-sprefix').value=s.sevaPrefix||'SEVA';$('p-rprefix').value=s.refundPrefix||'REFUND';
+      $('p-upi').value=s.upi||'';$('p-payee').value=s.payee||'';$('p-disc').value=G.discountPct(s);$('p-prefix').value=s.receiptPrefix||'RCPT';$('p-sprefix').value=s.sevaPrefix||'SEVA';$('p-rprefix').value=s.refundPrefix||'REFUND';$('p-eprefix').value=s.expensePrefix||'EXP';
       $('feeRows').innerHTML=G.TYPES.map(t=>`<label for="fee-${t.key}" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">${t.en} <span class="hint">₹ amount</span></span>
         <input id="fee-${t.key}" type="number" min="0" max="1000000" step="1" inputmode="numeric" value="${G.feeOf(s,t.key)}" style="width:120px"></label>`).join('');
     }
@@ -258,7 +346,7 @@
       $('loginErr').innerHTML='<div class="note err">This account is not on the committee list. Add its User UID to the admins collection (see README, Step 5).</div>';return}
     $('loginPanel').hidden=!!user;$('adminArea').hidden=!user;
     if(user&&!S.watching){S.watching=true;
-      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports,counters:d.counters||{}});if(!busy())renderList();renderNums()});
+      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports,counters:d.counters||{},sevaonly:d.sevaonly||{},sevacontacts:d.sevacontacts||{},expenses:d.expenses||{}});if(!busy())renderList();renderNums();renderSeva();renderExpenses()});
       API.watchSettings(s=>{S.settings=s;renderSettings();renderList()});}
   });
 
@@ -286,7 +374,7 @@
       return {'Path date':b.start,'Day':G.fmtDow(b.start),'Path':t?t.en:b.type,'Bhog date':G.bhogDate(b.type,b.start),'Place':v.seat||'',
         'Family name':b.name,'Phone':c.phone||'','Occasion':v.occasion||'','Note':c.note||'','Reference':b.ref||'',
         'Bheta (Rs)':a.total,'Online discount (Rs)':a.disc&&!a.cash?a.disc:0,'Paid online (Rs)':a.online,'Paid at gurdwara (Rs)':a.cash,
-        'Refunded (Rs)':a.refunded||0,'Total paid (Rs)':a.paid,'Balance (Rs)':a.due,'Seva bheta (Rs)':G.sevaOf(l),'Status':label(b.st),'Payment being checked':l.checking?'Yes':'',
+        'Refunded (Rs)':a.refunded||0,'Total paid (Rs)':a.paid,'Balance (Rs)':a.due,'Paid out (Rs)':b.ref?expOf(b.ref).reduce((s,[,e])=>s+(e.void?0:Number(e.amount)||0),0):0,'Seva bheta (Rs)':G.sevaOf(l),'Status':label(b.st),'Payment being checked':l.checking?'Yes':'',
         'Booked on':v.bookedAt?new Date(G.bookedMs(v)).toLocaleString('en-IN'):'','Date changed':l.prev?'Yes':''}});
     const rec=[];
     for(const [ref,l] of Object.entries(S.lookups)){const t=G.typeOf(l.type);
@@ -294,6 +382,9 @@
         'Path':t?t.en:l.type,'Path date':l.start,'Amount (Rs)':kind==='Refund'?-r.amount:r.amount,'Mode':r.method,'UTR':r.utr||'',
         'Status':r.void?'VOID':'Valid','Reason':r.void?[r.void.reason,r.void.note].filter(Boolean).join(' · '):kind==='Refund'?[r.reason,r.note].filter(Boolean).join(' · '):''});
       (l.receipts||[]).forEach(r=>add(r,'Path bheta'));(l.sevaReceipts||[]).forEach(r=>add(r,'Seva bheta'));(l.refunds||[]).forEach(r=>add(r,'Refund'))}
+    for(const [ref,d] of Object.entries(S.sevaonly||{})){const r=d.receipt;if(!r)continue;
+      rec.push({'Receipt no.':r.no,'Type':'Seva bheta (no booking)','Date':new Date(r.date).toLocaleString('en-IN'),'Reference':ref,'Family name':d.name,'Path':d.purpose||'','Path date':'',
+        'Amount (Rs)':r.amount,'Mode':r.method,'UTR':r.utr||'','Status':r.void?'VOID':'Valid','Reason':r.void?[r.void.reason,r.void.note].filter(Boolean).join(' · '):''})}
     rec.sort((x,y)=>x.Type!==y.Type?(x.Type<y.Type?-1:1):x['Receipt no.']<y['Receipt no.']?-1:1);
     const wb=XLSX.utils.book_new();
     const ws1=XLSX.utils.json_to_sheet(rows.length?rows:[{'Path date':'No bookings yet'}]);
@@ -301,6 +392,8 @@
     const ws2=XLSX.utils.json_to_sheet(rec.length?rec:[{'Receipt no.':'No receipts yet'}]);
     ws2['!cols']=[22,12,20,10,18,24,12,12,14,16,8,30].map(w=>({wch:w}));
     XLSX.utils.book_append_sheet(wb,ws1,'Bookings');XLSX.utils.book_append_sheet(wb,ws2,'Receipts');
+    const ex=expenseRows('0000','9999');const ws3=XLSX.utils.json_to_sheet(ex.length?ex:[{'Voucher no.':'No payments yet'}]);ws3['!cols']=[20,20,22,24,10,24,12,12,12,30,8,24].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws3,'Expenses');
     try{XLSX.writeFile(wb,`path-bookings-${G.today}.xlsx`);$('xlsxMsg').textContent=`Downloaded ${rows.length} bookings and ${rec.length} receipts. Check your Downloads folder.`}
     catch(x){$('xlsxMsg').textContent='Could not create the file. Try again, or use a computer browser.'}
   };
@@ -326,7 +419,7 @@
     const ro=e.target.closest('[data-reopen]');if(ro){ro.disabled=true;try{await API.setClosed(ro.dataset.reopen,'')}catch(x){ro.disabled=false}return}
     const tog=(attr,map,val)=>{const el=e.target.closest(`[${attr}]`);if(!el)return false;map[el.getAttribute(attr)]=val;renderList();return true};
     if(tog('data-void',S.voidOpen,true)||tog('data-voidclose',S.voidOpen,false)||tog('data-refund',S.refundOpen,true)||tog('data-refclose',S.refundOpen,false)
-      ||tog('data-cancel',S.cancelOpen,true)||tog('data-cancelclose',S.cancelOpen,false))return;
+      ||tog('data-cancel',S.cancelOpen,true)||tog('data-cancelclose',S.cancelOpen,false)||tog('data-exp',S.expOpen,true)||tog('data-expclose',S.expOpen,false))return;
     const del=e.target.closest('[data-delete]');
     if(del){if(del.dataset.armed!=='1'){del.dataset.armed='1';del.textContent='Tap again to delete for good';setTimeout(()=>{if(del.isConnected){del.dataset.armed='';del.textContent='Delete entry (no payment)'}},4000);return}
       const ref=del.dataset.delete,ids=Object.entries(S.reports).filter(([,r])=>r.ref===ref).map(([id])=>id);
@@ -340,6 +433,11 @@
     if(fm.classList.contains('refundForm')){e.preventDefault();const ref=fm.dataset.ref,l=S.lookups[ref],paid=l?G.account(l).paid:0,amt=Math.round(Number(fm.amt.value)||0);
       if(!(amt>=1&&amt<=paid)){fm.amt.focus();return}btn.disabled=true;
       try{const no=await API.refund(ref,amt,fm.method.value,fm.reason.value,fm.note.value.trim());API.notify(ref,'refund');S.refundOpen[ref]=false;document.activeElement.blur();renderList()}
+      catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
+    if(fm.classList.contains('expForm')){e.preventDefault();const ref=fm.dataset.ref,l=S.lookups[ref],name=fm.name.value.trim(),amount=Math.round(Number(fm.amt.value)||0);
+      if(name.length<2){fm.name.focus();return}if(!(amount>=1)){fm.amt.focus();return}btn.disabled=true;
+      try{await API.addExpense({category:fm.cat.value,name,amount,method:fm.method.value,note:fm.note.value.trim(),ref,pathType:l?l.type:'',pathDate:l?l.start:''});
+        fm.name.value='';fm.amt.value='';fm.note.value='';btn.disabled=false;document.activeElement.blur()}
       catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
     if(fm.classList.contains('cancelForm')){e.preventDefault();btn.disabled=true;
       try{const ref=await API.cancel(fm.dataset.id,fm.reason.value);if(ref)API.notify(ref,'cancelled');S.cancelOpen[fm.dataset.id]=false;document.activeElement.blur()}
@@ -372,10 +470,10 @@
     catch(x){$('capMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
   $('payForm').onsubmit=async e=>{e.preventDefault();
     const upi=$('p-upi').value.trim(),payee=$('p-payee').value.trim(),fees={};
-    const onlineDiscountPct=Math.min(50,Math.max(0,Math.round(Number($('p-disc').value)||0))),receiptPrefix=($('p-prefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'RCPT').toUpperCase(),sevaPrefix=($('p-sprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'SEVA').toUpperCase(),refundPrefix=($('p-rprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'REFUND').toUpperCase();
+    const onlineDiscountPct=Math.min(50,Math.max(0,Math.round(Number($('p-disc').value)||0))),receiptPrefix=($('p-prefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'RCPT').toUpperCase(),sevaPrefix=($('p-sprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'SEVA').toUpperCase(),refundPrefix=($('p-rprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'REFUND').toUpperCase(),expensePrefix=($('p-eprefix').value.trim().replace(/[^A-Za-z0-9-]/g,'')||'EXP').toUpperCase();
     if(upi&&!/^[A-Za-z0-9._-]{2,}@[A-Za-z][A-Za-z0-9.-]{1,}$/.test(upi)){$('payMsg').innerHTML='<div class="note err">That UPI ID does not look right. It should look like name@bank.</div>';return}
     for(const t of G.TYPES){const n=Number($('fee-'+t.key).value||0);if(!(n>=0&&n<=1000000)){$('payMsg').innerHTML=`<div class="note err">Enter an amount from 0 for ${t.en}.</div>`;return}fees[t.key]=Math.round(n)}
-    try{await API.saveSettings({...S.settings,upi,payee,fees,onlineDiscountPct,receiptPrefix,sevaPrefix,refundPrefix});$('payMsg').innerHTML=`<div class="note good">Saved. ${upi?'The booking page now shows UPI payment where an amount is set.':'Online payment is off until you add a UPI ID.'}</div>`}
+    try{await API.saveSettings({...S.settings,upi,payee,fees,onlineDiscountPct,receiptPrefix,sevaPrefix,refundPrefix,expensePrefix});$('payMsg').innerHTML=`<div class="note good">Saved. ${upi?'The booking page now shows UPI payment where an amount is set.':'Online payment is off until you add a UPI ID.'}</div>`}
     catch(x){$('payMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
   // ---------- Receipts: numbering and bulk download ----------
   const fyStart=()=>{const d=new Date(),y=d.getMonth()<3?d.getFullYear()-1:d.getFullYear();return `${y}-04-01`};
@@ -387,8 +485,12 @@
       if(type!=='seva')(l.receipts||[]).forEach((r,i)=>add(r,'Path bheta',i));
       if(type!=='path')(l.sevaReceipts||[]).forEach((r,i)=>add(r,'Seva bheta',i));
       if(type==='all')(l.refunds||[]).forEach((r,i)=>add(r,'Refund',i))}
+    if(type==='expense')return [];
+    if(type!=='path')for(const [ref,d] of Object.entries(S.sevaonly||{})){const r=d.receipt;if(!r)continue;const day=G.iso(new Date(r.date));
+      if(day>=from&&day<=to)out.push({ref,l:{name:d.name,type:'',start:''},r,kind:'Seva bheta (no booking)',t:{en:d.purpose||'Seva'},day})}
     return out.sort((a,b)=>a.kind!==b.kind?(a.kind<b.kind?-1:1):G.receiptSerial(a.r.no)-G.receiptSerial(b.r.no))}
   $('rcXlsx').onclick=()=>{if(typeof XLSX==='undefined'){$('rcMsg').textContent='The Excel tool did not load. Check your internet connection and reload the page.';return}
+    if($('rc-type').value==='expense'){$('ex-from').value=$('rc-from').value;$('ex-to').value=$('rc-to').value;renderExpenses();return $('exXlsx').click()}
     const list=allReceipts();if(!list.length){$('rcMsg').textContent='No receipts in this period.';return}
     const rows=list.map(x=>({'Receipt no.':x.r.no,'Type':x.kind,'Date':new Date(x.r.date).toLocaleString('en-IN'),'Reference':x.ref,'Family name':x.l.name,
       'Path':x.t?x.t.en:x.l.type,'Path date':x.l.start,'Amount (Rs)':x.kind==='Refund'?-x.r.amount:x.r.amount,'Mode':x.r.method,'UTR':x.r.utr||'',
@@ -396,22 +498,139 @@
     const tot=list.reduce((s,x)=>s+(x.r.void?0:x.kind==='Refund'?-x.r.amount:(Number(x.r.amount)||0)),0);rows.push({'Receipt no.':'TOTAL (valid receipts less refunds)','Amount (Rs)':tot});
     const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[22,12,20,10,18,24,12,12,14,16,8,30].map(w=>({wch:w}));
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Receipts');
+    // Second tab: money paid out by the gurdwara in the same period (Pathi Singh bheta etc.), then a short summary.
+    const ex=expenseRows($('rc-from').value||'0000',$('rc-to').value||'9999');const ws2=XLSX.utils.json_to_sheet(ex.length?ex:[{'Voucher no.':'No payments in this period'}]);
+    ws2['!cols']=[20,20,22,24,10,24,12,12,12,30,8,24].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws2,'Expenses');
+    const out=ex.length?ex[ex.length-1]['Amount (Rs)']:0;
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{'Item':'Received (valid receipts less refunds)','Amount (Rs)':tot},{'Item':'Paid out (valid vouchers)','Amount (Rs)':out},{'Item':'Net','Amount (Rs)':tot-out}]),'Summary');
     try{XLSX.writeFile(wb,`receipts-${$('rc-from').value}-to-${$('rc-to').value}.xlsx`);$('rcMsg').textContent=`Downloaded ${list.length} receipts, total ${M$(tot)}. Check your Downloads folder.`}
     catch(e){$('rcMsg').textContent='Could not create the file. Try again.'}};
   $('rcPrint').onclick=()=>{const u=`receipt.html?all=1&from=${encodeURIComponent($('rc-from').value)}&to=${encodeURIComponent($('rc-to').value)}&type=${$('rc-type').value}`;window.open(u,'_blank')};
   function lastIssued(key){let m=0;const fy=G.finYear();
-    for(const l of Object.values(S.lookups||{}))((key==='seva'?l.sevaReceipts:l.receipts)||[]).forEach(r=>{if(String(r.no).includes('/'+fy+'/'))m=Math.max(m,G.receiptSerial(r.no))});return m}
+    if(key==='expense'){for(const e of Object.values(S.expenses||{}))if(String(e.no).includes('/'+fy+'/'))m=Math.max(m,G.receiptSerial(e.no));return m}
+    for(const l of Object.values(S.lookups||{}))((key==='seva'?l.sevaReceipts:l.receipts)||[]).forEach(r=>{if(String(r.no).includes('/'+fy+'/'))m=Math.max(m,G.receiptSerial(r.no))});
+    if(key==='seva')for(const d of Object.values(S.sevaonly||{}))if(d.receipt&&String(d.receipt.no).includes('/'+fy+'/'))m=Math.max(m,G.receiptSerial(d.receipt.no));return m}
   function nextOf(key){const c=(S.counters||{})[key];return c&&c.fy===G.finYear()?c.next:lastIssued(key)+1}
   function renderNums(){if($('numForm').contains(document.activeElement))return;
-    for(const [key,id] of [['receipts','path'],['seva','seva']]){$('n-'+id).value=nextOf(key);const li=lastIssued(key);
+    for(const [key,id] of [['receipts','path'],['seva','seva'],['expense','exp']]){$('n-'+id).value=nextOf(key);const li=lastIssued(key);
       $(`n-${id}-last`).textContent=li?`(last issued this year: ${li})`:'(none issued this year yet)'}}
-  $('numForm').onsubmit=async e=>{e.preventDefault();const vals={receipts:Math.round(Number($('n-path').value)||0),seva:Math.round(Number($('n-seva').value)||0)};
+  $('numForm').onsubmit=async e=>{e.preventDefault();const vals={receipts:Math.round(Number($('n-path').value)||0),seva:Math.round(Number($('n-seva').value)||0),expense:Math.round(Number($('n-exp').value)||0)};
     for(const [k,v] of Object.entries(vals)){const li=lastIssued(k);
       if(!(v>=1&&v<=9999999)){$('numMsg').innerHTML='<div class="note err">Enter a number from 1.</div>';return}
-      if(v<=li){$('numMsg').innerHTML=`<div class="note err">${k==='seva'?'Seva':'Path'} receipt ${li} has already been issued this year. Choose ${li+1} or higher so no number repeats.</div>`;return}}
-    try{await API.setNextReceipt('receipts',vals.receipts);await API.setNextReceipt('seva',vals.seva);
-      document.activeElement.blur();$('numMsg').innerHTML=`<div class="note good">Saved. The next path receipt will be no. ${vals.receipts} and the next seva receipt no. ${vals.seva}.</div>`}
+      if(v<=li){$('numMsg').innerHTML=`<div class="note err">${k==='seva'?'Seva receipt':k==='expense'?'Payment voucher':'Path receipt'} ${li} has already been issued this year. Choose ${li+1} or higher so no number repeats.</div>`;return}}
+    try{await API.setNextReceipt('receipts',vals.receipts);await API.setNextReceipt('seva',vals.seva);await API.setNextReceipt('expense',vals.expense);
+      document.activeElement.blur();$('numMsg').innerHTML=`<div class="note good">Saved. Next numbers: path receipt ${vals.receipts}, seva receipt ${vals.seva}, payment voucher ${vals.expense}.</div>`}
     catch(x){$('numMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
+  // ---------- Payments by the gurdwara (expenses) ----------
+  $('ex-cat').innerHTML=G.EXPENSE_TYPES.map(c=>`<option>${c}</option>`).join('');
+  $('ex-from').value=fyStart();$('ex-to').value=G.today;
+  function expenseRows(from,to){const out=[];
+    for(const [id,e] of Object.entries(S.expenses||{})){const day=G.iso(new Date(e.date));if(day<from||day>to)continue;const t=G.typeOf(e.pathType);
+      out.push({'Voucher no.':e.no,'Date':new Date(e.date).toLocaleString('en-IN'),'Type':e.category,'Paid to':e.name,'Booking ref':e.ref||'','Path':t?t.en:'','Path date':e.pathDate||'',
+        'Amount (Rs)':e.amount,'Mode':e.method,'Note':e.note||'','Status':e.void?'VOID':'Valid','Void reason':e.void?[e.void.reason,e.void.note].filter(Boolean).join(' · '):''})}
+    out.sort((a,b)=>G.receiptSerial(a['Voucher no.'])-G.receiptSerial(b['Voucher no.']));
+    const tot=out.reduce((s,r)=>s+(r.Status==='VOID'?0:r['Amount (Rs)']),0);if(out.length)out.push({'Voucher no.':'TOTAL (valid)','Amount (Rs)':tot});return out}
+  function renderExpenses(){
+    const names=new Set([...Object.values(S.expenses||{}).map(e=>e.name),...((S.settings&&S.settings.granthis)||[]).map(g=>g.name)].filter(Boolean));
+    $('payeeNames').innerHTML=[...names].map(n=>`<option value="${G.esc(n)}">`).join('');
+    if($('exPanel').contains(document.activeElement)&&document.activeElement.tagName!=='BUTTON')return;
+    const from=$('ex-from').value||'0000',to=$('ex-to').value||'9999';
+    const list=Object.entries(S.expenses||{}).filter(([,e])=>{const d=G.iso(new Date(e.date));return d>=from&&d<=to}).sort((x,y)=>String(y[1].date).localeCompare(String(x[1].date)));
+    const byCat={};list.forEach(([,e])=>{if(!e.void)byCat[e.category]=(byCat[e.category]||0)+(Number(e.amount)||0)});
+    const tot=Object.values(byCat).reduce((s,v)=>s+v,0);
+    $('exSummary').innerHTML=list.length?`Total paid out in this period: <b>${M$(tot)}</b>${Object.keys(byCat).length?' · '+Object.entries(byCat).map(([c,v])=>`${G.esc(c)} ${M$(v)}`).join(' · '):''}`:'No payments in this period.';
+    $('exList').innerHTML=list.slice(0,40).map(([id,e])=>`<div class="meta" style="margin:6px 0"><span class="rcitem${e.void?' voided':''}"><a href="receipt.html?exp=${id}" target="_blank" rel="noopener">${G.esc(e.no)}</a>
+      · ${G.esc(e.category)} · ${G.esc(e.name)} · ${M$(e.amount)} ${G.esc(e.method)}${e.ref?' · '+G.esc(e.ref):''} · ${new Date(e.date).toLocaleDateString('en-IN')}${e.void?` <b>VOID</b>: ${G.esc(e.void.reason)}`:` <button class="linkbtn" data-exvoid="${id}">Void</button>`}</span>
+      ${S.exVoid[id]&&!e.void?`<form class="exVoidForm" data-id="${id}"><div class="row"><label style="width:auto">Why void?<select name="reason">${G.VOID_REASONS.map(x=>`<option>${x}</option>`).join('')}</select></label>
+        <label style="width:auto">Note<input name="note" maxlength="120" placeholder="optional"></label><button class="btn danger" type="submit">Void voucher</button><button class="btn ghost" type="button" data-exvoidclose="${id}">Close</button></div></form>`:''}</div>`).join('');
+  }
+  ['ex-from','ex-to'].forEach(id=>$(id).addEventListener('change',()=>{document.activeElement.blur();renderExpenses()}));
+  $('exPanel').addEventListener('click',e=>{const v=e.target.closest('[data-exvoid]'),c=e.target.closest('[data-exvoidclose]');
+    if(v){S.exVoid[v.dataset.exvoid]=true;renderExpenses()}if(c){S.exVoid[c.dataset.exvoidclose]=false;renderExpenses()}});
+  $('exPanel').addEventListener('submit',async e=>{
+    if(e.target.classList.contains('exVoidForm')){e.preventDefault();const fm=e.target;
+      try{await API.voidExpense(fm.dataset.id,fm.reason.value,fm.note.value.trim());S.exVoid[fm.dataset.id]=false;document.activeElement.blur();renderExpenses()}
+      catch(x){fm.querySelector('[type=submit]').textContent='Could not save. Retry'}return}
+    if(e.target.id!=='exForm')return;e.preventDefault();const msg=t=>{$('exMsg').innerHTML=t},btn=$('exForm').querySelector('[type=submit]');
+    const name=$('ex-name').value.trim(),amount=Math.round(Number($('ex-amt').value)||0),ref=$('ex-ref').value.trim().toUpperCase(),l=ref?S.lookups[ref]:null;
+    if(name.length<2)return msg('<div class="note err">Enter who was paid.</div>');
+    if(!(amount>=1))return msg('<div class="note err">Enter the amount.</div>');
+    if(ref&&!l)return msg('<div class="note err">No booking with that reference. Leave it empty if this payment is not for a path.</div>');
+    btn.disabled=true;
+    try{const id=await API.addExpense({category:$('ex-cat').value,name,amount,method:$('ex-mode').value,note:$('ex-note').value.trim(),ref:ref||'',pathType:l?l.type:'',pathDate:l?l.start:''});
+      msg(`<div class="note good">Saved. <a href="receipt.html?exp=${id}" target="_blank" rel="noopener">Open voucher</a> to print and get it signed.</div>`);
+      ['ex-name','ex-amt','ex-ref','ex-note'].forEach(i=>$(i).value='');document.activeElement.blur();renderExpenses()}
+    catch(x){msg('<div class="note err">Could not save. Check your internet connection, and that the latest Firebase rules are published.</div>')}
+    btn.disabled=false});
+  $('exXlsx').onclick=()=>{if(typeof XLSX==='undefined')return alert('The Excel tool did not load. Reload the page.');
+    const rows=expenseRows($('ex-from').value||'0000',$('ex-to').value||'9999');if(!rows.length){$('exSummary').textContent='No payments in this period.';return}
+    const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[20,20,22,24,10,24,12,12,12,30,8,24].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Expenses');
+    XLSX.writeFile(wb,`expenses-${$('ex-from').value}-to-${$('ex-to').value}.xlsx`)};
+  $('exPrint').onclick=()=>window.open(`receipt.html?all=1&from=${encodeURIComponent($('ex-from').value)}&to=${encodeURIComponent($('ex-to').value)}&type=expense`,'_blank');
+  // ---------- New booking at office ----------
+  $('ob-type').innerHTML=G.TYPES.map(t=>`<option value="${t.key}">${t.pa} · ${t.en}</option>`).join('');
+  $('ob-occ').innerHTML=G.OCCASIONS.map(o=>`<option>${o}</option>`).join('');
+  $('ob-date').min=G.add(G.today,1);
+  const obFee=()=>{const k=$('ob-type').value;if(S.settings)$('ob-amt').value=G.feeOf(S.settings,k)||0};
+  $('ob-type').onchange=obFee;setTimeout(obFee,1500);setTimeout(obFee,4000);
+  $('obForm').onsubmit=async e=>{e.preventDefault();const msg=t=>{$('obMsg').innerHTML=t},btn=$('obForm').querySelector('[type=submit]');
+    const t=G.typeOf($('ob-type').value),date=$('ob-date').value,name=$('ob-name').value.trim(),phone=$('ob-phone').value.trim().replace(/\s+/g,' ');
+    const amt=Math.max(0,Math.round(Number($('ob-amt').value)||0)),seva=Math.max(0,Math.round(Number($('ob-seva').value)||0)),total=G.feeOf(S.settings,t.key);
+    if(!date||date<=G.today)return msg('<div class="note err">Choose a date from tomorrow onwards.</div>');
+    if(name.length<2)return msg('<div class="note err">Enter the family name.</div>');
+    if(!/^[0-9+ \-]{7,20}$/.test(phone))return msg('<div class="note err">Enter a phone number.</div>');
+    if(amt>total)return msg(`<div class="note err">The bheta for this path is ${M$(total)}; the amount cannot be more.</div>`);
+    btn.disabled=true;btn.textContent='Booking…';
+    try{const ref=await API.book(t,date,{name,phone,occasion:$('ob-occ').value,note:$('ob-note').value.trim()},{office:true});
+      if(amt||seva)await API.recordCash(ref,amt,$('ob-mode').value,seva);
+      API.notify(ref,'booked');if(amt||seva)API.notify(ref,'payment');
+      const l=(S.lookups||{})[ref];
+      msg(`<div class="note good">Booked: <b>${ref}</b> · ${t.en} · ${G.fmtLong(date)}. ${amt||seva?'Receipt issued: <a href="receipt.html?ref='+ref+'&n=1" target="_blank" rel="noopener">path receipt</a>'+(seva?' and <a href="receipt.html?ref='+ref+'&s=1" target="_blank" rel="noopener">seva receipt</a>':'')+'.':'No payment recorded: without an advance it is cancelled automatically after the hold time.'}</div>`);
+      ['ob-name','ob-phone','ob-note'].forEach(id=>$(id).value='');$('ob-seva').value=0}
+    catch(x){msg(`<div class="note err">${x&&x.message==='taken'?'That date is already fully booked for this path.':x&&x.message==='refused'?'Booking was refused: the date may be closed, or the latest Firebase rules are not published yet.':'Could not book. Check your internet connection.'}</div>`)}
+    btn.disabled=false;btn.textContent='Book and issue receipt'};
+  // ---------- Seva bheta without path booking ----------
+  $('sv-purpose').innerHTML=G.SEVA_PURPOSES.map(([pa,en])=>`<option value="${pa} / ${en}">${pa} · ${en}</option>`).join('');
+  S.svVoid=S.svVoid||{};
+  function renderSeva(){
+    if($('svPanel').contains(document.activeElement)&&document.activeElement.tagName!=='BUTTON')return;
+    const all=Object.entries(S.sevaonly||{}),con=S.sevacontacts||{};
+    const pend=all.filter(([,d])=>d.status==='checking').sort((a,b)=>String(a[1].createdAt).localeCompare(String(b[1].createdAt)));
+    $('svPending').innerHTML=pend.length?`<h4 style="margin:6px 0">Online seva waiting to be checked (${pend.length})</h4>`+pend.map(([ref,d])=>`<div class="bitem"><div>
+        <b>${G.esc(d.name)}</b> · ${M$(d.amount)} · ${G.esc((d.purpose||'').split(' / ')[1]||d.purpose||'')}<div class="meta">Ref ${ref} · UTR <b>${G.esc(d.utr||'')}</b>${con[ref]?` · Phone ${G.esc(con[ref].phone)}`:''}</div>${dupUtr(d.utr,ref)}
+        <div class="row" style="gap:12px;margin-top:6px"><button class="btn" data-svok="${ref}">Confirm and issue seva receipt</button><button class="linkbtn" data-svno="${ref}">Not received</button></div></div></div>`).join('')
+      :'<p class="hint">No online seva waiting to be checked.</p>';
+    const done=all.filter(([,d])=>d.receipt).sort((a,b)=>String(b[1].receipt.date).localeCompare(String(a[1].receipt.date))).slice(0,25);
+    $('svList').innerHTML=done.length?done.map(([ref,d])=>{const r=d.receipt;return `<div class="meta" style="margin:6px 0"><span class="rcitem${r.void?' voided':''}"><a href="receipt.html?seva=${ref}" target="_blank" rel="noopener">${G.esc(r.no)}</a>
+        · ${G.esc(d.name)} · ${M$(r.amount)} ${G.esc(r.method)} · ${new Date(r.date).toLocaleDateString('en-IN')}${r.void?` <b>VOID</b>: ${G.esc(r.void.reason)}`:` <button class="linkbtn" data-svvoid="${ref}">Void</button>`}</span>
+        ${S.svVoid[ref]&&!r.void?`<form class="svVoidForm" data-ref="${ref}"><div class="row"><label style="width:auto">Why void?<select name="reason">${G.VOID_REASONS.map(x=>`<option>${x}</option>`).join('')}</select></label>
+          <label style="width:auto">Note<input name="note" maxlength="120" placeholder="optional"></label><button class="btn danger" type="submit">Void receipt</button><button class="btn ghost" type="button" data-svvoidclose="${ref}">Close</button></div></form>`:''}</div>`}).join('')
+      :'<p class="hint">No seva receipts yet.</p>';
+  }
+  $('svPanel').addEventListener('click',async e=>{
+    const ok=e.target.closest('[data-svok]'),no=e.target.closest('[data-svno]'),vo=e.target.closest('[data-svvoid]'),vc=e.target.closest('[data-svvoidclose]');
+    if(vo){S.svVoid[vo.dataset.svvoid]=true;renderSeva();return}
+    if(vc){S.svVoid[vc.dataset.svvoidclose]=false;renderSeva();return}
+    if(ok){ok.disabled=true;try{await API.verifySevaOnly(ok.dataset.svok);API.notify(ok.dataset.svok,'seva_payment')}catch(x){ok.disabled=false;ok.textContent='Could not save. Retry'}}
+    if(no){if(no.dataset.armed!=='1'){no.dataset.armed='1';no.textContent='Tap again: not in bank';return}
+      no.disabled=true;try{await API.rejectSevaOnly(no.dataset.svno);API.notify(no.dataset.svno,'seva_notfound')}catch(x){no.disabled=false;no.textContent='Could not save. Retry'}}
+  });
+  $('svPanel').addEventListener('submit',async e=>{
+    if(e.target.classList.contains('svVoidForm')){e.preventDefault();const fm=e.target,ref=fm.dataset.ref;
+      try{await API.voidSevaOnly(ref,fm.reason.value,fm.note.value.trim());API.notify(ref,'seva_void');S.svVoid[ref]=false;document.activeElement.blur();renderSeva()}
+      catch(x){fm.querySelector('[type=submit]').textContent='Could not save. Retry'}return}
+    if(e.target.id!=='svForm')return;e.preventDefault();const msg=t=>{$('svMsg').innerHTML=t},btn=$('svForm').querySelector('[type=submit]');
+    const name=$('sv-name').value.trim(),phone=$('sv-phone').value.trim().replace(/\s+/g,' '),amount=Math.round(Number($('sv-amt').value)||0);
+    if(name.length<2)return msg('<div class="note err">Enter the name.</div>');
+    if(phone&&!/^[0-9+ \-]{7,20}$/.test(phone))return msg('<div class="note err">The phone number is not valid.</div>');
+    if(!(amount>=1&&amount<=10000000))return msg('<div class="note err">Enter the amount.</div>');
+    btn.disabled=true;
+    try{const ref=await API.recordSevaAtOffice({name,phone,amount,method:$('sv-mode').value,purpose:$('sv-purpose').value,note:$('sv-note').value.trim()});
+      if(phone)API.notify(ref,'seva_payment');
+      msg(`<div class="note good">Seva receipt issued. <a href="receipt.html?seva=${ref}" target="_blank" rel="noopener">Open receipt</a>${phone?' · WhatsApp sent to '+G.esc(phone):''}</div>`);
+      ['sv-name','sv-phone','sv-amt','sv-note'].forEach(id=>$(id).value='');document.activeElement.blur();renderSeva()}
+    catch(x){msg('<div class="note err">Could not save. Check your internet connection, and that the latest Firebase rules are published.</div>')}
+    btn.disabled=false});
   $('infoDefault').onclick=()=>{const D=G.INFO_DEFAULTS;$('i-inc').value=D.includes.join('\n');$('i-big').value=D.bigEvent;$('i-sukh').value=D.sukhmaniNote};
   $('infoForm').onsubmit=async e=>{e.preventDefault();const D=G.INFO_DEFAULTS,bad=[];
     const includes=$('i-inc').value.split('\n').map(x=>x.trim()).filter(Boolean);
