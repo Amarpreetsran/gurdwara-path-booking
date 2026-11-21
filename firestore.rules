@@ -8,15 +8,39 @@ rules_version = '2';
 //    so the same place can never be booked twice, and nobody can book more places than
 //    the committee allows for that path (settings/main -> capacity).
 //  - Phone numbers and notes (the "contacts" collection) can be read only by committee members.
-//  - Only committee members (listed in the "admins" collection) can cancel bookings,
-//    close dates or change the gurdwara details.
+//  - Committee roles: the first members (in the "admins" or "Gurlal" collection) and users with role
+//    "admin" are Pardhan / Admin; "treasurer" (Khazanchi) handles money out, refunds and voids;
+//    "sevadar" does office work: bookings, payments received and receipts, but cannot void,
+//    refund, cancel, delete or change settings.
+//  - Every committee action is written to an activity log that nobody can edit or delete.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAdmin() {
+    // ---------- Committee roles ----------
+    function isOwner() {
       return request.auth != null
         && (exists(/databases/$(database)/documents/admins/$(request.auth.uid))
             || exists(/databases/$(database)/documents/Gurlal/$(request.auth.uid)));
+    }
+    function staffPath() { return /databases/$(database)/documents/staff/$(request.auth.uid); }
+    function roleIn(list) {
+      return request.auth != null && exists(staffPath())
+        && get(staffPath()).data.active == true && get(staffPath()).data.role in list;
+    }
+    function isAdmin() { return isOwner() || roleIn(['admin']); }
+    function isTreasurer() { return isOwner() || roleIn(['admin', 'treasurer']); }
+    function isStaff() { return isOwner() || roleIn(['admin', 'treasurer', 'sevadar']); }
+    // A sevadar may only add receipts and money received: nothing earlier is changed or removed.
+    function onlyAdds(key) {
+      let n = request.resource.data.get(key, []);
+      let o = resource.data.get(key, []);
+      return n.size() >= o.size() && n[0:o.size()] == o;
+    }
+    function sevadarLookupUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receipts', 'sevaReceipts', 'paidOnline', 'paidCash', 'checking'])
+        && request.resource.data.get('paidOnline', 0) >= resource.data.get('paidOnline', 0)
+        && request.resource.data.get('paidCash', 0) >= resource.data.get('paidCash', 0)
+        && onlyAdds('receipts') && onlyAdds('sevaReceipts');
     }
     function isDate(s) {
       return s is string && s.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
@@ -109,7 +133,7 @@ service cloud.firestore {
         && (d.bookedAt == request.time || keptBookingTime(d))
         && !dateClosed(d.date)
         && inFuture(d.start)
-        && (isAdmin() || farEnough(d.start, d.type))
+        && (isStaff() || farEnough(d.start, d.type))
         && (
           // First day of any path: must come with the private contact record.
           (d.part == 0 && d.date == d.start && existsAfter(contactPath(id))
@@ -134,7 +158,7 @@ service cloud.firestore {
     }
 
     match /contacts/{id} {
-      allow read: if isAdmin();
+      allow read: if isStaff();
       allow delete: if isAdmin() || existsAfter(movePath(id + '_' + resource.data.ref));
       // The committee moves a cancelled booking's contact to "cx_<ref>" so its date can be booked again.
       allow create: if (isAdmin() && id.matches('^cx_[A-Z0-9]{6}$'))
@@ -154,7 +178,7 @@ service cloud.firestore {
     // Anyone who knows a reference can read it; nobody but the committee can list them.
     match /lookup/{ref} {
       allow get: if true;
-      allow list: if isAdmin();
+      allow list: if isStaff();
       allow create: if request.resource.data.keys().hasOnly(['slot', 'type', 'name', 'start', 'total', 'discount',
             'paidOnline', 'paidCash', 'receipts', 'reports', 'checking', 'closed'])
         && request.resource.data.slot is string
@@ -172,6 +196,10 @@ service cloud.firestore {
         && request.resource.data.receipts == [] && request.resource.data.reports == 0
         && request.resource.data.checking == false && request.resource.data.closed == '';
       allow update: if isAdmin()
+        // Khazanchi: money matters (refunds, voids), but not cancelling or changing the booking itself
+        || (isTreasurer() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['closed', 'cancelReason', 'slot', 'prev', 'start', 'type', 'name', 'total', 'discount']))
+        // Sevadar: payments received and their receipts only
+        || (isStaff() && sevadarLookupUpdate())
         // date change by the person who booked
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['slot', 'prev', 'start'])
           && request.resource.data.prev == resource.data.slot
@@ -191,7 +219,7 @@ service cloud.firestore {
     // Allowed only with the right phone number, within 48 hours of booking, and only
     // when the old dates are removed and the new booking is added in the same step.
     match /reschedules/{rid} {
-      allow read: if isAdmin();
+      allow read: if isStaff();
       allow create: if request.resource.data.keys().hasOnly(['old', 'ref', 'pkey', 'next', 'createdAt'])
         && rid == request.resource.data.old + '_' + request.resource.data.ref
         && exists(contactPath(request.resource.data.old))
@@ -210,23 +238,32 @@ service cloud.firestore {
     // "I have paid" reports from devotees (UPI transaction ID). Only the committee can read them.
     // The first payment must be at least 20% of the bheta (the advance needed to keep the booking).
     match /reports/{rid} {
-      allow read, update, delete: if isAdmin();
+      allow read, update: if isStaff();
+      allow delete: if isAdmin();
       allow create: if validReport(rid);
     }
 
     // Receipt numbering. Committee only.
     // Record of automatic WhatsApp messages. Written only by the server.
     match /notices/{id} {
-      allow read: if isAdmin();
+      allow read: if isStaff();
       allow write: if false;
     }
 
+    // Receipt numbering. A sevadar can only move a number on by one (issuing a receipt);
+    // setting where numbering continues is for the Khazanchi / Pardhan.
     match /counters/{id} {
-      allow read, write: if isAdmin();
+      allow read: if isStaff();
+      allow write: if isTreasurer()
+        || (isStaff() && id in ['receipts', 'seva']
+            && request.resource.data.keys().hasOnly(['fy', 'next'])
+            && ((resource == null && request.resource.data.next == 2)
+                || (resource != null && resource.data.fy != request.resource.data.fy && request.resource.data.next == 2)
+                || (resource != null && resource.data.fy == request.resource.data.fy && request.resource.data.next == resource.data.next + 1)));
     }
-    // Money paid out by the gurdwara (Pathi Singh bheta and other expenses): committee only.
+    // Money paid out by the gurdwara (Pathi Singh bheta and other expenses): Khazanchi and Pardhan.
     match /expenses/{id} {
-      allow read, write: if isAdmin();
+      allow read, write: if isTreasurer();
     }
 
     match /settings/{id} {
@@ -234,7 +271,83 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Committee members: one document per member, named with their User UID.
+    // ---------- Users ----------
+    // Invites: the Pardhan adds an email and role. That person makes a password, confirms the email,
+    // and then their own "staff" record is created with exactly the invited role.
+    function invitePath(email) { return /databases/$(database)/documents/invites/$(email); }
+    match /invites/{email} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.token.email.lower() == email);
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'role', 'createdAt', 'by'])
+        && request.resource.data.role in ['admin', 'treasurer', 'sevadar']
+        && text(request.resource.data.name, 80);
+      allow delete: if isAdmin() || (request.auth != null && request.auth.token.email.lower() == email && exists(staffPath()));
+    }
+    match /staff/{uid} {
+      allow read: if (request.auth != null && request.auth.uid == uid) || isAdmin();
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && exists(invitePath(request.auth.token.email.lower()))
+        && request.resource.data.keys().hasOnly(['email', 'name', 'role', 'active', 'createdAt'])
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.role == get(invitePath(request.auth.token.email.lower())).data.role
+        && request.resource.data.name == get(invitePath(request.auth.token.email.lower())).data.name
+        && request.resource.data.active == true
+        && request.resource.data.createdAt == request.time;
+      // The Pardhan can change a role or switch a user off, but not their own.
+      allow update: if isAdmin() && request.auth.uid != uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'active'])
+        && request.resource.data.role in ['admin', 'treasurer', 'sevadar'] && request.resource.data.active is bool;
+      allow delete: if false;
+    }
+    // Activity log: every committee action, who did it and when. Nobody can change or delete it.
+    match /log/{id} {
+      allow read: if isAdmin();
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['at', 'by', 'email', 'name', 'role', 'action', 'ref', 'detail'])
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.at == request.time
+        && text(request.resource.data.action, 80)
+        && request.resource.data.detail is string && request.resource.data.detail.size() <= 300;
+      allow update, delete: if false;
+    }
+
+    // ---------- Pathi Singhs ----------
+    // Their PIN is stored only as a hash and is never readable from the website;
+    // the Pathi Singh's own page is served by the server (netlify/functions/pathi.mjs).
+    match /pathis/{id} {
+      allow read: if isStaff();
+      allow create, update: if isTreasurer();
+      allow delete: if isAdmin();
+    }
+    match /pathipins/{id} {
+      allow read: if false;
+      allow create, update: if isTreasurer()
+        && request.resource.data.keys().hasOnly(['hash', 'fails', 'lockUntil'])
+        && request.resource.data.hash is string && request.resource.data.hash.size() == 64;
+      allow delete: if isAdmin();
+    }
+    match /rosters/{ref} {
+      allow read: if isStaff();
+      allow create, update: if isStaff() && request.resource.data.ref == ref && request.resource.data.rauls.size() <= 60;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Seva sign-up for programmes (gurpurabs) ----------
+    match /signups/{id} {
+      allow read: if isStaff();
+      allow create: if request.resource.data.keys().hasOnly(['prog', 'date', 'title', 'seva', 'name', 'phone', 'note', 'createdAt'])
+        && text(request.resource.data.prog, 20) && isDate(request.resource.data.date)
+        && text(request.resource.data.title, 120) && text(request.resource.data.seva, 80)
+        && text(request.resource.data.name, 80)
+        && request.resource.data.phone is string && request.resource.data.phone.matches('^[0-9+ -]{7,20}$')
+        && request.resource.data.note is string && request.resource.data.note.size() <= 300
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isStaff();
+    }
+
+    // First committee members: one document per member, named with their User UID (added by hand in Firebase).
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false; // add committee members by hand in the Firebase console
@@ -246,8 +359,8 @@ service cloud.firestore {
 
     match /sevaonly/{ref} {
       allow get: if true;
-      allow list: if isAdmin();
-      allow create: if isAdmin() || (ref.matches('^S[A-Z0-9]{5}$')
+      allow list: if isStaff();
+      allow create: if isStaff() || (ref.matches('^S[A-Z0-9]{5}$')
         && request.resource.data.keys().hasOnly(['name', 'amount', 'purpose', 'utr', 'status', 'createdAt'])
         && request.resource.data.status == 'checking'
         && request.resource.data.amount is int && request.resource.data.amount >= 1 && request.resource.data.amount <= 100000
@@ -256,11 +369,14 @@ service cloud.firestore {
         && request.resource.data.utr is string && request.resource.data.utr.matches('^[0-9A-Za-z]{6,30}$')
         && request.resource.data.createdAt == request.time
         && existsAfter(sevaContactPath(ref)));
-      allow update, delete: if isAdmin();
+      // A sevadar can confirm or mark not received; making a seva receipt void is for the Khazanchi / Pardhan.
+      allow update: if isTreasurer()
+        || (isStaff() && !('void' in request.resource.data.get('receipt', {})));
+      allow delete: if isAdmin();
     }
     match /sevacontacts/{ref} {
-      allow read: if isAdmin();
-      allow create: if isAdmin() || (!exists(sevaContactPath(ref))
+      allow read: if isStaff();
+      allow create: if isStaff() || (!exists(sevaContactPath(ref))
         && existsAfter(sevaPath(ref))
         && request.resource.data.keys().hasOnly(['phone', 'pkey', 'createdAt'])
         && text(request.resource.data.phone, 20)

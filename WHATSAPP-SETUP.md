@@ -264,3 +264,70 @@ Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
 ਧੰਨਵਾਦ ਜੀ / Thank you ji.
 ```
 Samples: `Sra` · `K7MQ2D` · `Rs 400` · `Cash` · `REFUND/2026-27/0001` · `https://babajeonsinghpathbooking.netlify.app/receipt.html?ref=K7MQ2D&f=1`
+
+## Three more templates (payment reminder and Pathi Singh rosters)
+Same as before: Category **Utility**, Language **English**, no "Call on WhatsApp" button.
+
+### 10. path_advance_reminder  (committee taps "Payment reminder (WhatsApp)")
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+{{1}} ਪਰਿਵਾਰ ਜੀ, ਆਪ ਜੀ ਦੀ ਬੁਕਿੰਗ ਬਾਰੇ ਨਿਮਰ ਯਾਦ ਦਿਹਾਨੀ। A gentle reminder about your booking.
+ਪਾਠ / Path: {{2}}
+ਮਿਤੀ / Date: {{3}}
+ਬੁਕਿੰਗ ਨੰਬਰ / Reference: {{4}}
+ਸਥਿਤੀ / Status: {{5}}
+ਭੇਟਾ ਭੇਜਣ ਲਈ / To pay: {{6}} → "ਮੇਰੀ ਬੁਕਿੰਗ"
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
+```
+Samples: `Sra` · `Akhand Path Sahib` · `Sat, 28 Nov 2026 (bhog Mon, 30 Nov 2026)` · `K7MQ2D` · `advance of Rs 1020 (20%) needed` · `https://babajeonsinghpathbooking.netlify.app`
+
+### 11. pathi_raul_assigned  (committee taps "Send to Pathi Singhs" on a roster)
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ {{1}} ਜੀ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਆਪ ਜੀ ਦੀ ਰੌਲ ਦੀ ਸੇਵਾ ਲੱਗੀ ਹੈ ਜੀ। You have been given raul seva.
+ਪਾਠ / Path: {{2}}
+ਮਿਤੀ / Date: {{3}}
+ਸਥਾਨ / Place: {{4}}
+ਆਪ ਜੀ ਦੀਆਂ ਰੌਲਾਂ / Your rauls: {{5}}
+ਪੂਰੀ ਸੂਚੀ / Full roster (with your PIN): {{6}}
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
+```
+Samples: `Bhai Harpal Singh` · `Akhand Path Sahib · Sra family` · `Sat, 28 Nov 2026 (bhog Mon, 30 Nov 2026)` · `Gurdwara Sahib` · `Sat 28 Nov 8:00 AM – 10:00 AM; Sat 28 Nov 4:00 PM – 6:00 PM` · `https://babajeonsinghpathbooking.netlify.app/pathi.html?id=AbCdEfGhJkMnPqRsTuVw`
+
+### 12. pathi_raul_reminder  (sent automatically at 9 AM the day before)
+```
+ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ {{1}} ਜੀ।
+Waheguru Ji Ka Khalsa, Waheguru Ji Ki Fateh.
+
+ਕੱਲ੍ਹ ਆਪ ਜੀ ਦੀ ਰੌਲ ਹੈ ਜੀ। Reminder: you have raul seva tomorrow.
+ਪਾਠ / Path: {{2}}
+ਮਿਤੀ / Date: {{3}}
+ਰੌਲਾਂ / Rauls: {{4}}
+ਸਥਾਨ / Place: {{5}}
+
+ਧੰਨਵਾਦ ਜੀ / Thank you ji.
+```
+Samples: `Bhai Harpal Singh` · `Akhand Path Sahib · Sra family` · `Sun, 29 Nov 2026` · `Sun 29 Nov 12:00 AM – 2:00 AM` · `Gurdwara Sahib`
+
+## Delivery tracking (shows "not delivered, please call")
+1. Netlify → Keys and secrets → add key `WA_VERIFY_TOKEN` with any secret word you choose (e.g. `gosayiana-2026-ok`). Optional, safer: also add `WA_APP_SECRET` = Meta app → App settings → Basic → App secret.
+2. Deploy (or wait for your next deploy).
+3. Meta developers → your app → WhatsApp → **Configuration** → Webhook → **Edit**:
+   - Callback URL: `https://babajeonsinghpathbooking.netlify.app/.netlify/functions/wa-status`
+   - Verify token: the same secret word → **Verify and save**.
+4. Under Webhook fields, find **messages** → **Subscribe**.
+
+## Weekly backup email
+1. Use a Gmail account for sending (the gurdwara's own Gmail is best). Turn on 2-Step Verification on it.
+2. Google Account → Security → **App passwords** → create one named "Booking backup". Copy the 16 letters.
+3. Netlify → Keys and secrets → add:
+   - `SMTP_USER` = that Gmail address
+   - `SMTP_PASS` = the 16-letter app password (tick "Contains secret values")
+   - `BACKUP_EMAIL_TO` = where to send it (one or more emails, separated by commas)
+4. After the deploy: committee page → Users and log → Backup → **Email a backup now** to test. After that it comes every Sunday at 7 AM.

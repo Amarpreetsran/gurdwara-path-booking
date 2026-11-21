@@ -115,3 +115,13 @@ If you add a new path type, also add its key to the list in `firestore.rules`
 Once the website is online, go to **pwabuilder.com**, enter your website address and download the
 Android package. It can be published on the Google Play Store (one-time US$25 Google developer fee)
 with the gurdwara's name and icon. No extra coding is needed.
+
+## Committee roles, Pathi Singhs and backup (Update 3)
+- **Roles**: the first login (in the `Gurlal` / `admins` collection) is Pardhan / Admin. Add others on the committee page → Users and log → Committee users. They open the committee page, choose "First time? Make your login", and confirm their email.
+  - Sevadar: bookings, payments received, receipts, rosters, WhatsApp buttons.
+  - Khazanchi: also payments made (vouchers), refunds, voids, Excel, monthly report, adding Pathi Singhs.
+  - Pardhan / Admin: everything, settings, users, activity log, backup.
+- **Activity log**: every committee action is saved with who and when; it cannot be edited or deleted.
+- **Pathi Singhs**: add them under Pathi Singhs; each gets a private link (`pathi.html?id=…`) and a 4-digit PIN. Make the roster from each booking ("Make roster").
+- **Firebase**: Authentication → Sign-in method → Email/Password must stay enabled (new users sign up with it).
+- **Netlify keys** (see WHATSAPP-SETUP.md): `WA_VERIFY_TOKEN` (delivery tracking), `SMTP_USER`, `SMTP_PASS`, `BACKUP_EMAIL_TO` (weekly backup).
