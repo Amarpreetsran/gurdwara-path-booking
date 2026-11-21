@@ -65,9 +65,10 @@ window.GPB = (function () {
   const leadDays = (settings, key) => { const n = Number(settings && settings.leadDays && settings.leadDays[key]);
     return Number.isFinite(n) && n >= 1 && n <= 90 ? Math.round(n) : (LEAD_DEFAULTS[key] || 3); };
   const firstFor = (settings, key) => { const f = add(today, leadDays(settings, key)); return f > first ? f : first; };
-  function freeSeats(t, date, slots, settings) {
+  // opts.office: committee booking at the office, which may book closer than the minimum days.
+  function freeSeats(t, date, slots, settings, opts) {
     const closed = (settings && settings.closed) || [];
-    if (date < firstFor(settings, t.key) || date > last) return [];
+    if (date < (opts && opts.office ? first : firstFor(settings, t.key)) || date > last) return [];
     for (let i = 0; i < t.days; i++) if (closed.includes(add(date, i))) return [];
     const out = [];
     for (let seat = 1; seat <= capOf(settings, t.key); seat++) {
@@ -100,10 +101,16 @@ window.GPB = (function () {
   }
   // UPI payment: amount per path is set by the committee (0 = no online payment for that path).
   const feeOf = (settings, key) => { const n = Number(settings && settings.fees && settings.fees[key]); return n > 0 ? Math.round(n) : 0; };
-  function upiLink(settings, amount, ref) {
+  function upiLink(settings, amount, ref, label) {
+    const note = (label || 'Path booking') + ' ';
     return 'upi://pay?pa=' + encodeURIComponent(settings.upi).replace('%40', '@') + '&pn=' + encodeURIComponent(settings.payee || settings.name || 'Gurdwara Sahib') +
-      '&am=' + amount + '&cu=INR&tn=' + encodeURIComponent('Path booking ' + ref);
+      '&am=' + amount + '&cu=INR&tn=' + encodeURIComponent(note + ref);
   }
+  // Seva bheta given without a path booking: own reference "S" + 5 letters/digits, receipts in the SEVA series.
+  // Money paid out by the gurdwara (payment vouchers in the EXP series). First one: bheta to Pathi Singhs for a path.
+  const EXPENSE_TYPES = ['Pathi Singh bheta', 'Granthi Singh bheta', 'Ragi / Kirtani jatha bheta', 'Karah Parshad samagri', 'Langar rasad', 'Rumala Sahib', 'Electricity / utilities', 'Repairs and maintenance', 'Other'];
+  const SEVA_PURPOSES = [['ਗੁਰੂ ਘਰ ਦੀ ਸੇਵਾ', 'Seva for Gurdwara Sahib'], ['ਲੰਗਰ ਦੀ ਸੇਵਾ', 'Langar seva'], ['ਇਮਾਰਤ ਦੀ ਸੇਵਾ', 'Building seva'], ['ਸਮਾਗਮ ਦੇ ਪ੍ਰਬੰਧ', 'Programme arrangements'], ['ਹੋਰ', 'Other']];
+  const makeSevaRef = () => 'S' + makeRef().slice(1);
   function confirmText(o) {
     const t = typeOf(o.type) || { en: o.type, pa: o.type };
     return `ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।\n` +
@@ -191,7 +198,7 @@ window.GPB = (function () {
     return parts.join(' ');
   }
 
-  return { SEVA_PICKS, receiptSerial, sevaOf, hasMoney, VOID_REASONS, CANCEL_REASONS, REFUND_REASONS, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
+  return { EXPENSE_TYPES, SEVA_PURPOSES, makeSevaRef, SEVA_PICKS, receiptSerial, sevaOf, hasMoney, VOID_REASONS, CANCEL_REASONS, REFUND_REASONS, INFO_DEFAULTS, infoOf, ALL_TYPES, ADVANCE_PCT, discountPct, discountOf, holdHours, policyOf, DEFAULT_POLICY, money, advanceOf, bhogDate, account, STATES, chip, finYear, inWords,
     CHANGE_HOURS, CUTOFF_TEXT, bookedMs, changeDeadline, canReschedule, fmtTime, phoneKey, waLink, feeOf, upiLink, confirmText,
     MONTHS, monthYear, fmtDateTime, pad, iso, parse, add, fmtShort, fmtLong, fmtDow, TYPES, OCCASIONS, today, first, last, esc, typeOf, slotId, makeRef,
     MAX_PLACES, capOf, freeSeats, isFree, bookingsOn, LEAD_DEFAULTS, leadDays, firstFor };

@@ -26,6 +26,7 @@ window.GPB_API = (function () {
       policy: String(v.policy || '').trim().slice(0, 1500), receiptPrefix: String(v.receiptPrefix || 'RCPT').trim() || 'RCPT',
       sevaPrefix: String(v.sevaPrefix || 'SEVA').trim() || 'SEVA',
       refundPrefix: String(v.refundPrefix || 'REFUND').trim() || 'REFUND',
+      expensePrefix: String(v.expensePrefix || 'EXP').trim() || 'EXP',
       includes: Array.isArray(v.includes) ? v.includes.map(x => String(x).trim().slice(0, 120)).filter(Boolean).slice(0, 12) : [],
       leadDays: Object.fromEntries(G.TYPES.map(t => [t.key, G.leadDays(v, t.key)])),
       bigEvent: String(v.bigEvent || '').trim().slice(0, 1500),
@@ -60,10 +61,10 @@ window.GPB_API = (function () {
   if (DEMO) {
     const KEY = 'gpb-demo-v3';
     const load = () => { let m; try { m = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { m = {}; }
-      ['slots', 'contacts', 'lookup', 'reports', 'counters'].forEach(k => { m[k] = m[k] || {}; });
+      ['slots', 'contacts', 'lookup', 'reports', 'counters', 'sevaonly', 'sevacontacts', 'expenses'].forEach(k => { m[k] = m[k] || {}; });
       m.settings = cleanSettings(m.settings); return m; };
     let mem = load();
-    const subs = { slots: [], settings: [], auth: [], admin: [], lookup: [] };
+    const subs = { slots: [], settings: [], auth: [], admin: [], lookup: [], seva: [] };
     let demoUser = null;
     try { demoUser = sessionStorage.getItem('gpb-demo-admin') ? { email: 'demo@committee' } : null; } catch (e) {}
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {} };
@@ -72,12 +73,15 @@ window.GPB_API = (function () {
       const s = {}; for (const [k, v] of Object.entries(mem.slots)) if (v.date >= G.today) s[k] = v;
       subs.slots.forEach(f => f(s, false)); subs.settings.forEach(f => f(mem.settings));
       const all = {}; for (const [k, v] of Object.entries(mem.slots)) if (v.date >= pastFrom()) all[k] = v;
-      subs.admin.forEach(f => f(clone({ slots: all, contacts: mem.contacts, lookups: mem.lookup, reports: mem.reports, counters: mem.counters })));
+      subs.admin.forEach(f => f(clone({ slots: all, contacts: mem.contacts, lookups: mem.lookup, reports: mem.reports, counters: mem.counters, sevaonly: mem.sevaonly, sevacontacts: mem.sevacontacts, expenses: mem.expenses })));
+      subs.seva.forEach(([r, f]) => f(mem.sevaonly[r] ? clone(mem.sevaonly[r]) : null));
       subs.lookup.forEach(([ref, f]) => f(mem.lookup[ref] ? clone(mem.lookup[ref]) : null));
     };
     const change = () => { save(); emit(); };
     window.addEventListener('storage', e => { if (e.key === KEY) { mem = load(); emit(); } });
     // Path bheta and seva bheta each get their own receipt from their own number series.
+    const takeNo = (key, prefix) => { const fy = G.finYear(), c = mem.counters[key] && mem.counters[key].fy === fy ? mem.counters[key] : { fy, next: 1 };
+      mem.counters[key] = { fy, next: c.next + 1 }; return receiptNo(prefix || (key === 'seva' ? 'SEVA' : 'RCPT'), fy, c.next); };
     const issue = (ref, amount, method, utr, seva) => {
       const fy = G.finYear(), l = mem.lookup[ref], date = new Date().toISOString(), out = { no: '', sevaNo: '' };
       const take = (key, prefix) => { const c = mem.counters[key] && mem.counters[key].fy === fy ? mem.counters[key] : { fy, next: 1 };
@@ -92,8 +96,8 @@ window.GPB_API = (function () {
       watchSlots(cb) { subs.slots.push(cb); setTimeout(emit, 50); },
       watchSettings(cb) { subs.settings.push(cb); setTimeout(() => cb(mem.settings), 50); },
       watchLookup(ref, cb) { subs.lookup.push([ref, cb]); setTimeout(emit, 50); },
-      async book(t, date, info) {
-        const seats = G.freeSeats(t, date, mem.slots, mem.settings);
+      async book(t, date, info, opts) {
+        const seats = G.freeSeats(t, date, mem.slots, mem.settings, opts);
         if (!seats.length) throw new Error('taken');
         const ref = G.makeRef();
         const { ids, docs, contact } = buildDocs(t, date, info, ref, seats[0], new Date().toISOString());
@@ -143,6 +147,35 @@ window.GPB_API = (function () {
       async rejectReport(id, stillChecking) {
         const r = mem.reports[id]; r.status = 'rejected'; mem.lookup[r.ref].checking = !!stillChecking; change();
       },
+      // Seva bheta without a path booking.
+      async reportSevaOnly(o) {
+        if (mem.sevaonly[o.ref]) throw new Error('exists');
+        mem.sevaonly[o.ref] = { name: o.name, amount: o.amount, purpose: o.purpose, utr: o.utr, status: 'checking', createdAt: new Date().toISOString() };
+        mem.sevacontacts[o.ref] = { phone: o.phone, pkey: G.phoneKey(o.phone), createdAt: new Date().toISOString() }; change();
+      },
+      watchSevaOnly(ref, cb) { subs.seva.push([ref, cb]); setTimeout(() => cb(mem.sevaonly[ref] ? clone(mem.sevaonly[ref]) : null), 50); },
+      async getSevaOnly(ref) { return mem.sevaonly[ref] ? clone(mem.sevaonly[ref]) : null; },
+      async verifySevaOnly(ref) {
+        const d = mem.sevaonly[ref]; if (!d || d.status !== 'checking') return;
+        const no = takeNo('seva', mem.settings.sevaPrefix);
+        Object.assign(d, { status: 'verified', receipt: { no, amount: d.amount, method: 'UPI', utr: d.utr, date: new Date().toISOString() } }); change(); return no;
+      },
+      async rejectSevaOnly(ref) { const d = mem.sevaonly[ref]; if (d) { d.status = 'rejected'; change(); } },
+      async recordSevaAtOffice(o) {
+        const ref = G.makeSevaRef(), no = takeNo('seva', mem.settings.sevaPrefix), date = new Date().toISOString();
+        mem.sevaonly[ref] = { name: o.name, amount: o.amount, purpose: o.purpose, note: o.note || '', status: 'verified', office: true, createdAt: date,
+          receipt: { no, amount: o.amount, method: o.method, utr: '', date } };
+        if (o.phone) mem.sevacontacts[ref] = { phone: o.phone, pkey: G.phoneKey(o.phone), createdAt: date };
+        change(); return ref;
+      },
+      async voidSevaOnly(ref, reason, note) { const d = mem.sevaonly[ref]; if (d && d.receipt && !d.receipt.void) { d.receipt.void = { reason, note: note || '', date: new Date().toISOString() }; change(); } },
+      async addExpense(o) {
+        const id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date = new Date().toISOString();
+        const no = takeNo('expense', mem.settings.expensePrefix || 'EXP');
+        mem.expenses[id] = { ...o, no, date, createdAt: date }; change(); return id;
+      },
+      async voidExpense(id, reason, note) { const e = mem.expenses[id]; if (e && !e.void) { e.void = { reason, note: note || '', date: new Date().toISOString() }; change(); } },
+      async getExpense(id) { return mem.expenses[id] ? clone(mem.expenses[id]) : null; },
       async setNextReceipt(key, next) { mem.counters[key] = { fy: G.finYear(), next }; change(); },
       async recordCash(ref, amount, method, seva) {
         const l = mem.lookup[ref]; const o = issue(ref, amount, method || 'Cash', '', seva || 0);
@@ -258,7 +291,7 @@ window.GPB_API = (function () {
     },
     // Tries each free place in turn, so two families booking at the same moment both get a place
     // when more than one is open. The database rules refuse any place that is already taken.
-    async book(t, date, info) {
+    async book(t, date, info, opts) {
       const { F, db } = await ready;
       const ref = G.makeRef();
       let closedOrFull = false;
@@ -347,7 +380,7 @@ window.GPB_API = (function () {
     async resetPassword(email) { const { U, auth } = await ready; return U.sendPasswordResetEmail(auth, email); },
     // Committee: everything for the bookings list, live.
     watchAdmin(cb) {
-      const st = { slots: {}, contacts: {}, lookups: {}, reports: {}, counters: {} };
+      const st = { slots: {}, contacts: {}, lookups: {}, reports: {}, counters: {}, sevaonly: {}, sevacontacts: {}, expenses: {} };
       const out = () => cb({ ...st });
       ready.then(({ F, db }) => {
         const on = (q, key) => F.onSnapshot(q, snap => { const m = {}; snap.forEach(d => { m[d.id] = toPlain(d.data()); }); st[key] = m; out(); }, e => console.error(key, e));
@@ -356,6 +389,72 @@ window.GPB_API = (function () {
         on(F.collection(db, 'lookup'), 'lookups');
         on(F.collection(db, 'reports'), 'reports');
         on(F.collection(db, 'counters'), 'counters');
+        on(F.collection(db, 'sevaonly'), 'sevaonly');
+        on(F.collection(db, 'sevacontacts'), 'sevacontacts');
+        on(F.collection(db, 'expenses'), 'expenses');
+      });
+    },
+    // ---------- Money paid out by the gurdwara (payment vouchers) ----------
+    async addExpense(o) {
+      const { F, db } = await ready, eref = F.doc(F.collection(db, 'expenses'));
+      await F.runTransaction(db, async tx => {
+        const cref = F.doc(db, 'counters', 'expense'), cs = await tx.get(cref);
+        const fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1, date = new Date().toISOString();
+        tx.set(cref, { fy, next: next + 1 });
+        tx.set(eref, { ...o, no: receiptNo(lastSettings.expensePrefix || 'EXP', fy, next), date, createdAt: date });
+      });
+      return eref.id;
+    },
+    async voidExpense(id, reason, note) {
+      const { F, db } = await ready;
+      return F.updateDoc(F.doc(db, 'expenses', id), { void: { reason, note: note || '', date: new Date().toISOString() } });
+    },
+    async getExpense(id) { const { F, db } = await ready; const s = await F.getDoc(F.doc(db, 'expenses', id)); return s.exists() ? s.data() : null; },
+    // ---------- Seva bheta without a path booking ----------
+    async reportSevaOnly(o) {
+      const { F, db } = await ready;
+      const batch = F.writeBatch(db);
+      batch.set(F.doc(db, 'sevaonly', o.ref), { name: o.name, amount: o.amount, purpose: o.purpose, utr: o.utr, status: 'checking', createdAt: F.serverTimestamp() });
+      batch.set(F.doc(db, 'sevacontacts', o.ref), { phone: o.phone, pkey: G.phoneKey(o.phone), createdAt: F.serverTimestamp() });
+      await batch.commit();
+    },
+    watchSevaOnly(ref, cb) {
+      ready.then(({ F, db }) => F.onSnapshot(F.doc(db, 'sevaonly', ref), s => cb(s.exists() ? s.data() : null), () => cb(null)));
+    },
+    async getSevaOnly(ref) { const { F, db } = await ready; const s = await F.getDoc(F.doc(db, 'sevaonly', ref)); return s.exists() ? s.data() : null; },
+    async verifySevaOnly(ref) {
+      const { F, db } = await ready;
+      return F.runTransaction(db, async tx => {
+        const dref = F.doc(db, 'sevaonly', ref), cref = F.doc(db, 'counters', 'seva');
+        const [ds, cs] = [await tx.get(dref), await tx.get(cref)];
+        if (!ds.exists() || ds.data().status !== 'checking') return '';
+        const d = ds.data(), fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1;
+        const no = receiptNo(lastSettings.sevaPrefix || 'SEVA', fy, next);
+        tx.set(cref, { fy, next: next + 1 });
+        tx.update(dref, { status: 'verified', receipt: { no, amount: d.amount, method: 'UPI', utr: d.utr || '', date: new Date().toISOString() } });
+        return no;
+      });
+    },
+    async rejectSevaOnly(ref) { const { F, db } = await ready; return F.updateDoc(F.doc(db, 'sevaonly', ref), { status: 'rejected' }); },
+    async recordSevaAtOffice(o) {
+      const { F, db } = await ready, ref = G.makeSevaRef();
+      await F.runTransaction(db, async tx => {
+        const cref = F.doc(db, 'counters', 'seva'), cs = await tx.get(cref);
+        const fy = G.finYear(), next = cs.exists() && cs.data().fy === fy ? cs.data().next : 1, date = new Date().toISOString();
+        const no = receiptNo(lastSettings.sevaPrefix || 'SEVA', fy, next);
+        tx.set(cref, { fy, next: next + 1 });
+        tx.set(F.doc(db, 'sevaonly', ref), { name: o.name, amount: o.amount, purpose: o.purpose, note: o.note || '', status: 'verified', office: true,
+          createdAt: date, receipt: { no, amount: o.amount, method: o.method, utr: '', date } });
+        if (o.phone) tx.set(F.doc(db, 'sevacontacts', ref), { phone: o.phone, pkey: G.phoneKey(o.phone), createdAt: date });
+      });
+      return ref;
+    },
+    async voidSevaOnly(ref, reason, note) {
+      const { F, db } = await ready;
+      return F.runTransaction(db, async tx => {
+        const dref = F.doc(db, 'sevaonly', ref), ds = await tx.get(dref);
+        if (!ds.exists() || !ds.data().receipt || ds.data().receipt.void) return;
+        tx.update(dref, { receipt: { ...ds.data().receipt, void: { reason, note: note || '', date: new Date().toISOString() } } });
       });
     },
     // Committee: the number the next receipt of a series will get ('receipts' = path, 'seva' = seva), this financial year.
