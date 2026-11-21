@@ -19,7 +19,7 @@
   <a class="hdlink" href="poster.html" target="_blank" rel="noopener">QR poster</a>
   <button class="hdlink" id="signOut" hidden>Sign out</button>
 </div></header>
-<div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: sign in with any email and the password <b>demo</b>.</div></div>
+<div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: sign in with any email. Password <b>demo</b> = Pardhan / Admin, <b>treasurer</b> = Khazanchi, <b>sevadar</b> = Sevadar.</div></div>
 
 <main><div class="wrap single" id="root">
   <div class="panel" id="loginPanel">
@@ -30,18 +30,44 @@
       <div id="loginErr"></div>
       <div class="row"><button class="btn" type="submit" id="loginBtn">Sign in</button><button class="linkbtn" type="button" id="forgotBtn">Forgot password?</button></div>
     </form>
+    <details class="signup" id="signupBox" style="margin-top:16px">
+      <summary>First time? Make your login (for invited sevadars)</summary>
+      <p class="hint">The Pardhan must first add your email on the Users panel. Then make your own password here. Firebase sends you an email: open the link in it, then come back and sign in.</p>
+      <form id="signupForm" novalidate>
+        <label for="su-email">Your email (the one the Pardhan added)<input id="su-email" type="email" autocomplete="username"></label>
+        <label for="su-pass">New password <span class="hint">at least 8 letters or numbers</span><input id="su-pass" type="password" autocomplete="new-password" minlength="8"></label>
+        <div id="signupMsg"></div>
+        <div class="row"><button class="btn" type="submit">Make my login</button></div>
+      </form>
+    </details>
+  </div>
+  <div class="panel" id="verifyPanel" hidden>
+    <h3>Confirm your email</h3>
+    <p>Firebase has sent a link to <b id="verifyEmail"></b>. Open that email (check the spam folder too), tap the link, then come back here and tap the button below.</p>
+    <div id="verifyMsg"></div>
+    <div class="row"><button class="btn" type="button" id="verifyDone">I have confirmed, continue</button><button class="btn ghost" type="button" id="verifyResend">Send the link again</button><button class="linkbtn" type="button" id="verifyOut">Sign out</button></div>
   </div>
 
   <div id="adminArea" hidden style="display:grid;gap:24px">
-    <div class="panel">
+    <nav class="tabs" id="tabs" aria-label="Committee sections">
+      <span class="whoami" id="whoami"></span>
+      <button type="button" data-tabbtn="bookings">Bookings</button>
+      <button type="button" data-tabbtn="money">Money</button>
+      <button type="button" data-tabbtn="pathis">Pathi Singhs</button>
+      <button type="button" data-tabbtn="whatsapp">WhatsApp <span class="tabcount" id="waCount" hidden></span></button>
+      <button type="button" data-tabbtn="programmes">Programmes</button>
+      <button type="button" data-tabbtn="settings" data-need="admin">Settings</button>
+      <button type="button" data-tabbtn="users" data-need="admin">Users and log</button>
+    </nav>
+    <div class="panel" data-tab="bookings">
       <div class="row" style="justify-content:space-between"><h3 style="margin:0">Bookings and bheta</h3>
         <div class="row"><select id="stFilter" style="width:auto" aria-label="Show"></select><select id="filter" style="width:auto" aria-label="Path"><option value="all">All paths</option></select></div></div>
-      <div class="row" style="margin-top:10px"><button class="btn ghost" type="button" id="xlsxBtn">Download Excel</button><span class="hint" id="xlsxMsg">All bookings, payments and receipts, as an Excel file.</span></div>
+      <div class="row" style="margin-top:10px" data-need="treasurer"><button class="btn ghost" type="button" id="xlsxBtn">Download Excel</button><span class="hint" id="xlsxMsg">All bookings, payments and receipts, as an Excel file.</span></div>
       <div id="counts" class="row" style="margin:10px 0"></div>
       <p class="hint">When a devotee reports a UPI payment, check the UTR in your bank app, then tap "Confirm and issue receipt". Payments made at the gurdwara: "Record payment at gurdwara". Each confirmed payment gets a numbered receipt the devotee can see on "My booking".</p>
       <div id="list" class="blist"></div>
     </div>
-    <div class="panel">
+    <div class="panel" data-tab="settings" data-need="admin">
       <h3>Places at the same time</h3>
       <p class="hint">How many families can book each path for the same date and time. For example, 2 for Akhand Path if two can run together. Lowering a number never removes existing bookings; it only stops new ones above the limit.</p>
       <form id="capForm" style="gap:10px">
@@ -50,13 +76,13 @@
         <div class="row"><button class="btn" type="submit">Save places</button></div>
       </form>
     </div>
-    <div class="panel">
+    <div class="panel" data-tab="settings" data-need="admin">
       <h3>Closed dates</h3>
       <p class="hint">No bookings can be made on these dates, for example gurpurabs or other programmes at the gurdwara.</p>
       <div class="row" style="margin-bottom:10px"><input id="closeDate" type="date" style="width:auto"><button class="btn ghost" id="addClosed">Close this date</button></div>
       <div class="chips" id="closedList"></div>
     </div>
-    <div class="panel">
+    <div class="panel" data-tab="settings" data-need="admin">
       <h3>Online payment (UPI)</h3>
       <p class="hint">Devotees pay with Google Pay, Paytm, PhonePe, BHIM or any bank's UPI app, straight to this UPI ID, with no fees. Set a bheta amount for each path (0 = no bheta asked online). Amounts apply to new bookings; existing bookings keep the amount they were booked at.</p>
       <form id="payForm">
@@ -73,7 +99,7 @@
         <div class="row"><button class="btn" type="submit">Save payment settings</button></div>
       </form>
     </div>
-    <div class="panel" id="obPanel">
+    <div class="panel" id="obPanel" data-tab="bookings">
       <h3>New booking at office</h3>
       <p class="hint">For families who book at the gurdwara office. The minimum days ahead do not apply here, and money received now gets its receipt straight away.</p>
       <form id="obForm" novalidate>
@@ -94,7 +120,7 @@
         <div class="row"><button class="btn" type="submit">Book and issue receipt</button></div>
       </form>
     </div>
-    <div class="panel" id="svPanel">
+    <div class="panel" id="svPanel" data-tab="money">
       <h3>Seva bheta without path booking</h3>
       <p class="hint">Online seva sent from the booking page waits here to be checked. Seva given at the office can be recorded below. Receipts use the SEVA series.</p>
       <div id="svPending"></div>
@@ -114,7 +140,7 @@
       <h4 style="margin:14px 0 4px">Recent seva receipts</h4>
       <div id="svList"></div>
     </div>
-    <div class="panel" id="exPanel">
+    <div class="panel" id="exPanel" data-tab="money" data-need="treasurer">
       <h3>Payments by Gurdwara Sahib (expenses)</h3>
       <p class="hint">Bheta paid to Pathi Singhs is best recorded from the booking itself (Pay Pathi Singh). Use this form for other payments. Each payment gets a voucher number (EXP series) with signature lines.</p>
       <form id="exForm" novalidate>
@@ -141,7 +167,7 @@
       <div id="exList"></div>
       <datalist id="payeeNames"></datalist>
     </div>
-    <div class="panel" id="rcPanel">
+    <div class="panel" id="rcPanel" data-tab="money" data-need="treasurer">
       <h3>Receipts</h3>
       <p class="hint">Download all receipts for a period as Excel, or open them all as one printable file (one receipt per page) and save it as PDF into your receipts folder.</p>
       <div class="row" style="align-items:flex-end">
@@ -151,7 +177,7 @@
       </div>
       <div class="row" style="margin-top:8px"><button class="btn" type="button" id="rcXlsx">Download receipts (Excel)</button><button class="btn ghost" type="button" id="rcPrint">Open all receipts to print or save as PDF</button></div>
       <div id="rcMsg" class="hint" style="margin-top:6px"></div>
-      <h4 style="margin:16px 0 4px">Receipt numbers</h4>
+      <div data-need="admin"><h4 style="margin:16px 0 4px">Receipt numbers</h4>
       <p class="hint">Set where numbering continues, e.g. to follow on from your printed receipt book. Numbers restart at 1 every 1 April unless you set them again.</p>
       <form id="numForm">
         <label for="n-path" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next path receipt number <span class="hint" id="n-path-last"></span></span><input id="n-path" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
@@ -159,9 +185,9 @@
 <label for="n-exp" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Next payment voucher number <span class="hint" id="n-exp-last"></span></span><input id="n-exp" type="number" min="1" max="9999999" step="1" inputmode="numeric" style="width:140px"></label>
         <div id="numMsg"></div>
         <div class="row"><button class="btn" type="submit">Save receipt numbers</button></div>
-      </form>
+      </form></div>
     </div>
-    <div class="panel">
+    <div class="panel" data-tab="settings" data-need="admin">
       <h3>Information for the sangat</h3>
       <p class="hint">Shown under ਜਾਣਕਾਰੀ on the booking page. Leave a box empty to use the standard wording. Punjabi first, then English on a new line.</p>
       <form id="infoForm">
@@ -173,17 +199,24 @@
         <div class="row"><button class="btn" type="submit">Save information</button><button class="btn ghost" type="button" id="infoDefault">Fill standard wording</button></div>
       </form>
     </div>
-    <div class="panel">
+    <div class="panel" data-tab="settings" data-need="admin">
       <h3>Booking rules</h3>
       <form id="ruleForm">
         <label for="r-hold" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">Cancel bookings without the 20% advance after <span class="hint">hours from booking; 0 = never. A booking is cancelled only when nothing has been received and no payment is being checked, and only before the path date. The devotee must book again.</span></span><input id="r-hold" type="number" min="0" max="168" step="1" inputmode="numeric" style="width:120px"></label>
         <div id="leadRows"></div>
+        <h4 style="margin:10px 0 0">Pathi Singh rosters</h4>
+        <div class="row" style="align-items:flex-end">
+          <label for="r-time" style="width:auto">Akhand Path starts at<input id="r-time" type="time" style="width:140px"></label>
+          <label for="r-raul" style="width:auto">One raul is<select id="r-raul"><option value="1">1 hour</option><option value="1.5">1½ hours</option><option value="2">2 hours</option><option value="3">3 hours</option><option value="4">4 hours</option></select></label>
+          <label for="r-rbheta" style="width:auto">Bheta per raul (₹) <span class="hint">0 = enter each time</span><input id="r-rbheta" type="number" min="0" step="1" inputmode="numeric" style="width:120px"></label>
+          <label for="r-sbheta" style="width:auto">Sehaj Path bhog, per Pathi Singh (₹)<input id="r-sbheta" type="number" min="0" step="1" inputmode="numeric" style="width:120px"></label>
+        </div>
         <label for="r-policy">Refund and date-change policy <span class="hint">Shown on the booking form, on "My booking" and on every receipt. Leave empty to use the standard wording.</span><textarea id="r-policy" maxlength="1500" rows="6"></textarea></label>
         <div id="ruleMsg"></div>
         <div class="row"><button class="btn" type="submit">Save booking rules</button><button class="btn ghost" type="button" id="policyDefault">Use standard wording</button></div>
       </form>
     </div>
-    <div class="panel">
+    <div class="panel" data-tab="settings" data-need="admin">
       <h3>Gurdwara details</h3>
       <form id="setForm">
         <label for="s-name">Gurdwara name<input id="s-name" maxlength="80" required></label>
@@ -203,13 +236,16 @@
 <script>
 (function(){
   const G=GPB, API=GPB_API, $=id=>document.getElementById(id);
-  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},expenses:{},expOpen:{},exVoid:{},open:{},cashOpen:{},voidOpen:{},refundOpen:{},cancelOpen:{},filter:'all',st:'upcoming',watching:false};
+  const S={slots:{},settings:null,contacts:{},lookups:{},reports:{},expenses:{},rosters:{},pathis:{},notices:{},signups:{},role:'',expOpen:{},exVoid:{},open:{},cashOpen:{},voidOpen:{},refundOpen:{},cancelOpen:{},filter:'all',st:'upcoming',watching:false};
   $('demoBar').hidden=!API.demo;
   $('filter').innerHTML+=G.TYPES.map(t=>`<option value="${t.key}">${t.en}</option>`).join('');
   const FILTERS=[['upcoming','Upcoming bookings'],['due','Advance due'],['checking','Payment being checked'],['partial','Part paid'],['paid','Fully paid'],['pastdue','Bhog done, balance pending'],['noshow','No-show'],['cancelled','Cancelled'],['expired','Cancelled, advance not paid']];
   $('stFilter').innerHTML=FILTERS.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
   $('closeDate').min=G.today;
   const M$=G.money;
+  const can=need=>G.roleAtLeast(S.role,need);
+  // Hooks filled in by js/committee.js (roster, WhatsApp buttons, warnings on each booking).
+  const X={actions:()=>[],below:()=>'',warn:()=>''};
 
   // One row per booking: slot (first day) + contact + account.
   function bookings(){
@@ -256,15 +292,16 @@
         <select name="method" style="width:auto" aria-label="Mode"><option>Cash</option><option>Cheque</option><option>Bank transfer</option><option>UPI at counter</option></select>
         <button class="btn" type="submit">Save and issue receipt</button><button class="btn ghost" type="button" data-cashclose="${G.esc(ref)}">Close</button></div>${a.disc&&!a.cash&&a.total>a.paid?`<div class="hint">Paying at the gurdwara: the full bheta applies (no online discount), so the balance is ${M$(a.total-a.paid)}.</div>`:''}</form>`:'';
     const acts=[];
-    if(ref&&l&&!l.closed&&(a.due||a.total))acts.push(`<button class="linkbtn" data-cash="${G.esc(ref)}">${a.due?'Record payment at gurdwara':'Record seva bheta at gurdwara'}</button>`);
-    if(b.st==='pastdue')acts.push(`<button class="linkbtn" data-noshow="${G.esc(ref)}">Close as no-show (keep payment received)</button>`);
-    if(l&&l.closed==='noshow')acts.push(`<button class="linkbtn" data-reopen="${G.esc(ref)}">Reopen</button>`);
-    if(ref&&l&&a.paid>0)acts.push(`<button class="linkbtn" data-refund="${G.esc(ref)}">Record refund</button>`);
-    if(ref&&l&&l.closed!=='expired')acts.push(`<button class="linkbtn" data-exp="${G.esc(ref)}">Pay Pathi Singh</button>`);
-    if(canDelete)acts.push(`<button class="linkbtn danger-text" data-delete="${G.esc(ref)}">Delete entry (no payment)</button>`);
+    if(ref&&l&&!l.closed&&(a.due||a.total)&&can('sevadar'))acts.push(`<button class="linkbtn" data-cash="${G.esc(ref)}">${a.due?'Record payment at gurdwara':'Record seva bheta at gurdwara'}</button>`);
+    if(b.st==='pastdue'&&can('admin'))acts.push(`<button class="linkbtn" data-noshow="${G.esc(ref)}">Close as no-show (keep payment received)</button>`);
+    if(l&&l.closed==='noshow'&&can('admin'))acts.push(`<button class="linkbtn" data-reopen="${G.esc(ref)}">Reopen</button>`);
+    if(ref&&l&&a.paid>0&&can('treasurer'))acts.push(`<button class="linkbtn" data-refund="${G.esc(ref)}">Record refund</button>`);
+    if(ref&&l&&l.closed!=='expired'&&can('treasurer'))acts.push(`<button class="linkbtn" data-exp="${G.esc(ref)}">Pay Pathi Singh</button>`);
+    acts.push(...X.actions(b));
+    if(canDelete&&can('admin'))acts.push(`<button class="linkbtn danger-text" data-delete="${G.esc(ref)}">Delete entry (no payment)</button>`);
     // Receipts with Void; refunds with their vouchers.
     const rlist=(arr,kind,q,label)=>arr&&arr.length?`<div class="meta">${label}: ${arr.map((x,i)=>{const k=`${ref}|${kind}|${i}`;
-        return `<span class="rcitem${x.void?' voided':''}"><a href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)})${x.void?` <b>VOID</b>: ${G.esc(x.void.reason)}${x.void.note?' · '+G.esc(x.void.note):''}`:` <button class="linkbtn" data-void="${G.esc(k)}">Void</button>`}</span>${S.voidOpen[k]?voidForm(k,x):''}`}).join('')}</div>`:'';
+        return `<span class="rcitem${x.void?' voided':''}"><a href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)})${x.by?` <span class="hint">by ${G.esc(x.by)}</span>`:''}${x.void?` <b>VOID</b>: ${G.esc(x.void.reason)}${x.void.note?' · '+G.esc(x.void.note):''}${x.void.by?' ('+G.esc(x.void.by)+')':''}`:can('treasurer')?` <button class="linkbtn" data-void="${G.esc(k)}">Void</button>`:''}</span>${S.voidOpen[k]?voidForm(k,x):''}`}).join('')}</div>`:'';
     const rc=l?rlist(l.receipts,'path','n','Receipts'):'';
     const sr=l?rlist(l.sevaReceipts,'seva','s','Seva receipts'):'';
     const rf=l&&l.refunds&&l.refunds.length?`<div class="meta">Refunds: ${l.refunds.map((x,i)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&f=${i+1}" target="_blank" rel="noopener">${G.esc(x.no)}</a> (${M$(x.amount)} ${G.esc(x.method)}, ${G.esc(x.reason)})`).join(', ')}</div>`:'';
@@ -286,9 +323,9 @@
     return `<div class="bitem"><div class="bdate">${G.fmtShort(b.start)}<small>${G.fmtDow(b.start)}</small></div>
       <div class="bmain"><div class="who">${t?t.en:G.esc(b.type)}</div>
       <div class="meta">${G.esc(b.name)} parivar${v?' · '+G.esc(v.occasion):''}${v&&(G.capOf(S.settings,v.type)>1||(v.seat||1)>1)?' · Place '+(v.seat||1):''}${t&&t.days>1?' · Bhog '+G.fmtShort(G.add(b.start,2)):''}</div>
-      <div style="margin:4px 0">${G.chip(b.st)}</div>${samePhone(b)}${shortAdvance(b)}${amounts}${pend}${rc}${sr}${rf}${ref?paidOut(ref,a):''}
-      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${refundForm}${cancelForm}${ref&&S.expOpen[ref]?expForm(ref,t):''}${details}</div>
-      ${b.id&&b.start>=G.today&&!(l&&l.closed)?`<button class="btn danger" data-cancel="${b.id}">Cancel</button>`:'<span></span>'}</div>`;
+      <div style="margin:4px 0">${G.chip(b.st)}</div>${X.warn(b)}${samePhone(b)}${shortAdvance(b)}${amounts}${pend}${rc}${sr}${rf}${ref?paidOut(ref,a):''}
+      <div class="row" style="gap:12px">${acts.join('')}</div>${cashForm}${refundForm}${cancelForm}${ref&&S.expOpen[ref]?expForm(ref,t):''}${X.below(b)}${details}</div>
+      ${b.id&&b.start>=G.today&&!(l&&l.closed)&&can('admin')?`<button class="btn danger" data-cancel="${b.id}">Cancel</button>`:'<span></span>'}</div>`;
   }
   // Money the gurdwara paid out for this path (Pathi Singhs etc.), with what is left.
   const expOf=ref=>Object.entries(S.expenses||{}).filter(([,e])=>e.ref===ref).sort((x,y)=>String(x[1].date).localeCompare(String(y[1].date)));
@@ -320,7 +357,7 @@
     if(!$('infoForm').contains(document.activeElement)){const D=G.INFO_DEFAULTS;
       $('i-inc').value=(s.includes&&s.includes.length?s.includes:D.includes).join('\n');$('i-big').value=s.bigEvent||D.bigEvent;$('i-sukh').value=s.sukhmaniNote||D.sukhmaniNote;
       $('i-gr').value=(s.granthis||[]).map(g=>[g.name,g.phone,g.note].filter(Boolean).join(', ')).join('\n')}
-    if(!$('ruleForm').contains(document.activeElement)){$('r-hold').value=G.holdHours(s);
+    if(!$('ruleForm').contains(document.activeElement)){$('r-hold').value=G.holdHours(s);$('r-time').value=G.akhandTimeOf(s);$('r-raul').value=String(G.raulHoursOf(s));$('r-rbheta').value=s.raulBheta||0;$('r-sbheta').value=s.sehajBheta||0;
       $('leadRows').innerHTML=G.TYPES.map(t=>`<label for="lead-${t.key}" class="row" style="justify-content:space-between;flex-wrap:nowrap"><span style="min-width:0">${t.en}: book at least <span class="hint">days ahead (1 to 90). Keep 3 or more so the 48-hour advance and date-change window end before the path.</span></span><input id="lead-${t.key}" type="number" min="1" max="90" step="1" inputmode="numeric" style="width:120px" value="${G.leadDays(s,t.key)}"></label>`).join('');$('r-policy').value=s.policy||G.DEFAULT_POLICY}
     if(!$('payForm').contains(document.activeElement)){
       $('p-upi').value=s.upi||'';$('p-payee').value=s.payee||'';$('p-disc').value=G.discountPct(s);$('p-prefix').value=s.receiptPrefix||'RCPT';$('p-sprefix').value=s.sevaPrefix||'SEVA';$('p-rprefix').value=s.refundPrefix||'REFUND';$('p-eprefix').value=s.expensePrefix||'EXP';
@@ -340,15 +377,31 @@
     $('closedList').innerHTML=up.length?up.map(d=>`<span class="chip">${G.fmtLong(d)}<button data-open="${d}" aria-label="Reopen ${G.fmtLong(d)}">×</button></span>`).join(''):'<span class="empty">No closed dates.</span>';
   }
 
-  API.onAuth((user,isAdmin)=>{
-    $('signOut').hidden=!user;
-    if(user&&!isAdmin){$('loginPanel').hidden=false;$('adminArea').hidden=true;
-      $('loginErr').innerHTML='<div class="note err">This account is not on the committee list. Add its User UID to the admins collection (see README, Step 5).</div>';return}
+  API.onAuth((user,ok,role,info)=>{
+    info=info||{};
+    $('signOut').hidden=!user;$('verifyPanel').hidden=true;
+    if(user&&info.needVerify){$('loginPanel').hidden=true;$('adminArea').hidden=true;$('verifyPanel').hidden=false;$('verifyEmail').textContent=user.email||'';return}
+    if(user&&!ok){$('loginPanel').hidden=false;$('adminArea').hidden=true;
+      $('loginErr').innerHTML=`<div class="note err">${info.disabled?'This login has been switched off by the Pardhan.':info.error?'Could not check your committee role. Check your internet connection and reload, or check that the latest Firebase rules are published.':'This account is not on the committee list. Ask the Pardhan to add your email on the Users panel, then use "First time? Make your login".'}</div>`;return}
     $('loginPanel').hidden=!!user;$('adminArea').hidden=!user;
+    S.role=user?role:'';document.body.dataset.role=S.role||'';
+    if(user){const m=API.me&&API.me();$('whoami').textContent=`${m&&m.name||user.email||''} · ${(G.ROLES[S.role]||['',''])[1]}`}
     if(user&&!S.watching){S.watching=true;
-      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports,counters:d.counters||{},sevaonly:d.sevaonly||{},sevacontacts:d.sevacontacts||{},expenses:d.expenses||{}});if(!busy())renderList();renderNums();renderSeva();renderExpenses()});
-      API.watchSettings(s=>{S.settings=s;renderSettings();renderList()});}
+      API.watchAdmin(d=>{Object.assign(S,{slots:d.slots,contacts:d.contacts,lookups:d.lookups,reports:d.reports,counters:d.counters||{},sevaonly:d.sevaonly||{},sevacontacts:d.sevacontacts||{},expenses:d.expenses||{},rosters:d.rosters||{},pathis:d.pathis||{},notices:d.notices||{},signups:d.signups||{}});
+        if(!busy())renderList();renderNums();renderSeva();renderExpenses();X.onData&&X.onData()});
+      API.watchSettings(s=>{S.settings=s;renderSettings();renderList();X.onSettings&&X.onSettings()});
+      X.onSignIn&&X.onSignIn();}
   });
+  $('signupForm').onsubmit=async e=>{e.preventDefault();const msg=t=>{$('signupMsg').innerHTML=t};
+    const em=$('su-email').value.trim(),pw=$('su-pass').value;
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return msg('<div class="note err">Enter your email address.</div>');
+    if(pw.length<8)return msg('<div class="note err">Use at least 8 letters or numbers for the password.</div>');
+    if(API.demo)return msg('<div class="note">Demo mode: just sign in above with password <b>sevadar</b> or <b>treasurer</b>.</div>');
+    try{await API.signUp(em,pw)}
+    catch(x){const c=(x&&x.code)||'';msg(`<div class="note err">${c==='auth/email-already-in-use'?'This email already has a login. Sign in above, or use "Forgot password?".':c==='auth/weak-password'?'Choose a longer password.':c==='auth/invalid-email'?'That email address is not written correctly.':'Could not make the login. Try again.'}<div class="hint">Code: ${G.esc(c||'none')}</div></div>`)}};
+  $('verifyDone').onclick=()=>location.reload();
+  $('verifyResend').onclick=async()=>{try{await API.resendVerification();$('verifyMsg').innerHTML='<div class="note good">Sent again. Check your inbox and spam folder.</div>'}catch(x){$('verifyMsg').innerHTML='<div class="note err">Please wait a few minutes before asking again.</div>'}};
+  $('verifyOut').onclick=async()=>{await API.signOut();location.reload()};
 
   $('loginForm').onsubmit=async e=>{e.preventDefault();const b=$('loginBtn');b.disabled=true;$('loginErr').innerHTML='';
     try{await API.signIn($('l-email').value.trim(),$('l-pass').value)}
@@ -363,7 +416,8 @@
         :'Email or password is wrong. Check for extra spaces, or reset the password in Firebase → Authentication → Users.';
       $('loginErr').innerHTML=`<div class="note err">${m}<div class="hint">Code: ${G.esc(c||'none')}</div></div>`}
     b.disabled=false};
-  $('signOut').onclick=()=>API.signOut();
+  // Start fresh after signing out, so the next person sees only what their role allows.
+  $('signOut').onclick=async()=>{await API.signOut();location.reload()};
   $('filter').onchange=e=>{S.filter=e.target.value;renderList()};
   // Excel export: Bookings sheet + Receipts sheet.
   $('xlsxBtn').onclick=()=>{
@@ -436,7 +490,8 @@
       catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
     if(fm.classList.contains('expForm')){e.preventDefault();const ref=fm.dataset.ref,l=S.lookups[ref],name=fm.name.value.trim(),amount=Math.round(Number(fm.amt.value)||0);
       if(name.length<2){fm.name.focus();return}if(!(amount>=1)){fm.amt.focus();return}btn.disabled=true;
-      try{await API.addExpense({category:fm.cat.value,name,amount,method:fm.method.value,note:fm.note.value.trim(),ref,pathType:l?l.type:'',pathDate:l?l.start:''});
+      const pid=(Object.entries(S.pathis||{}).find(([,p])=>p.name===name)||[''])[0];
+      try{await API.addExpense({category:fm.cat.value,name,amount,method:fm.method.value,note:fm.note.value.trim(),ref,pathType:l?l.type:'',pathDate:l?l.start:'',...(pid?{pathiId:pid}:{})});
         fm.name.value='';fm.amt.value='';fm.note.value='';btn.disabled=false;document.activeElement.blur()}
       catch(x){btn.disabled=false;btn.textContent='Could not save. Retry'}return}
     if(fm.classList.contains('cancelForm')){e.preventDefault();btn.disabled=true;
@@ -531,7 +586,7 @@
     out.sort((a,b)=>G.receiptSerial(a['Voucher no.'])-G.receiptSerial(b['Voucher no.']));
     const tot=out.reduce((s,r)=>s+(r.Status==='VOID'?0:r['Amount (Rs)']),0);if(out.length)out.push({'Voucher no.':'TOTAL (valid)','Amount (Rs)':tot});return out}
   function renderExpenses(){
-    const names=new Set([...Object.values(S.expenses||{}).map(e=>e.name),...((S.settings&&S.settings.granthis)||[]).map(g=>g.name)].filter(Boolean));
+    const names=new Set([...Object.values(S.pathis||{}).filter(p=>p.active!==false).map(p=>p.name),...Object.values(S.expenses||{}).map(e=>e.name),...((S.settings&&S.settings.granthis)||[]).map(g=>g.name)].filter(Boolean));
     $('payeeNames').innerHTML=[...names].map(n=>`<option value="${G.esc(n)}">`).join('');
     if($('exPanel').contains(document.activeElement)&&document.activeElement.tagName!=='BUTTON')return;
     const from=$('ex-from').value||'0000',to=$('ex-to').value||'9999';
@@ -557,7 +612,8 @@
     if(!(amount>=1))return msg('<div class="note err">Enter the amount.</div>');
     if(ref&&!l)return msg('<div class="note err">No booking with that reference. Leave it empty if this payment is not for a path.</div>');
     btn.disabled=true;
-    try{const id=await API.addExpense({category:$('ex-cat').value,name,amount,method:$('ex-mode').value,note:$('ex-note').value.trim(),ref:ref||'',pathType:l?l.type:'',pathDate:l?l.start:''});
+    const pid=(Object.entries(S.pathis||{}).find(([,p])=>p.name===name)||[''])[0];
+    try{const id=await API.addExpense({category:$('ex-cat').value,name,amount,method:$('ex-mode').value,note:$('ex-note').value.trim(),ref:ref||'',pathType:l?l.type:'',pathDate:l?l.start:'',...(pid?{pathiId:pid}:{})});
       msg(`<div class="note good">Saved. <a href="receipt.html?exp=${id}" target="_blank" rel="noopener">Open voucher</a> to print and get it signed.</div>`);
       ['ex-name','ex-amt','ex-ref','ex-note'].forEach(i=>$(i).value='');document.activeElement.blur();renderExpenses()}
     catch(x){msg('<div class="note err">Could not save. Check your internet connection, and that the latest Firebase rules are published.</div>')}
@@ -602,7 +658,7 @@
       :'<p class="hint">No online seva waiting to be checked.</p>';
     const done=all.filter(([,d])=>d.receipt).sort((a,b)=>String(b[1].receipt.date).localeCompare(String(a[1].receipt.date))).slice(0,25);
     $('svList').innerHTML=done.length?done.map(([ref,d])=>{const r=d.receipt;return `<div class="meta" style="margin:6px 0"><span class="rcitem${r.void?' voided':''}"><a href="receipt.html?seva=${ref}" target="_blank" rel="noopener">${G.esc(r.no)}</a>
-        · ${G.esc(d.name)} · ${M$(r.amount)} ${G.esc(r.method)} · ${new Date(r.date).toLocaleDateString('en-IN')}${r.void?` <b>VOID</b>: ${G.esc(r.void.reason)}`:` <button class="linkbtn" data-svvoid="${ref}">Void</button>`}</span>
+        · ${G.esc(d.name)} · ${M$(r.amount)} ${G.esc(r.method)} · ${new Date(r.date).toLocaleDateString('en-IN')}${r.by?` <span class="hint">by ${G.esc(r.by)}</span>`:''}${r.void?` <b>VOID</b>: ${G.esc(r.void.reason)}`:can('treasurer')?` <button class="linkbtn" data-svvoid="${ref}">Void</button>`:''}</span>
         ${S.svVoid[ref]&&!r.void?`<form class="svVoidForm" data-ref="${ref}"><div class="row"><label style="width:auto">Why void?<select name="reason">${G.VOID_REASONS.map(x=>`<option>${x}</option>`).join('')}</select></label>
           <label style="width:auto">Note<input name="note" maxlength="120" placeholder="optional"></label><button class="btn danger" type="submit">Void receipt</button><button class="btn ghost" type="button" data-svvoidclose="${ref}">Close</button></div></form>`:''}</div>`}).join('')
       :'<p class="hint">No seva receipts yet.</p>';
@@ -648,17 +704,21 @@
     const holdHours=Math.min(168,Math.max(0,Math.round(Number($('r-hold').value)||0)));
     const leadDays={};for(const t of G.TYPES){const n=Math.round(Number($('lead-'+t.key).value)||0);if(!(n>=1&&n<=90)){$('ruleMsg').innerHTML=`<div class="note err">Enter 1 to 90 days for ${t.en}.</div>`;return}leadDays[t.key]=n}
     let policy=$('r-policy').value.trim();if(policy===G.DEFAULT_POLICY.trim())policy='';
-    try{await API.saveSettings({...S.settings,holdHours,policy,leadDays});$('ruleMsg').innerHTML=`<div class="note good">Saved. ${holdHours?`Bookings without an advance are cancelled ${holdHours} hours after booking.`:'Bookings are never cancelled automatically.'}</div>`}
+    const akhandTime=$('r-time').value||'08:00',raulHours=Number($('r-raul').value)||2,raulBheta=Math.max(0,Math.round(Number($('r-rbheta').value)||0)),sehajBheta=Math.max(0,Math.round(Number($('r-sbheta').value)||0));
+    try{await API.saveSettings({...S.settings,holdHours,policy,leadDays,akhandTime,raulHours,raulBheta,sehajBheta});$('ruleMsg').innerHTML=`<div class="note good">Saved. ${holdHours?`Bookings without an advance are cancelled ${holdHours} hours after booking.`:'Bookings are never cancelled automatically.'}</div>`}
     catch(x){$('ruleMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
   $('forgotBtn').onclick=async()=>{const em=$('l-email').value.trim();
     if(!em){$('loginErr').innerHTML='<div class="note err">Type your email address above first, then tap "Forgot password?".</div>';$('l-email').focus();return}
     if(API.demo){$('loginErr').innerHTML='<div class="note">Demo mode: the password is demo.</div>';return}
     try{await API.resetPassword(em);$('loginErr').innerHTML=`<div class="note good">A password reset link has been sent to ${G.esc(em)}, if that email is a committee account. Check the inbox and spam folder.</div>`}
     catch(x){const c=(x&&x.code)||'';$('loginErr').innerHTML=`<div class="note err">${c==='auth/invalid-email'?'That email address is not written correctly.':c==='auth/network-request-failed'?'No internet connection. Try again.':'Could not send the reset email. Try again in a few minutes.'}<div class="hint">Code: ${G.esc(c||'none')}</div></div>`}};
+  // Share with js/committee.js
+  window.ADM={S,X,API,G,$,M$,can,renderList,bookings,expOf,busy,lastIssued};
   $('setForm').onsubmit=async e=>{e.preventDefault();
     try{await API.saveSettings({...S.settings,name:$('s-name').value.trim(),phone:$('s-phone').value.trim(),address:$('s-addr').value.trim()});$('setMsg').innerHTML='<div class="note good">Saved.</div>'}
     catch(x){$('setMsg').innerHTML='<div class="note err">Could not save. Check your internet connection.</div>'}};
 })();
 </script>
+<script src="js/committee.js"></script>
 </body>
 </html>

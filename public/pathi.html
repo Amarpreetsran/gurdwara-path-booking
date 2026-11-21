@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ਪਾਠੀ ਸਿੰਘ · Pathi Singh</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1B2A5C">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@500;700;800&family=Mukta+Mahee:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <div class="mark" aria-hidden="true">ੴ</div>
+  <div class="hd"><h1 id="gname">ਪਾਠੀ ਸਿੰਘ ਜੀ</h1><p>ਰੌਲ ਸੂਚੀ ਅਤੇ ਭੇਟਾ · Raul roster and bheta</p></div>
+</div></header>
+<div class="demo" id="demoBar" hidden><div class="wrap">Demo mode: the PIN is the one shown on the committee page when the Pathi Singh was added.</div></div>
+<main><div class="wrap single">
+  <div class="panel" id="pinPanel">
+    <h3>ਆਪਣਾ PIN ਲਿਖੋ ਜੀ · Enter your PIN</h3>
+    <form id="pinForm" novalidate>
+      <label for="pin">4 ਅੰਕਾਂ ਦਾ PIN · 4-digit PIN<input id="pin" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]{4}" style="width:140px;font-size:22px;letter-spacing:.3em"></label>
+      <div id="pinMsg"></div>
+      <div class="row"><button class="btn" type="submit" id="pinBtn">ਖੋਲ੍ਹੋ · Open</button></div>
+    </form>
+    <p class="hint">PIN ਗੁਰਦੁਆਰਾ ਕਮੇਟੀ ਵੱਲੋਂ ਮਿਲਿਆ ਹੈ। ਭੁੱਲ ਗਏ ਹੋ ਤਾਂ ਦਫ਼ਤਰ ਤੋਂ ਨਵਾਂ PIN ਲਓ ਜੀ। · The committee gave you this PIN. If you forgot it, ask the office for a new one.</p>
+  </div>
+  <div id="view" hidden style="display:grid;gap:24px">
+    <div class="panel">
+      <h3 id="hello"></h3>
+      <h4 style="margin:10px 0 4px">ਆਉਣ ਵਾਲੀਆਂ ਰੌਲਾਂ · Your coming rauls</h4>
+      <div id="mine"></div>
+    </div>
+    <div class="panel">
+      <h3>ਪੂਰੀ ਰੌਲ ਸੂਚੀ · Full rosters</h3>
+      <p class="hint">ਆਪ ਜੀ ਦੀਆਂ ਰੌਲਾਂ ਰੰਗ ਨਾਲ ਦਿਖਾਈਆਂ ਗਈਆਂ ਹਨ। · Your rauls are highlighted.</p>
+      <div id="full"></div>
+    </div>
+    <div class="panel">
+      <h3>ਆਉਣ ਵਾਲੇ ਪਾਠ: ਆਪ ਜੀ ਕਦੋਂ ਸੇਵਾ ਕਰ ਸਕਦੇ ਹੋ? · Coming paths: when can you do seva?</h3>
+      <p class="hint">ਹਰ ਪਾਠ ਲਈ ਚੁਣੋ ਜੀ। ਇਸ ਨਾਲ ਕਮੇਟੀ ਨੂੰ ਰੌਲ ਸੂਚੀ ਬਣਾਉਣ ਵਿੱਚ ਮਦਦ ਮਿਲਦੀ ਹੈ। ਚੁਣਦੇ ਹੀ ਸੇਵ ਹੋ ਜਾਂਦਾ ਹੈ। · Choose for each path. This helps the committee make the roster. It saves as soon as you choose.</p>
+      <div id="paths"></div>
+      <label for="usual" style="margin-top:12px">ਆਮ ਤੌਰ 'ਤੇ ਕਦੋਂ ਉਪਲਬਧ ਹੋ? · When are you usually available? <span class="hint">ਜਿਵੇਂ / e.g. ਸ਼ਨੀ-ਐਤ, ਰਾਤ ਨੂੰ · weekends, nights</span><input id="usual" maxlength="200"></label>
+      <div id="usualMsg"></div>
+      <div class="row"><button class="btn ghost" type="button" id="usualSave">ਸੇਵ ਕਰੋ · Save</button></div>
+    </div>
+    <div class="panel">
+      <h3>ਜਿਨ੍ਹਾਂ ਦਿਨਾਂ ਨੂੰ ਉਪਲਬਧ ਨਹੀਂ · Days you are not available</h3>
+      <p class="hint">ਕਮੇਟੀ ਇਹਨਾਂ ਦਿਨਾਂ ਨੂੰ ਆਪ ਜੀ ਦੀ ਰੌਲ ਨਹੀਂ ਲਗਾਏਗੀ। · The committee will not give you rauls on these days.</p>
+      <div class="row" style="align-items:flex-end"><label for="naDate" style="width:auto">ਮਿਤੀ · Date<input id="naDate" type="date"></label><button class="btn ghost" type="button" id="naAdd">ਜੋੜੋ · Add</button></div>
+      <div class="chips" id="naList" style="margin-top:8px"></div>
+      <div id="naMsg"></div>
+      <div class="row"><button class="btn" type="button" id="naSave">ਸੇਵ ਕਰੋ · Save</button></div>
+    </div>
+    <div class="panel">
+      <h3>ਭੇਟਾ ਪ੍ਰਾਪਤ · Bheta paid to you</h3>
+      <div id="paid"></div>
+    </div>
+    <div class="row"><button class="btn ghost" type="button" id="lock">ਬੰਦ ਕਰੋ · Lock this page</button></div>
+  </div>
+</div></main>
+<script src="firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/data.js"></script>
+<script>
+(function(){
+  const G=GPB,API=GPB_API,$=id=>document.getElementById(id),esc=G.esc;
+  $('demoBar').hidden=!API.demo;
+  const id=new URLSearchParams(location.search).get('id')||'';
+  let pin='',na=[],data=null;
+  const KEY='gpb-pathi-'+id;
+  try{pin=sessionStorage.getItem(KEY)||''}catch(e){}
+  if(!/^[A-Za-z0-9]{20}$/.test(id)){$('pinPanel').innerHTML='<p>ਇਹ ਲਿੰਕ ਪੂਰਾ ਨਹੀਂ ਹੈ ਜੀ। ਕਮੇਟੀ ਵੱਲੋਂ ਭੇਜਿਆ ਪੂਰਾ ਲਿੰਕ ਖੋਲ੍ਹੋ। · This link is not complete. Open the full link the committee sent.</p>';return}
+  const ERR={pin:'PIN ਠੀਕ ਨਹੀਂ ਹੈ ਜੀ। · That PIN is not right.',locked:'ਕਈ ਵਾਰ ਗ਼ਲਤ PIN ਲਿਖਿਆ ਗਿਆ। 15 ਮਿੰਟ ਬਾਅਦ ਫਿਰ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ। · Too many wrong PINs. Try again in 15 minutes.',
+    notfound:'ਇਹ ਲਿੰਕ ਹੁਣ ਚਾਲੂ ਨਹੀਂ ਹੈ। ਦਫ਼ਤਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ ਜੀ। · This link is no longer active. Please contact the office.',server:'ਇੰਟਰਨੈੱਟ ਜਾਂ ਸਰਵਰ ਦੀ ਸਮੱਸਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ। · Connection problem. Please try again.'};
+  async function open(action,dates){
+    let r;try{r=await API.pathiView(id,pin,action,dates)}catch(e){r={error:'server'}}
+    if(!r||!r.ok){$('view').hidden=true;$('pinPanel').hidden=false;$('pinMsg').innerHTML=`<div class="note err">${ERR[(r&&r.error)||'server']||ERR.server}</div>`;try{sessionStorage.removeItem(KEY)}catch(e){};return false}
+    try{sessionStorage.setItem(KEY,pin)}catch(e){}
+    data=r;na=(r.unavailable||[]).slice();draw();return true}
+  const TT=k=>{const t=G.typeOf(k);return t?`${t.pa} · ${t.en}`:k};
+  function draw(){
+    $('pinPanel').hidden=true;$('view').hidden=false;
+    if(data.gurdwara&&data.gurdwara.name)$('gname').textContent=data.gurdwara.name;
+    $('hello').textContent=`ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ ${data.name} ਜੀ 🙏`;
+    const ros=(data.rosters||[]).slice().sort((a,b)=>a.start<b.start?-1:1),now=G.today;
+    const coming=[];ros.forEach(r=>r.rauls.forEach(x=>{if(!x.mine)return;const day=x.from?x.from.slice(0,10):r.start;if(G.add(day,1)>=now)coming.push({r,x,day})}));
+    coming.sort((a,b)=>(a.x.from||a.day)<(b.x.from||b.day)?-1:1);
+    $('mine').innerHTML=coming.length?coming.map(({r,x,day})=>`<div class="bitem"><div class="bdate">${G.fmtShort(day)}<small>${G.fmtDow(day)}</small></div><div class="bmain">
+        <div class="who">${x.from?esc(G.raulText(x)):'ਭੋਗ · Bhog'}</div><div class="meta">${esc(TT(r.type))} · ${esc(r.name)} ਪਰਿਵਾਰ / family</div>
+        <div class="meta">📍 ${esc(r.place||data.gurdwara.name||'')}${r.note?' · '+esc(r.note):''}</div></div></div>`).join('')
+      :'<p class="hint">ਹਾਲੇ ਕੋਈ ਰੌਲ ਨਹੀਂ ਲੱਗੀ। · No rauls given to you yet.</p>';
+    $('full').innerHTML=ros.filter(r=>G.add(r.start,3)>=now).map(r=>`<details${r.rauls.some(x=>x.mine)?' open':''}><summary><b>${G.fmtLong(r.start)}</b> · ${esc(TT(r.type))} · ${esc(r.name)} ਪਰਿਵਾਰ</summary>
+        <div class="tablewrap"><table class="rtable"><tr><th>#</th><th>ਸਮਾਂ · Time</th><th>ਪਾਠੀ ਸਿੰਘ · Pathi Singh</th></tr>${r.rauls.map((x,i)=>`<tr class="raul${x.mine?' mine':''}"><td>${i+1}</td><td>${x.from?esc(G.raulText(x)):'ਭੋਗ · Bhog'}</td><td>${esc(x.name||'—')}</td></tr>`).join('')}</table></div></details>`).join('')
+      ||'<p class="hint">ਕੋਈ ਸੂਚੀ ਨਹੀਂ। · No rosters.</p>';
+    drawNa();
+    const av=data.avail||{},mineRefs=new Set(ros.map(r=>r.ref));
+    $('paths').innerHTML=(data.paths||[]).length?data.paths.map(x=>{const t=G.typeOf(x.type),blocked=na.includes(x.start);
+      return `<div class="bitem"><div class="bdate">${G.fmtShort(x.start)}<small>${G.fmtDow(x.start)}</small></div><div class="bmain">
+        <div class="who">${esc(TT(x.type))}</div><div class="meta">${esc(x.name)} ਪਰਿਵਾਰ / family${t&&t.days>1?` · ਭੋਗ / bhog ${G.fmtShort(G.add(x.start,2))}`:''}${mineRefs.has(x.ref)?' · <b>ਰੌਲ ਲੱਗੀ ਹੈ / roster made</b>':''}</div>
+        <select data-av="${esc(x.ref)}" aria-label="Availability for ${esc(TT(x.type))} ${G.fmtShort(x.start)}" style="width:auto;margin-top:4px">
+          <option value="">— ਚੁਣੋ · choose —</option>${Object.entries(G.AVAIL).map(([k,v])=>`<option value="${k}"${av[x.ref]===k?' selected':''}>${v[0]} · ${v[1]}</option>`).join('')}</select>
+        ${blocked?'<div class="hint">ਇਹ ਦਿਨ "ਉਪਲਬਧ ਨਹੀਂ" ਵਿੱਚ ਹੈ · This day is in your "not available" list</div>':''}</div></div>`}).join('')
+      :'<p class="hint">ਅਗਲੇ 90 ਦਿਨਾਂ ਵਿੱਚ ਕੋਈ ਪਾਠ ਬੁੱਕ ਨਹੀਂ। · No paths booked in the next 90 days.</p>';
+    if(document.activeElement!==$('usual'))$('usual').value=data.usual||'';
+    const v=(data.vouchers||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))),fy=G.finYear();
+    const tot=v.filter(x=>!x.void&&String(x.no).includes('/'+fy+'/')).reduce((s,x)=>s+(Number(x.amount)||0),0);
+    $('paid').innerHTML=v.length?`<p>ਇਸ ਸਾਲ ਕੁੱਲ · This year: <b>${G.money(tot)}</b></p>`+v.map(x=>`<div class="meta"${x.void?' style="text-decoration:line-through"':''}>${new Date(x.date).toLocaleDateString('en-IN')} · ${esc(x.no)} · <b>${G.money(x.amount)}</b> ${esc(x.method)}${x.pathType?' · '+esc((G.typeOf(x.pathType)||{}).en||x.pathType)+(x.pathDate?' '+G.fmtShort(x.pathDate):''):''}${x.void?' · ਰੱਦ / void':''}</div>`).join('')
+      :'<p class="hint">ਹਾਲੇ ਕੋਈ ਭੇਟਾ ਦਰਜ ਨਹੀਂ। · No bheta recorded yet.</p>';
+  }
+  function drawNa(){const up=na.filter(d=>d>=G.today).sort();
+    $('naList').innerHTML=up.length?up.map(d=>`<span class="chip">${G.fmtLong(d)}<button data-na="${d}" aria-label="Remove ${G.fmtLong(d)}">×</button></span>`).join(''):'<span class="empty">ਕੋਈ ਨਹੀਂ · None</span>'}
+  $('naDate').min=G.today;$('naDate').max=G.add(G.today,180);
+  $('naAdd').onclick=()=>{const d=$('naDate').value;if(d&&d>=G.today&&!na.includes(d)){na.push(d);drawNa();$('naMsg').innerHTML='<div class="note">ਸੇਵ ਕਰਨਾ ਨਾ ਭੁੱਲਣਾ ਜੀ · Remember to save</div>'}};
+  $('naList').addEventListener('click',e=>{const b=e.target.closest('[data-na]');if(b){na=na.filter(d=>d!==b.dataset.na);drawNa();$('naMsg').innerHTML='<div class="note">ਸੇਵ ਕਰਨਾ ਨਾ ਭੁੱਲਣਾ ਜੀ · Remember to save</div>'}});
+  $('naSave').onclick=async()=>{$('naSave').disabled=true;if(await open('unavailable',na))$('naMsg').innerHTML='<div class="note good">ਸੇਵ ਹੋ ਗਿਆ ਜੀ · Saved</div>';$('naSave').disabled=false};
+  $('pinForm').onsubmit=async e=>{e.preventDefault();pin=$('pin').value.trim();if(!/^\d{4}$/.test(pin)){$('pinMsg').innerHTML=`<div class="note err">${ERR.pin}</div>`;return}
+    $('pinBtn').disabled=true;await open();$('pinBtn').disabled=false};
+  $('paths').addEventListener('change',async e=>{const s=e.target.closest('[data-av]');if(!s)return;s.disabled=true;
+    if(await open('avail',{ref:s.dataset.av,value:s.value})){const n=document.querySelector(`[data-av="${s.dataset.av}"]`);if(n)n.insertAdjacentHTML('afterend',' <span class="hint" style="color:var(--ok)">✓ ਸੇਵ · saved</span>')}});
+  $('usualSave').onclick=async()=>{$('usualSave').disabled=true;if(await open('usual',{text:$('usual').value}))$('usualMsg').innerHTML='<div class="note good">ਸੇਵ ਹੋ ਗਿਆ ਜੀ · Saved</div>';$('usualSave').disabled=false};
+  $('lock').onclick=()=>{try{sessionStorage.removeItem(KEY)}catch(e){};location.reload()};
+  if(/^\d{4}$/.test(pin))open();
+})();
+</script>
+</body>
+</html>

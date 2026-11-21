@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="css/style.css">
 <style>
   .sheet{max-width:640px;margin:24px auto;background:#fff;color:#16213E;border:1px solid #DDE1EC;border-radius:14px;padding:28px 28px 22px}
+  .sheet table.roster{width:100%;border-collapse:collapse;margin-top:14px}
+  .sheet table.roster th,.sheet table.roster td{border:1px solid #C9CFDD;padding:6px 8px;font-size:14px;text-align:left}
+  .sheet table.roster td:last-child{width:28%}
   .sheet .top{display:flex;gap:14px;align-items:center;border-bottom:2px solid #1B2A5C;padding-bottom:12px}
   .sheet .om{font-family:var(--display);font-size:42px;color:#E3870E;line-height:1}
   .sheet h1{font-family:var(--display);font-size:24px;margin:0;line-height:1.15}
@@ -47,6 +50,7 @@
   const ref=(q.get('ref')||'').toUpperCase(),sn=parseInt(q.get('s')||'0',10),fn=parseInt(q.get('f')||'0',10),n=sn||fn||parseInt(q.get('n')||'0',10),SEVA=!!sn,REFUND=!!fn;
   let settings=null;
   $('printBtn').onclick=()=>window.print();
+  const byRow=r=>r&&r.by?`<tr><td>ਜਾਰੀ ਕਰਤਾ<br><span class="en">Issued by</span></td><td>${G.esc(r.by)}</td></tr>`:'';
   const mode=r=>`${G.esc(({Cash:'ਨਕਦ (Cash)',Cheque:'ਚੈੱਕ (Cheque)','Bank transfer':'ਬੈਂਕ ਟ੍ਰਾਂਸਫ਼ਰ','UPI at counter':'UPI (ਦਫ਼ਤਰ ਵਿੱਚ)'})[r.method]||r.method)}${r.utr?` · UTR ${G.esc(r.utr)}`:''}`;
   // Earlier receipts of the same booking, voided ones marked.
   const recLine=(ref,x,i,q)=>`<a href="receipt.html?ref=${encodeURIComponent(ref)}&${q}=${i+1}">${G.esc(x.no)}</a> · ${x.void?`<s>${M$(x.amount)}</s> <b style="color:#B3261E">ਰੱਦ / VOID</b>`:M$(x.amount)} · ${G.fmtDateTime(x.date)}`;
@@ -69,7 +73,7 @@
         <tr><td>ਸੇਵਾ<br><span class="en">Towards</span></td><td>${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(start)}${t&&t.days>1?` · ਭੋਗ ${G.fmtLong(G.add(start,2))}`:''}<br><span class="en">ਭੇਟਾ ਵਿੱਚ ਸ਼ਾਮਲ / Includes: ${G.infoOf(settings).includes.map(x=>G.esc(x)).join('; ')}</span></td></tr>
         <tr><td>ਬੁਕਿੰਗ ਨੰਬਰ<br><span class="en">Booking reference</span></td><td>${G.esc(ref)}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
-        <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>
+        <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>${byRow(r)}
         ${n>1?`<tr><td>ਇਸ ਬੁਕਿੰਗ ਦੀਆਂ ਪਿਛਲੀਆਂ ਰਸੀਦਾਂ<br><span class="en">Previous receipts</span></td><td>${prevList(ref,list,n,'n')}</td></tr>`:''}
         <tr><td>ਕੁੱਲ ਭੇਟਾ<br><span class="en">Total bheta</span></td><td>${M$(a.total)}${a.disc&&!a.cash?` (ਪੂਰੀ ਆਨਲਾਈਨ ਭੇਜਣ ਤੇ ${M$(a.fullOnline)})`:''}</td></tr>
         <tr><td>ਹੁਣ ਤੱਕ ਪ੍ਰਾਪਤ<br><span class="en">Paid so far</span></td><td>${M$(a.paid)}</td></tr>
@@ -87,7 +91,7 @@
         <tr><td>ਸੇਵਾ<br><span class="en">Towards</span></td><td>ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ<br><span class="en">Seva bheta for Gurdwara Sahib</span></td></tr>
         <tr><td>ਪਾਠ ਦੀ ਬੁਕਿੰਗ ਨਾਲ<br><span class="en">With path booking</span></td><td>${G.esc(ref)} · ${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(start)}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
-        <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>
+        <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>${byRow(r)}
         ${n>1?`<tr><td>ਪਿਛਲੀਆਂ ਸੇਵਾ ਰਸੀਦਾਂ<br><span class="en">Previous seva receipts</span></td><td>${prevList(ref,list,n,'s')}</td></tr>
         <tr><td>ਕੁੱਲ ਸੇਵਾ ਭੇਟਾ<br><span class="en">Total seva bheta</span></td><td>${M$(sofar)}</td></tr>`:''}
       </table>
@@ -102,7 +106,7 @@
         <tr><td>ਵਾਪਸ ਕੀਤੀ<br><span class="en">Paid back to</span></td><td><b>${G.esc(l.name)} ਪਰਿਵਾਰ</b></td></tr>
         <tr><td>ਬੁਕਿੰਗ<br><span class="en">Booking</span></td><td>${G.esc(ref)} · ${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(start)}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount refunded</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
-        <tr><td>ਢੰਗ<br><span class="en">Paid back by</span></td><td>${mode(r)}</td></tr>
+        <tr><td>ਢੰਗ<br><span class="en">Paid back by</span></td><td>${mode(r)}</td></tr>${byRow(r)}
         <tr><td>ਕਾਰਨ<br><span class="en">Reason</span></td><td>${G.esc(r.reason)}${r.note?' · '+G.esc(r.note):''}</td></tr>
         ${(()=>{const rec=l.receipts||[],earlier=(l.refunds||[]).slice(0,n-1);
           const got=rec.reduce((s,x)=>s+(x.void?0:Number(x.amount)||0),0),back=earlier.reduce((s,x)=>s+(Number(x.amount)||0),0)+r.amount;
@@ -122,7 +126,7 @@
         <tr><td>ਭੁਗਤਾਨ ਕੀਤਾ<br><span class="en">Paid to</span></td><td><b>${G.esc(e.name)}</b></td></tr>
         <tr><td>ਕਿਸ ਲਈ<br><span class="en">Towards</span></td><td>${G.esc(e.category)}${e.ref?`<br>${t?`${t.pa} · ${t.en}`:''} · ਬੁਕਿੰਗ / Booking ${G.esc(e.ref)}${e.pathDate?' · '+G.fmtLong(e.pathDate):''}`:''}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount</span></td><td><span class="amt">${M$(e.amount)}</span><br>Rupees ${G.inWords(Number(e.amount)||0)} only</td></tr>
-        <tr><td>ਢੰਗ<br><span class="en">Paid by</span></td><td>${G.esc(e.method||'Cash')}</td></tr>
+        <tr><td>ਢੰਗ<br><span class="en">Paid by</span></td><td>${G.esc(e.method||'Cash')}</td></tr>${byRow(e)}
         ${e.note?`<tr><td>ਨੋਟ<br><span class="en">Note</span></td><td>${G.esc(e.note)}</td></tr>`:''}
       </table>
       <div class="foot" style="margin:18px 0 8px">ਪ੍ਰਾਪਤ ਕਰਤਾ ਦੇ ਦਸਤਖ਼ਤ / Received by: ____________________ &nbsp; ਕਮੇਟੀ / Committee: ____________________</div><div class="foot">ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।</div>`}
@@ -140,7 +144,7 @@
         <tr><td>ਸੇਵਾ<br><span class="en">Towards</span></td><td>${G.esc(d.purpose||'ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ ਲਈ ਸੇਵਾ ਭੇਟਾ / Seva bheta for Gurdwara Sahib')}${d.note?'<br>'+G.esc(d.note):''}</td></tr>
         <tr><td>ਹਵਾਲਾ ਨੰਬਰ<br><span class="en">Reference</span></td><td>${G.esc(ref)}</td></tr>
         <tr><td>ਰਕਮ<br><span class="en">Amount</span></td><td><span class="amt">${M$(r.amount)}</span><br>Rupees ${G.inWords(r.amount)} only</td></tr>
-        <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>
+        <tr><td>ਭੁਗਤਾਨ ਦਾ ਢੰਗ<br><span class="en">Payment mode</span></td><td>${mode(r)}</td></tr>${byRow(r)}
       </table>
       <div class="foot" style="margin-bottom:8px">ਆਪ ਜੀ ਦੀ ਸੇਵਾ ਲਈ ਬਹੁਤ ਧੰਨਵਾਦ ਜੀ। <span class="en">With gratitude for your seva.</span></div>${foot}`;
   }
@@ -151,7 +155,7 @@
     const from=q.get('from')||'0000',to=q.get('to')||'9999',type=q.get('type')||'all';
     document.title=`Receipts ${from} to ${to}`;msg('Loading receipts… (sign in on the committee page first)');
     let data=null;
-    const draw=()=>{if(!settings||!data)return;const items=[];
+    const draw=()=>{if(!settings||!data||!$('sheet'))return;const items=[];
       if(type==='expense'){for(const [id,e] of Object.entries(data.expenses||{})){const day=G.iso(new Date(e.date));if(day>=from&&day<=to)items.push({kind:'expense',e,no:e.no})}}
       else for(const [ref,l] of Object.entries(data.lookups||{})){
         const push=(arr,kind)=>(arr||[]).forEach((r,i)=>{const day=G.iso(new Date(r.date));if(day>=from&&day<=to)items.push({ref,l,kind,n:i+1,no:r.no})});
@@ -165,10 +169,28 @@
       $('printBtn').textContent=`ਸਾਰੀਆਂ ${items.length} ਰਸੀਦਾਂ ਪ੍ਰਿੰਟ / PDF ਸੇਵ ਕਰੋ`};
     API.watchSettings(s=>{settings=s;draw()});
     API.onAuth((u,admin)=>{if(!u||!admin)return msg('Only the committee can open all receipts. Sign in on the committee page in this browser, then open this again.');
-      let once=false;API.watchAdmin(d=>{if(once)return;once=true;data=d;draw()})});
+      // The records arrive in several parts: wait until they have settled, then draw once.
+      let tm=0,drawn=false;API.watchAdmin(d=>{if(drawn)return;data=d;clearTimeout(tm);tm=setTimeout(()=>{drawn=true;draw()},1200)})});
     return;
   }
 
+  // Printable Pathi Singh roster for one booking (committee only).
+  const rosterRef=(q.get('roster')||'').toUpperCase();
+  if(rosterRef){document.title='Roster '+rosterRef;msg('Loading roster… (sign in on the committee page first)');let d=null;
+    const draw=()=>{if(!settings||!d)return;const ro=(d.rosters||{})[rosterRef],l=(d.lookups||{})[rosterRef];
+      if(!ro||!l)return msg('No roster saved for this booking yet.');const t=G.typeOf(l.type);
+      $('sheet').innerHTML=`${head('ਰੌਲ ਸੂਚੀ · Pathi Singh Roster',rosterRef)}
+        <table><tr><td>ਪਾਠ<br><span class="en">Path</span></td><td>${t?`${t.pa} · ${t.en}`:G.esc(l.type)}<br>${G.fmtLong(l.start)}${t&&t.days>1?` · ਭੋਗ ${G.fmtLong(G.add(l.start,2))}`:''}</td></tr>
+        <tr><td>ਪਰਿਵਾਰ<br><span class="en">Family</span></td><td>${G.esc(l.name)} ਪਰਿਵਾਰ</td></tr>
+        <tr><td>ਸਥਾਨ<br><span class="en">Place</span></td><td>${G.esc(ro.place||settings.name)}</td></tr>${ro.note?`<tr><td>ਨੋਟ<br><span class="en">Note</span></td><td>${G.esc(ro.note)}</td></tr>`:''}</table>
+        <table class="roster"><tr><th>#</th><th>ਸਮਾਂ · Time</th><th>ਪਾਠੀ ਸਿੰਘ · Pathi Singh</th><th>ਦਸਤਖ਼ਤ · Sign</th></tr>
+        ${ro.rauls.map((x,i)=>`<tr><td>${i+1}</td><td>${x.from?G.esc(G.raulText(x)):'ਭੋਗ · Bhog'}</td><td>${G.esc(x.name||'—')}</td><td></td></tr>`).join('')}</table>
+        <div class="foot">ਵਾਹਿਗੁਰੂ ਜੀ ਕਾ ਖ਼ਾਲਸਾ, ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫ਼ਤਹਿ।</div>`};
+    API.watchSettings(s=>{settings=s;draw()});
+    API.onAuth((u,ok)=>{if(!u||!ok)return msg('Only the committee can open the roster. Sign in on the committee page in this browser, then open this again.');
+      API.watchAdmin(x=>{d=x;draw()})});
+    return;
+  }
   const expId=q.get('exp');
   if(expId){document.title='Payment voucher';msg('Loading voucher… (sign in on the committee page first)');let settingsOk=false,e=null;
     const draw=()=>{if(settingsOk&&e)$('sheet').innerHTML=expHtml(e)};

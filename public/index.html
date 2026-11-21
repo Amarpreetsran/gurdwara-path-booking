@@ -274,6 +274,7 @@
     <div id="status" class="note" style="margin-top:12px">ਬੁਕਿੰਗਾਂ ਲੋਡ ਹੋ ਰਹੀਆਂ ਹਨ…</div>
   </div>
   <div class="panel" id="side"></div>
+  <section class="panel" id="progBox" style="grid-column:1/-1" aria-labelledby="progTitle" hidden></section>
   <section class="panel infobox" id="infoBox" style="grid-column:1/-1" aria-labelledby="infoTitle"></section>
 </div></main>
 
@@ -738,6 +739,39 @@
     ()=>{clearTimeout(timer);$('status').className='note err';$('status').textContent='ਬੁਕਿੰਗਾਂ ਅੱਪਡੇਟ ਹੋਣੀਆਂ ਰੁਕ ਗਈਆਂ ਹਨ। ਪੰਨਾ ਮੁੜ ਖੋਲ੍ਹੋ ਜੀ।'});
   API.watchSettings(s=>{S.settings=s;softRender()});
   renderAll();
+})();
+</script>
+<script>
+// Coming programmes (gurpurabs etc.) with seva sign-up. The phone number is seen only by the committee.
+(function(){
+  const G=GPB,API=GPB_API,$=id=>document.getElementById(id),esc=G.esc,box=$('progBox');
+  let progs=[],open='',done={};
+  const typing=()=>box.contains(document.activeElement)&&/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+  function draw(){
+    if(typing())return;
+    box.hidden=!progs.length;if(!progs.length)return;
+    box.innerHTML=`<h2 id="progTitle" class="sec-title">ਆਉਣ ਵਾਲੇ ਸਮਾਗਮ <span class="en">Coming programmes</span></h2><div class="progs">`+progs.slice(0,6).map(p=>`<div class="prog">
+      <div class="pd">${G.fmtLong(p.date)}</div><h4>${esc(p.title)}</h4>${p.note?`<div class="meta" style="white-space:pre-line">${esc(p.note)}</div>`:''}
+      ${done[p.id]?`<div class="note good">ਧੰਨਵਾਦ ਜੀ 🙏 ਆਪ ਜੀ ਦਾ ਨਾਮ ${esc(done[p.id])} ਲਈ ਲਿਖ ਲਿਆ ਗਿਆ ਹੈ। <span class="en">Thank you, your name is noted for this seva.</span></div>`
+      :p.sevas.length?(open===p.id?`<form data-prog="${esc(p.id)}" novalidate>
+        <label>ਸੇਵਾ <span class="en">Seva</span><select name="seva">${p.sevas.map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
+        <label>ਨਾਮ <span class="en">Name</span><input name="name" maxlength="80" autocomplete="name"></label>
+        <label>ਫ਼ੋਨ (WhatsApp) <span class="en">Phone, seen only by the committee</span><input name="phone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel"></label>
+        <label>ਨੋਟ <span class="en">Note, optional (e.g. number of people)</span><input name="note" maxlength="200"></label>
+        <div class="pmsg"></div><div class="row"><button class="btn" type="submit">ਨਾਮ ਲਿਖਾਓ <span class="en">Give my name</span></button><button class="btn ghost" type="button" data-close>ਬੰਦ ਕਰੋ</button></div></form>`
+        :`<div class="row" style="margin-top:6px"><button class="btn ghost" type="button" data-open="${esc(p.id)}">🙏 ਸੇਵਾ ਲਈ ਨਾਮ ਲਿਖਾਓ <span class="en">Sign up for seva</span></button></div>`):''}</div>`).join('')+'</div>';
+  }
+  API.watchSettings(s=>{progs=G.upcomingProgrammes(s);draw()});
+  box.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o){open=o.dataset.open;draw();const f=box.querySelector('form [name=name]');f&&f.focus();return}
+    if(e.target.closest('[data-close]')){open='';draw()}});
+  box.addEventListener('submit',async e=>{e.preventDefault();const f=e.target,p=progs.find(x=>x.id===f.dataset.prog),m=f.querySelector('.pmsg');
+    const name=f.name.value.trim(),phone=f.phone.value.trim().replace(/\s+/g,' ');
+    if(name.length<2){m.innerHTML='<div class="note err">ਕਿਰਪਾ ਕਰਕੇ ਨਾਮ ਲਿਖੋ ਜੀ। <span class="en">Please write your name.</span></div>';return}
+    if(!/^[0-9+ \-]{7,20}$/.test(phone)){m.innerHTML='<div class="note err">ਕਿਰਪਾ ਕਰਕੇ ਫ਼ੋਨ ਨੰਬਰ ਲਿਖੋ ਜੀ। <span class="en">Please write your phone number.</span></div>';return}
+    const b=f.querySelector('[type=submit]');b.disabled=true;
+    try{await API.addSignup({prog:p.id,date:p.date,title:p.title.slice(0,120),seva:f.seva.value,name,phone,note:f.note.value.trim()});
+      done[p.id]=f.seva.value;open='';document.activeElement.blur();draw()}
+    catch(x){b.disabled=false;m.innerHTML='<div class="note err">ਸੇਵ ਨਹੀਂ ਹੋਇਆ, ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜੀ। <span class="en">Could not save. Please try again.</span></div>'}});
 })();
 </script>
 </body>
