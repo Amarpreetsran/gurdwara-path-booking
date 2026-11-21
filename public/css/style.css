@@ -199,3 +199,6 @@ footer .wrap{padding-block:0 32px;padding-bottom:max(32px,env(safe-area-inset-bo
 .gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
 .gallery a>span{display:block;padding:6px 10px;font-size:13px;font-weight:600}
 .gallery a>span .en{display:block;font-weight:400}
+.privacy{margin:8px 0;font-size:13px;color:var(--muted)}
+.privacy summary{cursor:pointer;font-weight:600}
+.privacy p{margin:6px 0 0;line-height:1.55}
