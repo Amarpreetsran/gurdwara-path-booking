@@ -39,6 +39,9 @@ service cloud.firestore {
         ? get(/databases/$(database)/documents/settings/main).data.get('leadDays', {}).get(type, dflt)
         : dflt;
     }
+    // Seva bheta given online without a path booking (reference "S" + 5). The phone is kept apart, for the committee only.
+    function sevaPath(ref) { return /databases/$(database)/documents/sevaonly/$(ref); }
+    function sevaContactPath(ref) { return /databases/$(database)/documents/sevacontacts/$(ref); }
     function farEnough(s, type) {
       let p = s.split('-');
       return timestamp.date(int(p[0]), int(p[1]), int(p[2])) > request.time + duration.value((leadDays(type) - 1) * 24, 'h');
@@ -106,7 +109,7 @@ service cloud.firestore {
         && (d.bookedAt == request.time || keptBookingTime(d))
         && !dateClosed(d.date)
         && inFuture(d.start)
-        && farEnough(d.start, d.type)
+        && (isAdmin() || farEnough(d.start, d.type))
         && (
           // First day of any path: must come with the private contact record.
           (d.part == 0 && d.date == d.start && existsAfter(contactPath(id))
@@ -221,6 +224,10 @@ service cloud.firestore {
     match /counters/{id} {
       allow read, write: if isAdmin();
     }
+    // Money paid out by the gurdwara (Pathi Singh bheta and other expenses): committee only.
+    match /expenses/{id} {
+      allow read, write: if isAdmin();
+    }
 
     match /settings/{id} {
       allow read: if true;
@@ -235,6 +242,31 @@ service cloud.firestore {
     match /Gurlal/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;
+    }
+
+    match /sevaonly/{ref} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (ref.matches('^S[A-Z0-9]{5}$')
+        && request.resource.data.keys().hasOnly(['name', 'amount', 'purpose', 'utr', 'status', 'createdAt'])
+        && request.resource.data.status == 'checking'
+        && request.resource.data.amount is int && request.resource.data.amount >= 1 && request.resource.data.amount <= 100000
+        && text(request.resource.data.name, 150)
+        && request.resource.data.purpose is string && request.resource.data.purpose.size() <= 80
+        && request.resource.data.utr is string && request.resource.data.utr.matches('^[0-9A-Za-z]{6,30}$')
+        && request.resource.data.createdAt == request.time
+        && existsAfter(sevaContactPath(ref)));
+      allow update, delete: if isAdmin();
+    }
+    match /sevacontacts/{ref} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() || (!exists(sevaContactPath(ref))
+        && existsAfter(sevaPath(ref))
+        && request.resource.data.keys().hasOnly(['phone', 'pkey', 'createdAt'])
+        && text(request.resource.data.phone, 20)
+        && request.resource.data.pkey is string && request.resource.data.pkey.size() <= 20
+        && request.resource.data.createdAt == request.time);
+      allow update, delete: if isAdmin();
     }
   }
 }
