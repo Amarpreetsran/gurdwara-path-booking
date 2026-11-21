@@ -202,3 +202,51 @@ footer .wrap{padding-block:0 32px;padding-bottom:max(32px,env(safe-area-inset-bo
 .privacy{margin:8px 0;font-size:13px;color:var(--muted)}
 .privacy summary{cursor:pointer;font-weight:600}
 .privacy p{margin:6px 0 0;line-height:1.55}
+
+/* ---------- Committee: sections, roles, rosters ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-size:14px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.tabs button[aria-current="page"]{background:var(--navy);color:var(--navy-ink);border-color:var(--navy)}
+.tabs .whoami{flex-basis:100%;font-size:13px;color:var(--muted)}
+.tabcount{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:12px;line-height:18px;text-align:center}
+body[data-role="sevadar"] [data-need="treasurer"],body[data-role="sevadar"] [data-need="admin"],body[data-role="treasurer"] [data-need="admin"],body:not([data-role]) [data-need],body[data-role=""] [data-need]{display:none!important}
+.bitem.off{opacity:.6}
+.bitem .bmain{grid-column:1/-1}
+.bitem .bdate + .bmain{grid-column:auto}
+.rosterForm,.signup{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.rosterForm h4,.rosterForm h5{margin:0 0 8px;font-family:var(--display)}
+.rosterForm h5{margin-top:14px}
+.tablewrap{overflow-x:auto;max-width:100%}
+.rtable{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+.rtable th,.rtable td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
+.rtable th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.rtable select{width:auto;min-width:160px}
+.warnc{color:var(--bad);font-size:12px}
+.fillturn{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.chk{display:inline-flex;gap:6px;align-items:center;width:auto;font-size:14px}
+.chk input{width:auto}
+fieldset.checks{border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:grid;gap:4px}
+fieldset.checks legend{font-size:14px;padding:0 4px}
+pre.share{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;margin:8px 0;color:var(--ink)}
+.loglist .rtable td{font-size:13px}
+/* ---------- Booking page: programmes ---------- */
+.progs{display:grid;gap:10px}
+.prog{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface)}
+.prog .pd{font-family:var(--display);font-weight:700;color:var(--kesri-ink)}
+@media (prefers-color-scheme:dark){.prog .pd{color:var(--kesri)}}
+.prog h4{margin:2px 0 4px;font-family:var(--display);font-size:18px}
+.prog form{margin-top:8px;display:grid;gap:8px}
+/* ---------- Pathi Singh page ---------- */
+.raul.mine{background:var(--kesri-soft);font-weight:600}
+.sec-title{font-family:var(--display);font-size:22px;margin:0 0 10px;font-weight:700}
+.payrow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.payrow input{width:100px}
+.rosterForm{min-width:0;overflow:hidden}
+@media (max-width:600px){
+  .bitem{grid-template-columns:56px minmax(0,1fr)}
+  .bitem > .btn.danger{grid-column:2;justify-self:start}
+  .bitem .rosterForm{margin-left:-68px}
+  .rtable td:nth-child(2){min-width:110px}
+}
+.loglist .rtable td:last-child{min-width:200px}
+header .hd{flex:1 1 200px}
