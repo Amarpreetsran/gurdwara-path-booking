@@ -10,10 +10,34 @@
 //   cancelled - committee cancelled the booking      -> path_booking_cancelled
 //   void      - committee voided a receipt           -> path_receipt_void
 //   refund    - committee recorded a refund          -> path_refund_issued
+// Seva bheta without a path booking (reference S…), using the same templates:
+//   seva_reported / seva_payment / seva_notfound / seva_void
 import { getDoc, sendOnce, toNumber, TEMPLATES, TYPES, whenText, statusText, money, account, siteUrl, reasonText, cancelParams } from '../lib/gpb.mjs';
 
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-const EVENTS = ['booked', 'reported', 'payment', 'notfound', 'moved', 'cancelled', 'void', 'refund'];
+const EVENTS = ['booked', 'reported', 'payment', 'notfound', 'moved', 'cancelled', 'void', 'refund', 'seva_reported', 'seva_payment', 'seva_notfound', 'seva_void'];
+const SEVA_LABEL = 'ਸੇਵਾ ਭੇਟਾ (ਗੁਰਦੁਆਰਾ ਸਾਹਿਬ) / Seva bheta for Gurdwara Sahib';
+const dayText = iso => new Date(iso).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+
+async function sevaOnly(ref, event) {
+  const d = await getDoc(`sevaonly/${ref}`);
+  if (!d) return json(404, { error: 'no such seva' });
+  const c = await getDoc(`sevacontacts/${ref}`);
+  if (!c || !c.phone) return json(200, { ok: true, results: [], note: 'no phone' });
+  const s = (await getDoc('settings/main')) || {};
+  const to = toNumber(c.phone), url = siteUrl(), office = s.phone || 'ਗੁਰਦੁਆਰਾ ਦਫ਼ਤਰ / gurdwara office', r = d.receipt;
+  const results = [], send = async (key, tpl, params) => results.push(await sendOnce(key, to, tpl, params, { ref, event }));
+  if (event === 'seva_reported' && d.status === 'checking')
+    await send(`${ref}_rep`, TEMPLATES.checking, [d.name, SEVA_LABEL, ref, money(d.amount), d.utr || '-']);
+  if (event === 'seva_notfound' && d.status === 'rejected')
+    await send(`${ref}_nf`, TEMPLATES.notfound, [d.name, ref, money(d.amount), d.utr || '-', office]);
+  if (event === 'seva_payment' && d.status === 'verified' && r && !r.void)
+    await send(`${ref}_rcpt`, TEMPLATES.payment, [`${money(r.amount)} ਸੇਵਾ ਭੇਟਾ / seva bheta`, SEVA_LABEL, dayText(r.date), ref, r.no,
+      'ਸੇਵਾ ਭੇਟਾ, ਕੋਈ ਬਕਾਇਆ ਨਹੀਂ / Seva, nothing due', url ? `${url}/receipt.html?seva=${ref}` : `receipt ${r.no}`]);
+  if (event === 'seva_void' && r && r.void)
+    await send(`${ref}_void`, TEMPLATES.void, [d.name, ref, r.no, money(r.amount) + ' (ਸੇਵਾ ਭੇਟਾ / seva)', reasonText(r.void.reason), '-']);
+  return json(200, { ok: true, results });
+}
 
 export default async (req) => {
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
@@ -22,6 +46,7 @@ export default async (req) => {
   ref = String(ref || '').toUpperCase();
   if (!/^[A-Z0-9]{6}$/.test(ref) || !EVENTS.includes(event)) return json(400, { error: 'bad request' });
   try {
+    if (event.startsWith('seva_')) return await sevaOnly(ref, event);
     const l = await getDoc(`lookup/${ref}`);
     if (!l) return json(404, { error: 'no such booking' });
     const c = await getDoc(`contacts/${l.slot}`);
