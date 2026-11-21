@@ -13,6 +13,10 @@
 //   SITE_URL                  e.g. https://babajeonsinghpathbooking.netlify.app
 //   WA_LANG                   template language code, default "en"
 //   WA_API_VERSION            Graph API version, default "v21.0"
+//   WA_VERIFY_TOKEN           any secret word; the same word goes in Meta's webhook settings (delivery tracking)
+//   WA_APP_SECRET             optional: Meta app secret, so only Meta can report delivery status
+//   BACKUP_EMAIL_TO           where the weekly backup goes (one or more emails, comma separated)
+//   SMTP_USER, SMTP_PASS      the Gmail address that sends it, and its 16-letter Gmail "app password"
 import crypto from 'node:crypto';
 
 const env = k => (process.env[k] || '').trim();
@@ -91,6 +95,27 @@ export async function deleteDoc(path) {
   const r = await fetch(`${base()}/${path}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + await googleToken() } });
   if (!r.ok && r.status !== 404) throw new Error(`Firestore delete ${path}: ${r.status} ${await r.text()}`);
 }
+// filters: [[field, op, value]] with op EQUAL, ARRAY_CONTAINS, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL ...
+export async function query(collection, filters) {
+  const r = await fetch(`${base()}:runQuery`, { method: 'POST',
+    headers: { Authorization: 'Bearer ' + await googleToken(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: collection }],
+      where: { compositeFilter: { op: 'AND', filters: filters.map(([f, op, v]) => ({ fieldFilter: { field: { fieldPath: f }, op, value: toValue(v) } })) } } } }) });
+  if (!r.ok) throw new Error(`Firestore query: ${r.status} ${await r.text()}`);
+  return (await r.json()).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), data: fromFields(x.document.fields) }));
+}
+// Every document in a collection (for the backup).
+export async function listAll(collection) {
+  const out = []; let token = '';
+  do {
+    const r = await fetch(`${base()}/${collection}?pageSize=300${token ? '&pageToken=' + encodeURIComponent(token) : ''}`, { headers: { Authorization: 'Bearer ' + await googleToken() } });
+    if (!r.ok) throw new Error(`Firestore list ${collection}: ${r.status} ${await r.text()}`);
+    const j = await r.json();
+    (j.documents || []).forEach(d => out.push({ id: d.name.split('/').pop(), data: fromFields(d.fields) }));
+    token = j.nextPageToken || '';
+  } while (token);
+  return out;
+}
 export async function queryEq(collection, filters) {
   const r = await fetch(`${base()}:runQuery`, { method: 'POST',
     headers: { Authorization: 'Bearer ' + await googleToken(), 'Content-Type': 'application/json' },
@@ -98,6 +123,43 @@ export async function queryEq(collection, filters) {
       where: { compositeFilter: { op: 'AND', filters: Object.entries(filters).map(([f, v]) => ({ fieldFilter: { field: { fieldPath: f }, op: 'EQUAL', value: toValue(v) } })) } } } }) });
   if (!r.ok) throw new Error(`Firestore query: ${r.status} ${await r.text()}`);
   return (await r.json()).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), data: fromFields(x.document.fields) }));
+}
+
+// ---------- Committee sign-in check for server actions ----------
+// The committee page sends its Firebase sign-in token; it is checked against Google's public keys.
+let certCache = null;
+async function googleCerts() {
+  if (certCache && certCache.exp > Date.now()) return certCache.certs;
+  const r = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
+  const certs = await r.json(), m = String(r.headers.get('cache-control') || '').match(/max-age=(\d+)/);
+  certCache = { certs, exp: Date.now() + (m ? Number(m[1]) * 1000 : 3600e3) };
+  return certs;
+}
+export async function verifyIdToken(tok) {
+  const [h, p, sig] = String(tok || '').split('.');
+  if (!h || !p || !sig) throw new Error('bad token');
+  const head = JSON.parse(Buffer.from(h, 'base64url')), pay = JSON.parse(Buffer.from(p, 'base64url'));
+  const pem = (await googleCerts())[head.kid];
+  if (head.alg !== 'RS256' || !pem) throw new Error('bad token key');
+  const ok = crypto.createVerify('RSA-SHA256').update(h + '.' + p).verify(crypto.createPublicKey(pem), Buffer.from(sig, 'base64url'));
+  const proj = serviceAccount().project_id, now = Date.now() / 1000;
+  if (!ok || pay.aud !== proj || pay.iss !== `https://securetoken.google.com/${proj}` || !(pay.exp > now) || !(pay.iat <= now + 300) || !pay.sub) throw new Error('token not valid');
+  return pay;
+}
+const RANK = { sevadar: 1, treasurer: 2, admin: 3 };
+// Returns { uid, role, name } for a committee member, or null.
+export async function committeeUser(req, need) {
+  const tok = String(req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!tok) return null;
+  let pay; try { pay = await verifyIdToken(tok); } catch (e) { return null; }
+  let u = null;
+  for (const c of ['admins', 'Gurlal']) if (!u && await getDoc(`${c}/${pay.sub}`)) u = { uid: pay.sub, role: 'admin', name: pay.email || '' };
+  if (!u) { const st = await getDoc(`staff/${pay.sub}`); if (st && st.active) u = { uid: pay.sub, role: st.role, name: st.name || st.email || '' }; }
+  return u && (RANK[u.role] || 0) >= (RANK[need || 'sevadar'] || 9) ? u : null;
+}
+export async function addLog(u, action, ref, detail) {
+  const id = 'srv' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
+  await createOnce(`log/${id}`, { at: new Date(), by: u.uid, email: '', name: u.name || '', role: u.role, action, ref: ref || '', detail: String(detail || '').slice(0, 300) }).catch(() => {});
 }
 
 // ---------- Booking helpers (same rules as the website) ----------
@@ -159,7 +221,9 @@ export async function sendTemplate(to, name, params, lang) {
 
 // Sends one message at most once. notices/{key} remembers what was sent.
 export async function sendOnce(key, to, template, params, info) {
-  const claimed = await createOnce(`notices/${key}`, { template, to, createdAt: new Date(), status: 'sending', ...(info || {}) });
+  key = String(key).replace(/\//g, '-');   // receipt numbers contain "/", which would split the document path
+  // The message wording (params) is kept so the committee can send it again if it fails.
+  const claimed = await createOnce(`notices/${key}`, { template, to, params: (params || []).map(String), createdAt: new Date(), status: 'sending', ...(info || {}) });
   if (!claimed) return { key, skipped: true };
   try {
     const id = await sendTemplate(to, template, params);
@@ -180,8 +244,15 @@ export const TEMPLATES = {
   moved: env('WA_TPL_MOVED') || 'path_date_changed',
   cancelled: env('WA_TPL_CANCELLED') || 'path_booking_cancelled',
   void: env('WA_TPL_VOID') || 'path_receipt_void',
-  refund: env('WA_TPL_REFUND') || 'path_refund_issued'
+  refund: env('WA_TPL_REFUND') || 'path_refund_issued',
+  advance: env('WA_TPL_ADVANCE') || 'path_advance_reminder',
+  pathiRoster: env('WA_TPL_PATHI_ROSTER') || 'pathi_raul_assigned',
+  pathiReminder: env('WA_TPL_PATHI_REMINDER') || 'pathi_raul_reminder'
 };
+// Roster times, e.g. "Sat 28 Nov 8:00 AM – 10:00 AM" (times are kept as India wall-clock "YYYY-MM-DDTHH:MM").
+const clock = dt => { const [h, m] = dt.split('T')[1].split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+export const raulText = x => x.from ? `${fmt(x.from.slice(0, 10)).replace(/ \d{4}$/, '')} ${clock(x.from)} – ${clock(x.to)}` : (x.label || 'Bhog');
+export const pathiLink = id => siteUrl() ? `${siteUrl()}/pathi.html?id=${id}` : 'the gurdwara Pathi Singh page';
 // Punjabi + English wording for the reasons the committee picks (the committee page stores the English).
 const REASONS = {
   'Devotee asked to cancel': 'ਆਪ ਜੀ ਦੀ ਬੇਨਤੀ ਅਨੁਸਾਰ / As you requested',
