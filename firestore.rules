@@ -30,11 +30,10 @@ service cloud.firestore {
     function isAdmin() { return isOwner() || roleIn(['admin']); }
     function isTreasurer() { return isOwner() || roleIn(['admin', 'treasurer']); }
     function isStaff() { return isOwner() || roleIn(['admin', 'treasurer', 'sevadar']); }
-    // A sevadar may only add receipts and money received: nothing earlier is changed or removed.
+    // A sevadar may only add receipts and money received: every earlier receipt must still be there, unchanged.
     function onlyAdds(key) {
-      let n = request.resource.data.get(key, []);
-      let o = resource.data.get(key, []);
-      return n.size() >= o.size() && n[0:o.size()] == o;
+      return request.resource.data.get(key, []).size() >= resource.data.get(key, []).size()
+        && request.resource.data.get(key, []).hasAll(resource.data.get(key, []));
     }
     function sevadarLookupUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receipts', 'sevaReceipts', 'paidOnline', 'paidCash', 'checking'])
